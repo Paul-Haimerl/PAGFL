@@ -6,10 +6,10 @@ Authors@R:
            comment = c(ORCID = "0000-0003-3198-8317"))
 Maintainer: Paul Haimerl <paul.haimerl@maastrichtuniversity.nl>
 Description: 
-    In panel data analysis, the presence of unobservable group structures is a common challenge. Disregarding group-level heterogeneity by assuming a fully homogeneous panel can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
+    In panel data analysis, unobservable group structures are a common challenge. Disregarding group-level heterogeneity by assuming an entirely homogeneous panel can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
     This package addresses this issue by implementing the pairwise adaptive group fused Lasso (PAGFL) by Mehrabani (2023) <doi:10.1016/j.jeconom.2022.12.002>. 
-    PAGFL is a fast methodology to simultaneously identify latent group structures and estimate group-specific coefficients. 
-License: MIT + file LICENSE
+    PAGFL is an efficient methodology to identify latent group structures and estimate group-specific coefficients simultaneously. 
+License: AGPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
@@ -19,5 +19,5 @@ LinkingTo:
 Imports: 
     Rcpp, 
     pbapply
-BugReports: https://github.com/Paul-Haimerl/PAGFl/issues
-URL: https://github.com/Paul-Haimerl/PAGFl
+BugReports: https://github.com/Paul-Haimerl/PAGFL/issues
+URL: https://github.com/Paul-Haimerl/PAGFL

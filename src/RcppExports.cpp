@@ -11,32 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// demeanIndMat
-arma::mat demeanIndMat(arma::mat x, unsigned int n_periods, unsigned int N);
-RcppExport SEXP _PAGFL_demeanIndMat(SEXP xSEXP, SEXP n_periodsSEXP, SEXP NSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_periods(n_periodsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
-    rcpp_result_gen = Rcpp::wrap(demeanIndMat(x, n_periods, N));
-    return rcpp_result_gen;
-END_RCPP
-}
-// fdIndMat
-arma::mat fdIndMat(arma::mat x, unsigned int n_periods, unsigned int N);
-RcppExport SEXP _PAGFL_fdIndMat(SEXP xSEXP, SEXP n_periodsSEXP, SEXP NSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type n_periods(n_periodsSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
-    rcpp_result_gen = Rcpp::wrap(fdIndMat(x, n_periods, N));
-    return rcpp_result_gen;
-END_RCPP
-}
 // buildDiagX
 arma::mat buildDiagX(const arma::mat& X, const unsigned int& n_periods, const unsigned int& N, const arma::uvec& groups);
 RcppExport SEXP _PAGFL_buildDiagX(SEXP XSEXP, SEXP n_periodsSEXP, SEXP NSEXP, SEXP groupsSEXP) {
@@ -52,17 +26,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // PAGFL_Algo
-Rcpp::List PAGFL_Algo(arma::vec& y, arma::mat& X, const arma::mat& X_block, unsigned int& n_periods, const std::string& method, const arma::mat& Z, const bool& bias_correc, const double& lambda, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group);
-RcppExport SEXP _PAGFL_PAGFL_Algo(SEXP ySEXP, SEXP XSEXP, SEXP X_blockSEXP, SEXP n_periodsSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP bias_correcSEXP, SEXP lambdaSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP) {
+Rcpp::List PAGFL_Algo(arma::vec& y, arma::mat& X, unsigned int& n_periods, const std::string& method, arma::mat& Z, const bool& bias_correc, const double& lambda, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho);
+RcppExport SEXP _PAGFL_PAGFL_Algo(SEXP ySEXP, SEXP XSEXP, SEXP n_periodsSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP bias_correcSEXP, SEXP lambdaSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X_block(X_blockSEXP);
     Rcpp::traits::input_parameter< unsigned int& >::type n_periods(n_periodsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< const bool& >::type bias_correc(bias_correcSEXP);
     Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const double& >::type kappa(kappaSEXP);
@@ -70,31 +43,33 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int& >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_convergence(tol_convergenceSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_group(tol_groupSEXP);
-    rcpp_result_gen = Rcpp::wrap(PAGFL_Algo(y, X, X_block, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group));
+    Rcpp::traits::input_parameter< const double& >::type varrho(varrhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(PAGFL_Algo(y, X, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho));
     return rcpp_result_gen;
 END_RCPP
 }
 // IC
-double IC(const Rcpp::List& estimOutput, const arma::vec& y, const arma::mat& X_block, const double& rho);
-RcppExport SEXP _PAGFL_IC(SEXP estimOutputSEXP, SEXP ySEXP, SEXP X_blockSEXP, SEXP rhoSEXP) {
+double IC(const Rcpp::List& estimOutput, arma::vec& y, arma::mat& X, const double& rho, const std::string& method, unsigned int& n_periods, const unsigned int& N);
+RcppExport SEXP _PAGFL_IC(SEXP estimOutputSEXP, SEXP ySEXP, SEXP XSEXP, SEXP rhoSEXP, SEXP methodSEXP, SEXP n_periodsSEXP, SEXP NSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::List& >::type estimOutput(estimOutputSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type X_block(X_blockSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(IC(estimOutput, y, X_block, rho));
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< unsigned int& >::type n_periods(n_periodsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
+    rcpp_result_gen = Rcpp::wrap(IC(estimOutput, y, X, rho, method, n_periods, N));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_PAGFL_demeanIndMat", (DL_FUNC) &_PAGFL_demeanIndMat, 3},
-    {"_PAGFL_fdIndMat", (DL_FUNC) &_PAGFL_fdIndMat, 3},
     {"_PAGFL_buildDiagX", (DL_FUNC) &_PAGFL_buildDiagX, 4},
     {"_PAGFL_PAGFL_Algo", (DL_FUNC) &_PAGFL_PAGFL_Algo, 13},
-    {"_PAGFL_IC", (DL_FUNC) &_PAGFL_IC, 4},
+    {"_PAGFL_IC", (DL_FUNC) &_PAGFL_IC, 7},
     {NULL, NULL, 0}
 };
 

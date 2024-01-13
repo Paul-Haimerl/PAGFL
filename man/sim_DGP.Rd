@@ -30,7 +30,7 @@ sim_DGP(
 \item{error_spec}{the error specification used. Options are
 \describe{
 \item{\code{NULL}}{for \eqn{iid} errors.}
-\item{\code{'AR'}}{for an \eqn{AR(1)} error process with a coefficient of 0.5.}
+\item{\code{'AR'}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
 \item{\code{'GARCH'}}{for a \eqn{GARCH(1,1)} error process with a 0.05 constant, a 0.05 ARCH and a 0.9 GARCH coefficient.}
 }
 Default is \code{NULL}.}
@@ -39,15 +39,15 @@ Default is \code{NULL}.}
 
 \item{q}{the number of simulated exogenous instruments when a panel with endogenous regressors is generated. If \code{NULL}, the regressors are exogenous. Default is \code{NULL}.}
 
-\item{alpha_0}{optional pre-specified \eqn{K \times p} parameter vector. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). If \code{dyn_panel = TRUE}, the first column represents the stationary \eqn{AR} coefficient. Default is \code{NULL}.}
+\item{alpha_0}{optional pre-specified \eqn{K \times p} parameter matrix. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). If \code{dyn_panel = TRUE}, the first column represents the stationary \eqn{AR} coefficient. Default is \code{NULL}.}
 }
 \value{
 A list holding
 \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dyn_panel = TRUE}, the first column holds the \eqn{AR} coefficient.}
 \item{\code{groups}}{a vector indicating the group memberships.}
-\item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable.}
-\item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables.}
-\item{\code{Z}}{a \eqn{NT \times q} matrix of instruments. In case a panel with exogenous regressors is generated (\code{q = NULL}), \code{NULL} is returned.}
+\item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{y=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
+\item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{X=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+\item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{Z=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{Z} equals \code{NULL}.}
 }
 \description{
 Construct a static or dynamic, exogenous or endogenous panel data set subject to a latent group structure with optional \eqn{AR(1)} or \eqn{GARCH(1,1)} innovations.
@@ -61,12 +61,12 @@ where \eqn{\eta_i} represents individual fixed effects. \eqn{\eta_i} and \eqn{e_
 
 In case \code{alpha_0 = NULL}, the group-specific slope parameters \eqn{\alpha_{kj}} are drawn from \eqn{\sim U[-2, 2]}.
 
-If a dynamic panel is specified (\code{dyn_panel = TRUE}), the \eqn{AR} coefficient is drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
-The individual fixed effects enter via \eqn{(1 - \beta^{\text{AR}}_i) \eta_i} to account for the autoregressive dependency (note that \eqn{\alpha_k} refers to group-specific and \eqn{\beta_i} to individual parameter values).
+If a dynamic panel is specified (\code{dyn_panel = TRUE}), the \eqn{AR} coefficients \eqn{\beta^{\text{AR}}_i} are drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
+The individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \eta_i} to account for the autoregressive dependency (note that \eqn{\alpha_k} refers to group-specific and \eqn{\beta_i} to individual parameter values).
 I refer to Mehrabani (2023, sec 6) for details.
 
-When specifying an endogenous panel (set \code{q} to \eqn{\geq p}), \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5, which yields \eqn{E(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{Z} with \eqn{E(u|Z) = 0}.
-The instruments and the first stage coefficients are generated in the same fashion as \eqn{X} when \code{q = NULL} and as \eqn{\alpha}, respectively.
+When specifying an endogenous panel (set \code{q} to \eqn{\geq p}), \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors with \eqn{E(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{Z}, for which \eqn{E(u|Z) = 0} holds.
+The instruments and the first stage coefficients are generated in the same fashion as \eqn{X} (\eqn{X} when \code{q = NULL}) and as \eqn{\alpha}, respectively.
 }
 \examples{
 # Simulate DGP 1 from Mehrabani (2023, sec. 6)
