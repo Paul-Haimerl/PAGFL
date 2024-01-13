@@ -28,8 +28,9 @@ You can install the development version of `PAGFL` from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages('devtools')
-# devtools::install_github('Paul-Haimerl/PAGFL')
+devtools::install_github('Paul-Haimerl/PAGFL')
+#> Skipping install of 'PAGFL' from a github remote, the SHA1 (343e45ce) has not changed since last install.
+#>   Use `force = TRUE` to force installation
 library(PAGFL)
 ```
 
