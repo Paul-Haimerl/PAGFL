@@ -5,8 +5,11 @@
 
 <!-- badges: start -->
 
+[![CRAN_Version_Badge](http://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL)
+[![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL)
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 In panel data analysis, unobservable group structures are a common
@@ -28,8 +31,9 @@ You can install the development version of `PAGFL` from
 [GitHub](https://github.com/) with:
 
 ``` r
+# install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> Skipping install of 'PAGFL' from a github remote, the SHA1 (343e45ce) has not changed since last install.
+#> Skipping install of 'PAGFL' from a github remote, the SHA1 (8f6d061f) has not changed since last install.
 #>   Use `force = TRUE` to force installation
 library(PAGFL)
 ```
@@ -47,6 +51,17 @@ y <- sim$y
 X <- sim$X
 ```
 
+$$ y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
+where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
+vector of explanatory variables and $\eta_i$ reflects a fixed effect.
+The slope coefficients are subject to the group structure
+
+$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \}, $$
+with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
+$G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j\|$ for
+any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
+([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
+
 `sim_DGP` also nests, among other, all DGPs employed in the simulation
 study of Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6). I refer
@@ -57,7 +72,7 @@ details.
 ## Applying PAGFL
 
 To execute the PAGFL procedure, simply pass the dependent and
-independent variables, number of time periods and a penalization
+independent variables, the number of time periods and a penalization
 parameter $\lambda$.
 
 ``` r
@@ -88,6 +103,18 @@ print(estim)
 #> $convergence
 #> [1] TRUE
 ```
+
+`PAGFL` returns a list holding
+
+1.  the value of the IC (see Mehrabani
+    ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 3.4))
+2.  the $\lambda$ parameter
+3.  the $\widehat{K} \times p$ post-Lasso coefficient matrix
+    $\hat{\boldsymbol{\alpha}}^p$
+4.  the estimated number of groups $\hat{K}$
+5.  the estimated group structure
+6.  the number of executed *ADMM* algorithm iterations
+7.  a logical indicator if convergence was achieved
 
 Selecting a $\lambda$ value a priori can be tricky. Therefore, we
 suggest iterating over a comprehensive range of candidate values. To

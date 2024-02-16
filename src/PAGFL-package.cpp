@@ -527,8 +527,8 @@ arma::uvec getGroups(const arma::vec &beta, const arma::vec &y, const arma::mat 
     }
     // Remove empty groups
     groupList.erase(std::remove_if(groupList.begin(), groupList.end(), [](const arma::uvec &v)
-                                   { return v.is_empty(); }),
-                    groupList.end());
+    { return v.is_empty(); }),
+    groupList.end());
     // Compute a vector of group adherences
     arma::uvec groups_hat_raw(N, arma::fill::zeros);
     for (unsigned int i = 0; i < groupList.size(); ++i)

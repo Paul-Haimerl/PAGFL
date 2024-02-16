@@ -8,7 +8,7 @@ sim_DGP(
   N = 50,
   n_periods = 40,
   p = 2,
-  n_groups = max(2, floor(N/3)),
+  n_groups = 3,
   group_proportions = NULL,
   error_spec = NULL,
   dyn_panel = FALSE,
@@ -17,13 +17,13 @@ sim_DGP(
 )
 }
 \arguments{
-\item{N}{the number of cross-sectional units.}
+\item{N}{the number of cross-sectional units. Default is 50.}
 
-\item{n_periods}{the number of simulated time periods \eqn{T}.}
+\item{n_periods}{the number of simulated time periods \eqn{T}. Default is 40.}
 
-\item{p}{the number of explanatory variables.}
+\item{p}{the number of explanatory variables. Default is 2.}
 
-\item{n_groups}{the number of latent groups \eqn{K}.}
+\item{n_groups}{the number of latent groups \eqn{K}. Default is 3.}
 
 \item{group_proportions}{a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{\frac{N}{K}}. Default is \code{NULL}.}
 
@@ -37,36 +37,42 @@ Default is \code{NULL}.}
 
 \item{dyn_panel}{Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of the dependent variable (see sec. Details for information on the \eqn{AR} coefficient). Default is \code{FALSE}.}
 
-\item{q}{the number of simulated exogenous instruments when a panel with endogenous regressors is generated. If \code{NULL}, the regressors are exogenous. Default is \code{NULL}.}
+\item{q}{the number of exogenous instruments when a panel with endogenous regressors is to be simulated. If panel data set with exogenous regressors is supposed to be generated, pass \code{NULL}. Default is \code{NULL}.}
 
-\item{alpha_0}{optional pre-specified \eqn{K \times p} parameter matrix. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). If \code{dyn_panel = TRUE}, the first column represents the stationary \eqn{AR} coefficient. Default is \code{NULL}.}
+\item{alpha_0}{an optional pre-specified \eqn{K \times p} parameter matrix. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). If \code{dyn_panel = TRUE}, the first column represents the stationary \eqn{AR} coefficient. Default is \code{NULL}.}
 }
 \value{
 A list holding
 \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dyn_panel = TRUE}, the first column holds the \eqn{AR} coefficient.}
 \item{\code{groups}}{a vector indicating the group memberships.}
-\item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{y=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
-\item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{X=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
-\item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{Z=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{Z} equals \code{NULL}.}
+\item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
+\item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+\item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
 }
 \description{
 Construct a static or dynamic, exogenous or endogenous panel data set subject to a latent group structure with optional \eqn{AR(1)} or \eqn{GARCH(1,1)} innovations.
 }
 \details{
-The function nests the DGPs employed in the simulation study of Mehrabani (2023, sec. 6).
+The scalar dependent variable \eqn{y_{it}} is driven by the following panel data model
+\deqn{y_{it} = \eta_i + \beta_i^\prime x_{it} + u_{it}, \quad i = \{1, \dots, N\}, \quad t = \{1, \dots, T\}.}
+\eqn{\eta_i} represents individual fixed effects and \eqn{x_{it} = (x_{it,1}, \dots, x_{it,p})} a \eqn{p \times 1} vector of regressors.
+The individual slope coefficient vectors \eqn{\beta_i} are subject to a latent group structure \eqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\}}.
+As a consequence, the group-level coefficients \eqn{\bold{\alpha} = (\alpha^\prime_1, \dots, \alpha^\prime_K)^\prime} follow the partition \eqn{\bold{G}} of \eqn{N} cross-sectional units \eqn{\bold{G} = (G_1, \dots, G_K)} such that \eqn{\cup_{k=1}^K = \{1,\dots,N\}} and \eqn{G_k \cap G_l = \emptyset, \; \alpha_k \neq \alpha_l} for any two groups \eqn{k \neq l} (Mehrabani, 2023, sec. 2.1).
 
-The \eqn{p} exogenous regressors are generated as follows:
+If a panel data set with exogenous regressors is generated (set \code{q = NULL}), the \eqn{p} predictors are simulated as:
 \deqn{x_{it,j} = 0.2 \eta_i + e_{it,j}, \quad \eta_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
-where \eqn{\eta_i} represents individual fixed effects. \eqn{\eta_i} and \eqn{e_i} are independent of each other.
+where \eqn{e_{it,j}} denotes a series of innovations. \eqn{\eta_i} and \eqn{e_i} are independent of each other.
 
-In case \code{alpha_0 = NULL}, the group-specific slope parameters \eqn{\alpha_{kj}} are drawn from \eqn{\sim U[-2, 2]}.
+In case \code{alpha_0 = NULL}, the group-level slope parameters \eqn{\alpha_{k}} are drawn from \eqn{\sim U[-2, 2]}.
 
 If a dynamic panel is specified (\code{dyn_panel = TRUE}), the \eqn{AR} coefficients \eqn{\beta^{\text{AR}}_i} are drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
-The individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \eta_i} to account for the autoregressive dependency (note that \eqn{\alpha_k} refers to group-specific and \eqn{\beta_i} to individual parameter values).
+The individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \eta_i} to account for the autoregressive dependency.
 I refer to Mehrabani (2023, sec 6) for details.
 
-When specifying an endogenous panel (set \code{q} to \eqn{\geq p}), \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors with \eqn{E(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{Z}, for which \eqn{E(u|Z) = 0} holds.
-The instruments and the first stage coefficients are generated in the same fashion as \eqn{X} (\eqn{X} when \code{q = NULL}) and as \eqn{\alpha}, respectively.
+When specifying an endogenous panel (set \code{q} to \eqn{q \geq p}), \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors with \eqn{\text{E}(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{\bold{Z}}, for which \eqn{\text{E}(u|Z) = 0} holds.
+The instruments and the first stage coefficients are generated in the same fashion as \eqn{\bold{X}} and \eqn{\bold{\alpha}} when \code{q = NULL}, respectively.
+
+The function nests, among other, the DGPs employed in the simulation study of Mehrabani (2023, sec. 6).
 }
 \examples{
 # Simulate DGP 1 from Mehrabani (2023, sec. 6)

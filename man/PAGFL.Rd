@@ -16,16 +16,16 @@ PAGFL(
   kappa = 2,
   max_iter = 2000,
   tol_convergence = 0.001,
-  tol_group = NULL,
-  rho = NULL,
-  varrho = NULL,
+  tol_group = sqrt(p/(sqrt(N * n_periods) * log(log(N * n_periods)))),
+  rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
+  varrho = max(sqrt(5 * N * n_periods * p)/log(N * n_periods * p) - 7, 1),
   verbose = TRUE
 )
 }
 \arguments{
-\item{y}{a \eqn{NT \times 1} vector or data.frame of the dependent variable, with \eqn{y=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
+\item{y}{a \eqn{NT \times 1} vector or data.frame of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 
-\item{X}{a \eqn{NT \times p} matrix or data.frame of explanatory variables, with \eqn{X=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+\item{X}{a \eqn{NT \times p} matrix or data.frame of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 
 \item{n_periods}{the number of observed time periods \eqn{T}.}
 
@@ -33,15 +33,15 @@ PAGFL(
 
 \item{method}{the estimation method. Options are
 \describe{
-\item{\code{'PLS'}}{for using the penalized Least Squares (\emph{PLS}) algorithm. We recommend \emph{PLS} in case of (weakly) exogenous regressors.}
-\item{\code{'PGMM'}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors. A matrix \eqn{Z} contains the necessary exogenous instruments.}
+\item{\code{'PLS'}}{for using the penalized least squares (\emph{PLS}) algorithm. We recommend \emph{PLS} in case of (weakly) exogenous regressors (Mehrabani, 2023, sec. 2.2).}
+\item{\code{'PGMM'}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors (Mehrabani, 2023, sec. 2.3). A matrix \eqn{Z} contains the necessary exogenous instruments.}
 } Default is \code{'PLS'}.}
 
-\item{Z}{a \eqn{NT \times q} matrix of exogenous instruments, where \eqn{q \geq p}, \eqn{Z=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \eqn{Z} is only required when \code{method = 'PGMM'} is selected. When using \code{'PLS'}, either pass \code{NULL} or any matrix \eqn{Z} is disregarded. Default is \code{NULL}.}
+\item{Z}{a \eqn{NT \times q} matrix of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \eqn{Z} is only required when \code{method = 'PGMM'} is selected. When using \code{'PLS'}, either pass \code{NULL} or any matrix \eqn{\bold{Z}} is disregarded. Default is \code{NULL}.}
 
 \item{min_group_frac}{the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.}
 
-\item{bias_correc}{logical. If \code{TRUE}, a Split-panel Jackknife bias correction is applied to the slope parameters (Dhaene & Jochmans, 2015). We recommend using this correction when facing a dynamic panel. Default is \code{FALSE}.}
+\item{bias_correc}{logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using this correction when facing a dynamic panel. Default is \code{FALSE}.}
 
 \item{kappa}{the weight placed on the adaptive penalty weights. Default is 2.}
 
@@ -49,11 +49,11 @@ PAGFL(
 
 \item{tol_convergence}{the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is 0.001.}
 
-\item{tol_group}{the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. If \code{NULL}, the heuristic \eqn{\sqrt{\frac{p}{\sqrt{NT} \log(\log(NT))}}} is used. We recommend the default \code{NULL}.}
+\item{tol_group}{the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. If left unspecified, the heuristic \eqn{\sqrt{\frac{p}{\sqrt{NT} \log(\log(NT))}}} is used. We recommend the default.}
 
-\item{rho}{the tuning parameter balancing the fitness and penalty terms in the information criterion that determines the penalty parameter \eqn{\lambda}. If \code{NULL}, the heuristic \eqn{\rho = 0.07 \frac{\sqrt{NT} \log(NT)}{NT}} of Mehrabani (2023, sec. 6) is used. We recommend the default \code{NULL}.}
+\item{rho}{the tuning parameter balancing the fitness and penalty terms in the information criterion that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\sqrt{NT} \log(NT)}{NT}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
 
-\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence of the algorithm. If \code{NULL}, the heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used. The default is \code{NULL}.}
+\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence of the algorithm. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used.}
 
 \item{verbose}{logical. If \code{TRUE}, a progression bar is printed when iterating over candidate \eqn{\lambda} values and helpful warning messages are shown. Default is \code{TRUE}.}
 }
@@ -75,17 +75,17 @@ It can handle static and dynamic panels, either with or without endogenous regre
 The \emph{PLS} method minimizes the following criterion:
 \deqn{\frac{1}{T} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \beta^\prime_i \tilde{x}_{it})^2 + \frac{\lambda}{N} \sum_{1 \leq i} \sum_{i<j \leq N} \dot{w}_{ij} \| \beta_i - \beta_j \|,}
 where \eqn{\tilde{y}_{it}} is the de-meaned dependent variable, \eqn{\tilde{x}_{it}} represents a vector of de-meaned weakly exogenous explanatory variables, \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} reflects adaptive penalty weights (see Mehrabani, 2023, eq. 2.6). \eqn{\| \cdot \|} denotes the Frobenius norm.
-The adaptive weights \eqn{\dot{w}_{ij}} are obtained by a preliminary Least Squares estimation.
-The solution \eqn{\hat{\beta}} is computed via an iterative \emph{ADMM} algorithm (see Mehrabani, 2023, sec. 5.1).
+The adaptive weights \eqn{\dot{w}_{ij}} are obtained by a preliminary least squares estimation.
+The solution \eqn{\hat{\beta}} is computed via an iterative alternating direction method of multipliers (\emph{ADMM}) algorithm (see Mehrabani, 2023, sec. 5.1).
 
-\emph{PGMM} employs a set of instruments \eqn{Z} to control for endogenous regressors. Using \emph{PGMM}, \eqn{\beta} is estimated by minimizing:
+\emph{PGMM} employs a set of instruments \eqn{Z} to control for endogenous regressors. Using \emph{PGMM}, \eqn{\bold{\beta} = (\beta_1^\prime, \dots, \beta_N^\prime)^\prime} is estimated by minimizing:
 \deqn{\sum^N_{i = 1} \left[ \frac{1}{N} \sum_{t=1}^T z_{it} (\Delta y_{it} - \beta^\prime_i \Delta x_{it}) \right]^\prime W_i \left[\frac{1}{T} \sum_{t=1}^T z_{it}(\Delta y_{it} - \beta^\prime_i \Delta x_{it}) \right] + \frac{\lambda}{N} \sum_{1 \leq i} \sum_{i<j \leq N} \ddot{w}_{ij} \| \beta_i - \beta_j \|.}
 \eqn{\ddot{w}_{ij}} are obtained by an initial \emph{GMM} estimation. \eqn{\Delta} gives the first differences operator \eqn{\Delta y_{it} = y_{it} - y_{i t-1}}. \eqn{W_i} represents a data-driven \eqn{q \times q} weight matrix. I refer to Mehrabani (2023, eq. 2.10) for more details.
-\eqn{\hat{\beta}} is again estimated employing an efficient \emph{ADMM} algorithm (Mehrabani, 2023, sec. 5.2).
+\eqn{\bold{\beta}} is again estimated employing an efficient \emph{ADMM} algorithm (Mehrabani, 2023, sec. 5.2).
 
-Two individuals are allocated to the same group if \eqn{\| \hat{\beta}_i - \hat{\beta}_j \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is reflected by \code{tol_group}.
+Two individuals are assigned to the same group if \eqn{\| \hat{\beta}_i - \hat{\beta}_j \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is given by \code{tol_group}.
 
-We suggest identifying a suitable \eqn{\lambda} parameter by searching over a logarithmically spaced grid of candidate values with a lower limit of 0 and an upper limit that leads to a fully homogenous panel. A BIC-type information criterion then selects the best fitting \eqn{\lambda} value.
+We suggest identifying a suitable \eqn{\lambda} parameter by passing a logarithmically spaced grid of candidate values with a lower limit of 0 and an upper limit that leads to a fully homogenous panel. A BIC-type information criterion then selects the best fitting \eqn{\lambda} value.
 }
 \examples{
 # Simulate a panel with a group structure

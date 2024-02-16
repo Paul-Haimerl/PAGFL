@@ -1,9 +1,9 @@
 Package: PAGFL
 Title: Joint Estimation and Identification of Latent Groups in Panel Data Models
-Version: 0.9
-Authors@R: 
-    person("Paul", "Haimerl", , "paul.haimerl@maastrichtuniversity.nl", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0003-3198-8317"))
+Version: 1.0.0
+Authors@R: c(
+    person("Paul", "Haimerl", email = "paul.haimerl@maastrichtuniversity.nl", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
+    person("Ali", "Mehrabani", email = "ali.mehrabani@email.ucr.edu", role = "ctb", comment = c(ORCID = "0000-0002-1848-5582")))
 Maintainer: Paul Haimerl <paul.haimerl@maastrichtuniversity.nl>
 Description: 
     In panel data analysis, unobservable group structures are a common challenge. Disregarding group-level heterogeneity by assuming an entirely homogeneous panel can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
