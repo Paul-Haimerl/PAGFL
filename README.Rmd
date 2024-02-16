@@ -39,6 +39,12 @@ devtools::install_github('Paul-Haimerl/PAGFL')
 library(PAGFL)
 ```
 
+The stable version is available on CRAN:
+
+```
+install.packages("PAGFL")
+```
+
 ## Data
 
 The `PAGFL` packages includes a function that automatically simulates a panel with a group structure:

@@ -33,10 +33,24 @@ You can install the development version of `PAGFL` from
 ``` r
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> Skipping install of 'PAGFL' from a github remote, the SHA1 (8f6d061f) has not changed since last install.
-#>   Use `force = TRUE` to force installation
+#> Downloading GitHub repo Paul-Haimerl/PAGFL@HEAD
+#> 
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' (1.7s)
+#>       ─  preparing 'PAGFL':
+#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#> ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts (556ms)
+#>       ─  checking for empty or unneeded directories
+#>       ─  building 'PAGFL_1.0.0.tar.gz'
+#>      
+#> 
 library(PAGFL)
 ```
+
+The stable version is available on CRAN:
+
+    install.packages("PAGFL")
 
 ## Data
 
