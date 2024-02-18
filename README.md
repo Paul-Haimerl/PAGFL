@@ -65,12 +65,12 @@ y <- sim$y
 X <- sim$X
 ```
 
-$$ y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
+$$y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
 where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
 vector of explanatory variables and $\eta_i$ reflects a fixed effect.
 The slope coefficients are subject to the group structure
 
-$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}_{\{i \in G_k \}},$$
+$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}{\{i \in G_k \}}, $$
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
