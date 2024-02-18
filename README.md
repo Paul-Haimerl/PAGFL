@@ -36,13 +36,13 @@ devtools::install_github('Paul-Haimerl/PAGFL')
 #> Downloading GitHub repo Paul-Haimerl/PAGFL@HEAD
 #> 
 #> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpqavyox\remotes1c6470b32407\Paul-Haimerl-PAGFL-ce820c1/DESCRIPTION' (1.7s)
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' (537ms)
 #>       ─  preparing 'PAGFL':
-#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
-#> ─  cleaning src
-#>       ─  checking for LF line-endings in source and make files and shell scripts (556ms)
+#>    checking DESCRIPTION meta-information     checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#>   ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts
 #>       ─  checking for empty or unneeded directories
-#>       ─  building 'PAGFL_1.0.0.tar.gz'
+#>       ─  building 'PAGFL_1.0.1.tar.gz'
 #>      
 #> 
 library(PAGFL)
@@ -70,9 +70,9 @@ where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
 vector of explanatory variables and $\eta_i$ reflects a fixed effect.
 The slope coefficients are subject to the group structure
 
-$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \}, $$
+$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}_{\{i \in G_k \}}, $$
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
-$G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j\|$ for
+$G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
@@ -125,7 +125,7 @@ print(estim)
 2.  the $\lambda$ parameter
 3.  the $\widehat{K} \times p$ post-Lasso coefficient matrix
     $\hat{\boldsymbol{\alpha}}^p$
-4.  the estimated number of groups $\hat{K}$
+4.  the estimated number of groups $\widehat{K}$
 5.  the estimated group structure
 6.  the number of executed *ADMM* algorithm iterations
 7.  a logical indicator if convergence was achieved
