@@ -33,18 +33,8 @@ You can install the development version of `PAGFL` from
 ``` r
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> Downloading GitHub repo Paul-Haimerl/PAGFL@HEAD
-#> 
-#> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmp27jHt0\remotes55cc134816ad\Paul-Haimerl-PAGFL-debce34/DESCRIPTION' (537ms)
-#>       ─  preparing 'PAGFL':
-#>    checking DESCRIPTION meta-information     checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
-#>   ─  cleaning src
-#>       ─  checking for LF line-endings in source and make files and shell scripts
-#>       ─  checking for empty or unneeded directories
-#>       ─  building 'PAGFL_1.0.1.tar.gz'
-#>      
-#> 
+#> Skipping install of 'PAGFL' from a github remote, the SHA1 (5b793c6c) has not changed since last install.
+#>   Use `force = TRUE` to force installation
 library(PAGFL)
 ```
 
@@ -70,7 +60,7 @@ where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
 vector of explanatory variables and $\eta_i$ reflects a fixed effect.
 The slope coefficients are subject to the group structure
 
-$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}_{\{i \in G_k \}}, $$
+$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}_{\{i \in G_k \}},$$
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
