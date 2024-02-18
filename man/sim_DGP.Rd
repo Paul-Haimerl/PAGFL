@@ -88,11 +88,6 @@ alpha_0_DGP6 <- cbind(
   c(-4, -3, -2, -1, 1, 2, 3, 4),
   c(4, 3, 2, 1, -1, -2, -3, -4)
 )
-DGP6 <- sim_DGP(
-  N = 50, n_periods = 20, p = 2, n_groups = 8,
-  group_proportions = c(.3, rep(.1, 7)), dyn_panel = TRUE,
-  alpha_0 = alpha_0_DGP6
-)
 }
 \references{
 Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. \emph{Journal of Econometrics}, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.

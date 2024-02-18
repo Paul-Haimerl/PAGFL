@@ -1,14 +1,9 @@
-## Win devel check results
-
-0 errors | 0 warnings | 1 note
-
-* Possibly misspelled words in DESCRIPTION:
-  Mehrabani (11:106)
-  PAGFL (11:96, 12:5)
-  unobservable (10:29)
+Patch to fix freak bug in the M1mac build that occurs when running an example of sim_DGP()
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes
 
-* This is a new release.
+## R-devel wi.builder check
+
+0 errors | 0 warnings | 0 notes

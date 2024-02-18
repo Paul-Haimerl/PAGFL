@@ -1,6 +1,6 @@
 Package: PAGFL
 Title: Joint Estimation and Identification of Latent Groups in Panel Data Models
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Paul", "Haimerl", email = "paul.haimerl@maastrichtuniversity.nl", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
     person("Ali", "Mehrabani", email = "ali.mehrabani@email.ucr.edu", role = "ctb", comment = c(ORCID = "0000-0002-1848-5582")))

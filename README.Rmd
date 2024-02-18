@@ -59,7 +59,7 @@ X <- sim$X
 
 $$ y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$ where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$ vector of explanatory variables and $\eta_i$ reflects a fixed effect. The slope coefficients are subject to the group structure
 
-$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \}, $$ with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and $G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j\|$ for any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
+$$\beta_{it} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}_{\{i \in G_k \}}, $$ with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and $G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
 `sim_DGP` also nests, among other, all DGPs employed in the simulation study of Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6). I refer to the documentation of `sim_DGP` or Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6) for more details.
 
@@ -77,7 +77,7 @@ print(estim)
 1.  the value of the IC (see Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 3.4))
 2.  the $\lambda$ parameter
 3.  the $\widehat{K} \times p$ post-Lasso coefficient matrix $\hat{\boldsymbol{\alpha}}^p$
-4.  the estimated number of groups $\hat{K}$
+4.  the estimated number of groups $\widehat{K}$
 5.  the estimated group structure
 6.  the number of executed *ADMM* algorithm iterations
 7.  a logical indicator if convergence was achieved
