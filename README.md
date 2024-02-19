@@ -67,19 +67,19 @@ X <- sim$X
 
 $$y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
 where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
-vector of explanatory variables and $\eta_i$ reflects a fixed effect.
+vector of explanatory variables, and $\eta_i$ reflects a fixed effect.
 The slope coefficients are subject to the group structure
 
 $$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1}{\{i \in G_k \}}, $$
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
-([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
+[2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
 `sim_DGP` also nests, among other, all DGPs employed in the simulation
 study of Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6). I refer
-to the documentation of `sim_DGP` or Mehrabani
+to the documentation `?sim_DGP()` or Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6) for more
 details.
 
@@ -121,7 +121,7 @@ print(estim)
 `PAGFL` returns a list holding
 
 1.  the value of the IC (see Mehrabani
-    ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 3.4))
+    [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 3.4)
 2.  the $\lambda$ parameter
 3.  the $\widehat{K} \times p$ post-Lasso coefficient matrix
     $\hat{\boldsymbol{\alpha}}^p$
@@ -184,7 +184,7 @@ Jochmans ([2015](https://doi.org/10.1093/restud/rdv007)).
 ``` r
 # Generate a panel where the predictors X correlate with the cross-sectional innovation, 
 # but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
-# innovations, an AR lag of the dependent variable and specific group sizes
+# innovations, an AR lag of the dependent variable, and specific group sizes
 sim_endo <- sim_DGP(N = 50, n_periods = 150, p = 2, n_groups = 3, group_proportions = c(0.2, 0.2, 0.6), 
 error_spec = 'GARCH', q = 3)
 y_endo <- sim_endo$y
