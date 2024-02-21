@@ -27,7 +27,7 @@ sim_DGP(
 
 \item{group_proportions}{a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{\frac{N}{K}}. Default is \code{NULL}.}
 
-\item{error_spec}{the error specification used. Options are
+\item{error_spec}{the used error specification. Options are
 \describe{
 \item{\code{NULL}}{for \eqn{iid} errors.}
 \item{\code{'AR'}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
@@ -44,7 +44,7 @@ Default is \code{NULL}.}
 \value{
 A list holding
 \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dyn_panel = TRUE}, the first column holds the \eqn{AR} coefficient.}
-\item{\code{groups}}{a vector indicating the group memberships.}
+\item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
@@ -80,13 +80,6 @@ alpha_0_DGP1 <- matrix(c(0.4, 1, 1.6, 1.6, 1, 0.4), ncol = 2)
 DGP1 <- sim_DGP(
   N = 50, n_periods = 20, p = 2, n_groups = 3,
   group_proportions = c(.4, .3, .3), alpha_0 = alpha_0_DGP1
-)
-
-# Simulate DGP 6 from Mehrabani (2023, sec. 6)
-alpha_0_DGP6 <- cbind(
-  c(0.8, 0.6, 0.4, 0.2, -0.2, -0.4, -0.6, -0.8),
-  c(-4, -3, -2, -1, 1, 2, 3, 4),
-  c(4, 3, 2, 1, -1, -2, -3, -4)
 )
 }
 \references{

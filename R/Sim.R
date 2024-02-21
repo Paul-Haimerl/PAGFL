@@ -7,7 +7,7 @@
 #' @param p the number of explanatory variables. Default is 2.
 #' @param n_groups the number of latent groups \eqn{K}. Default is 3.
 #' @param group_proportions a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{\frac{N}{K}}. Default is \code{NULL}.
-#' @param error_spec the error specification used. Options are
+#' @param error_spec the used error specification. Options are
 #' \describe{
 #' \item{\code{NULL}}{for \eqn{iid} errors.}
 #' \item{\code{'AR'}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
@@ -47,13 +47,6 @@
 #'   N = 50, n_periods = 20, p = 2, n_groups = 3,
 #'   group_proportions = c(.4, .3, .3), alpha_0 = alpha_0_DGP1
 #' )
-#'
-#' # Simulate DGP 6 from Mehrabani (2023, sec. 6)
-#' alpha_0_DGP6 <- cbind(
-#'   c(0.8, 0.6, 0.4, 0.2, -0.2, -0.4, -0.6, -0.8),
-#'   c(-4, -3, -2, -1, 1, 2, 3, 4),
-#'   c(4, 3, 2, 1, -1, -2, -3, -4)
-#' )
 #' @references
 #' Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. *Journal of Econometrics*, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.
 #'
@@ -61,39 +54,20 @@
 #'
 #' @return A list holding
 #' \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dyn_panel = TRUE}, the first column holds the \eqn{AR} coefficient.}
-#' \item{\code{groups}}{a vector indicating the group memberships.}
+#' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
 #' @export
-
-
 sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportions = NULL, error_spec = NULL, dyn_panel = FALSE, q = NULL, alpha_0 = NULL) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
 
-  if (N < n_groups) stop("Number of groups cannot exceed number of observations\n")
-  if (p == 0) stop("Include at least one explanatory variable\n")
-  if (!is.null(group_proportions)) {
-    if (n_groups != length(group_proportions)) stop("Number of groups and group proportions are of different length\n")
-    if (sum(group_proportions) != 1) stop("Group proportions must sum to 1\n")
-  }
-  if (!is.null(error_spec)) {
-    if (!(error_spec %in% c("AR", "GARCH"))) stop("The individual error specificaion must be either AR, GARCH or NULL. Use AR in case of an AR(1) serial correlation, GARCH for an GARCH(1,1) innovation and NULL for iid errors.\n")
-  }
-  if (!is.null(alpha_0)) {
-    if (nrow(alpha_0) != n_groups) stop(paste("There are", n_groups, "groups, but only", nrow(alpha_0), "parameter vectors provided"), "\n")
-    if (dyn_panel) {
-      if (any(abs(alpha_0[, 1]) >= 1)) stop("The AR parameters must be lower than 1 in absolute value\n")
-      if (ncol(alpha_0) - 1 != p) stop(paste("There are", ncol(alpha_0), "group-specific parameters provided, but p + 1 =", p + 1, "are required"), "\n")
-    } else {
-      if (ncol(alpha_0) != p) stop(paste("There are", ncol(alpha_0), "group-specific parameters provided, but p =", p, "are required"), "\n")
-    }
-  }
-  if (!is.null(q)) {
-    if (q < p) stop("There must be at least q = p instruments\n")
-  }
+  simChecks(
+    dyn = FALSE, N = N, n_groups = n_groups, group_proportions = group_proportions, error_spec = error_spec,
+    alpha_0 = alpha_0, dyn_panel = dyn_panel, q = q, p = p
+  )
 
   #------------------------------#
   #### Generate parameters    ####
@@ -143,12 +117,12 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   # In case of a endogenous panel, correlate the errors with the regressor
   if (!is.null(q)) {
     corr_mat <- diag(p + 1)
-    corr_mat[1,][corr_mat[1,] == 0] <- .5
-    corr_mat[,1][corr_mat[,1] == 0] <- .5
-    eps <- matrix(stats::rnorm(N * n_periods * p), ncol =p)
+    corr_mat[1, ][corr_mat[1, ] == 0] <- .5
+    corr_mat[, 1][corr_mat[, 1] == 0] <- .5
+    eps <- matrix(stats::rnorm(N * n_periods * p), ncol = p)
     U <- cbind(u, eps) %*% chol(corr_mat)
-    u <- U[,1]
-    eps <- U[,-1]
+    u <- U[, 1]
+    eps <- U[, -1]
   } else {
     eps <- NULL
   }
@@ -209,12 +183,12 @@ simX <- function(N, n_periods, p, dyn_panel, eps, q) {
   # Construct the predictor variables
   if (is.null(eps)) {
     # Draw the exogenous regressors
-    X <- matrix(stats::rnorm(N * n_periods * p), ncol =p)
+    X <- matrix(stats::rnorm(N * n_periods * p), ncol = p)
     Z <- NULL
   } else {
     # Draw the instruments and loadings
-    Z <- matrix(stats::rnorm(N * n_periods * q), ncol =q)
-    gamma <- matrix(stats::runif(q * p, -2, 2), ncol =p)
+    Z <- matrix(stats::rnorm(N * n_periods * q), ncol = q)
+    gamma <- matrix(stats::runif(q * p, -2, 2), ncol = p)
     # Construct the regressor
     X <- Z %*% gamma + eps
   }

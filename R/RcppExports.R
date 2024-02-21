@@ -5,11 +5,39 @@ buildDiagX <- function(X, n_periods, N, groups) {
     .Call(`_PAGFL_buildDiagX`, X, n_periods, N, groups)
 }
 
-PAGFL_Algo <- function(y, X, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho) {
-    .Call(`_PAGFL_PAGFL_Algo`, y, X, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho)
+getAlpha <- function(X, y, Z, method, n_periods, N, p, groups_hat) {
+    .Call(`_PAGFL_getAlpha`, X, y, Z, method, n_periods, N, p, groups_hat)
+}
+
+deleteFirstObsMat <- function(X, n_periods, N, p) {
+    .Call(`_PAGFL_deleteFirstObsMat`, X, n_periods, N, p)
+}
+
+netFE <- function(y, X, method, n_periods, N) {
+    .Call(`_PAGFL_netFE`, y, X, method, n_periods, N)
+}
+
+spjCorrec <- function(alpha_mat, X, y, Z, n_periods, N, p, groups_hat, method) {
+    .Call(`_PAGFL_spjCorrec`, alpha_mat, X, y, Z, n_periods, N, p, groups_hat, method)
+}
+
+pagfl_algo <- function(y, X, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho) {
+    .Call(`_PAGFL_pagfl_algo`, y, X, n_periods, method, Z, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho)
 }
 
 IC <- function(estimOutput, y, X, rho, method, n_periods, N) {
     .Call(`_PAGFL_IC`, estimOutput, y, X, rho, method, n_periods, N)
+}
+
+dyn_pagfl_algo <- function(y, Z, B, d, J, n_periods, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho) {
+    .Call(`_PAGFL_dyn_pagfl_algo`, y, Z, B, d, J, n_periods, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho)
+}
+
+getDynAlpha <- function(xi, K_hat, p, n_periods, B) {
+    .Call(`_PAGFL_getDynAlpha`, xi, K_hat, p, n_periods, B)
+}
+
+buildZ <- function(X, B, n_periods, J, d, p, N) {
+    .Call(`_PAGFL_buildZ`, X, B, n_periods, J, d, p, N)
 }
 

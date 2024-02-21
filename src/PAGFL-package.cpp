@@ -246,6 +246,7 @@ arma::mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec &y,
 }
 
 // Computes the post-lasso estimates based on an estimated grouping
+// [[Rcpp::export]]
 arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const std::string &method, const unsigned int &n_periods, const unsigned int &N, const unsigned int &p, const arma::uvec &groups_hat)
 {
     arma::mat groupX = buildDiagX(X, n_periods, N, groups_hat);
@@ -282,7 +283,7 @@ arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const s
     }
     else
     {
-        alpha = arma::inv(groupXt * groupX) * groupXt * y_tilde;
+        alpha = arma::pinv(groupXt * groupX) * groupXt * y_tilde;
     }
     arma::mat alpha_mat = arma::reshape(alpha, p, alpha.n_elem / p).t();
     return alpha_mat;
@@ -331,6 +332,7 @@ arma::mat deleteLastObsMat(const arma::mat &X, const unsigned int &n_periods, co
 }
 
 // Drops the first observed time period of a NT x p matrix per individual
+// [[Rcpp::export]]
 arma::mat deleteFirstObsMat(const arma::mat &X, const unsigned int &n_periods, const unsigned int &N, const unsigned int &p)
 {
     arma::mat X_new((n_periods - 1) * N, p);
@@ -355,7 +357,7 @@ arma::vec deleteLastObsVec(const arma::vec &X, const unsigned int &n_periods, co
 }
 
 // Net out fixed effects
-
+// [[Rcpp::export]]
 std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &method, unsigned int n_periods, const unsigned int &N)
 {
     arma::mat (*netFEMat)(arma::mat, unsigned int, unsigned int);
@@ -379,7 +381,7 @@ std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &meth
 }
 
 // Compute the Split-panel Jackknife bias corrected estimates
-
+// [[Rcpp::export]]
 arma::mat spjCorrec(const arma::mat &alpha_mat, arma::mat &X, arma::vec &y, arma::mat &Z, unsigned int &n_periods, const unsigned int &N, const unsigned int &p, const arma::uvec &groups_hat, const std::string &method)
 {
     // Discard the last time period in case n_periods is not even
@@ -617,7 +619,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 
 // PAGFL routine
 // [[Rcpp::export]]
-Rcpp::List PAGFL_Algo(arma::vec &y, arma::mat &X, unsigned int &n_periods, const std::string &method, arma::mat &Z, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+Rcpp::List pagfl_algo(arma::vec &y, arma::mat &X, unsigned int &n_periods, const std::string &method, arma::mat &Z, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
 {
 
     //------------------------------//
@@ -660,7 +662,7 @@ Rcpp::List PAGFL_Algo(arma::vec &y, arma::mat &X, unsigned int &n_periods, const
     arma::mat Xt = X_block.t();
     arma::mat XtX = Xt * X_block;
     arma::vec u, beta;
-    arma::mat V, W, Z_block;
+    arma::mat W, Z_block;
     if (method == "PGMM")
     {
         Z_block = buildDiagX(Z_tilde, n_periods, N, arma::regspace<arma::uvec>(1, N));
@@ -776,4 +778,131 @@ double IC(const Rcpp::List &estimOutput, arma::vec &y, arma::mat &X, const doubl
     // Construct the IC
     double IC = fitness + penalty;
     return IC;
+}
+
+// Time-varying PAGFL routine
+// [[Rcpp::export]]
+Rcpp::List dyn_pagfl_algo(arma::vec &y, arma::mat &Z, const arma::mat &B, const unsigned int &d, const unsigned int &J, unsigned int &n_periods, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+{
+
+    //------------------------------//
+    // Preliminaries                //
+    //------------------------------//
+
+    unsigned int N = y.n_elem / n_periods;
+    unsigned int J_star = J + d;
+    unsigned int p = Z.n_cols / J_star;
+    unsigned int p_star = p * J_star;
+    unsigned int n = N * (N - 1) * p_star / 2;
+    // Compute some constants
+    arma::mat Lambda = buildLambda(p_star, N);
+    arma::mat VarLambdat = varrho * Lambda.t();
+    float lambda_star = n_periods * lambda / (2 * N);
+
+    // Net out fixed effects
+    std::vector<arma::mat> data = netFE(y, Z, "PLS", n_periods, N);
+    arma::vec y_tilde = data[0];
+    arma::mat Z_tilde = data[1];
+    arma::mat Z_block = buildDiagX(Z_tilde, n_periods, N, arma::regspace<arma::uvec>(1, N));
+
+    //------------------------------//
+    // Initial estimates            //
+    //------------------------------//
+
+    arma::mat Zt = Z_block.t();
+    arma::mat ZtZ = Zt * Z_block;
+    arma::mat Zty = Zt * y_tilde;
+    arma::vec pi = arma::pinv(ZtZ) * Zty;
+    // Pre-invert the predictor var-cov matrix
+    arma::mat invZcov = arma::pinv(ZtZ + VarLambdat * Lambda);
+    // Parameter differences
+    arma::vec delta = Lambda * pi;
+    // Lagrangian parameters
+    arma::vec v_old(n, fill::zeros);
+    // Compute the adaptive weights
+    arma::vec omega = getOmega(delta, kappa, N, p_star);
+    arma::vec ada_weights = omega * lambda_star / varrho;
+
+    //------------------------------//
+    // Run the algorithm            //
+    //------------------------------//
+
+    arma::vec resid, v_new;
+    unsigned int iter = 0;
+    for (unsigned int i = 0; i < max_iter; i++)
+    {
+        // Update the ...
+        // parameter estimates (step 2a)
+        pi = getBeta(invZcov, Zty, varrho, VarLambdat, v_old, delta);
+        // parameter differences (step 2b)
+        delta = getDelta(ada_weights, pi, v_old, Lambda, varrho, N, p_star);
+        // Lagrangian parameters (step 2c)
+        resid = Lambda * pi - delta;
+        v_new = v_old + varrho * resid;
+        // Check for convergence (step 2d)
+        iter++;
+        if (stoppingCrit(resid, tol_convergence))
+        {
+            break;
+        }
+        v_old = v_new;
+    }
+    // Create an indicator whether convergence was achieved (also possibly on the final iteration)
+    bool convergence = stoppingCrit(resid, tol_convergence);
+    // Assign preliminary group adherences
+    arma::uvec groups_hat_prelim = getGroups(pi, y_tilde, Z_tilde, Lambda, p_star, N, tol_group);
+    // Kick out trivial groups
+    arma::uvec groups_hat;
+    arma::mat R;
+    if (min_group_frac > 0.0)
+    {
+        groups_hat = mergeTrivialGroups(groups_hat_prelim, y_tilde, Z_tilde, R, "PLS", min_group_frac, N, n_periods, p_star);
+    }
+    else
+    {
+        groups_hat = groups_hat_prelim;
+    }
+    // Get the total number of groups
+    int K_hat = arma::max(groups_hat);
+    // Post lasso estimates
+    arma::mat xi_mat_vec = getAlpha(Z_tilde, y_tilde, R, "PLS", n_periods, N, p_star, groups_hat);
+    // Return the estimates
+    Rcpp::List output = Rcpp::List::create(
+        Rcpp::Named("alpha_hat") = xi_mat_vec,
+        Rcpp::Named("K_hat") = K_hat,
+        Rcpp::Named("groups_hat") = groups_hat.t(),
+        Rcpp::Named("iter") = iter,
+        Rcpp::Named("convergence") = convergence);
+    return output;
+}
+
+// Compute time varying coefficients from spline bases
+// [[Rcpp::export]]
+arma::cube getDynAlpha(const arma::mat &xi, const unsigned int &K_hat, const unsigned int &p, const unsigned int &n_periods, const arma::mat &B)
+{
+    arma::cube alpha_array(n_periods, p, K_hat, arma::fill::zeros);
+    unsigned int J_star = xi.n_cols / p;
+    for (unsigned int k = 0; k < K_hat; k++)
+    {
+        arma::mat xi_mat = xi.row(k);
+        xi_mat.reshape(J_star, p);
+        alpha_array.slice(k) = B * xi_mat;
+    }
+    return alpha_array;
+}
+
+// Project the regressors on the spline bases
+// [[Rcpp::export]]
+arma::mat buildZ(const arma::mat &X, const arma::mat &B, const unsigned int &n_periods, const unsigned int &J, const unsigned int &d, const unsigned int &p, const unsigned int &N)
+{
+    arma::mat Z(n_periods * N, (J + d) * p, arma::fill::zeros);
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        for (unsigned int t = 0; t < n_periods; t++)
+        {
+            unsigned int indx = t + i * n_periods;
+            Z.row(indx) = arma::kron(X.row(indx), B.row(t));
+        }
+    }
+    return Z;
 }
