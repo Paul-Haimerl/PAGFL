@@ -115,7 +115,11 @@ pagfl <- function(y, X, n_periods, lambda, method = 'PLS', Z = NULL, min_group_f
   # Pick the estimation result with the lowest IC
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
-  colnames(estim$alpha_hat) <- paste0("alpha_", 1:p)
+  if (is.null(colnames(X))){
+    colnames(estim$alpha_hat) <- paste0("alpha_", 1:p)
+  } else {
+    colnames(estim$alpha_hat) <- colnames(X)
+  }
   rownames(estim$alpha_hat) <- paste0("k=", 1:estim$K_hat)
   estim$groups_hat <- c(estim$groups_hat)
   return(estim)

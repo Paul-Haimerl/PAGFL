@@ -866,6 +866,7 @@ Rcpp::List dyn_pagfl_algo(arma::vec &y, arma::mat &Z, const arma::mat &B, const 
     int K_hat = arma::max(groups_hat);
     // Post lasso estimates
     arma::mat xi_mat_vec = getAlpha(Z_tilde, y_tilde, R, "PLS", n_periods, N, p_star, groups_hat);
+
     // Return the estimates
     Rcpp::List output = Rcpp::List::create(
         Rcpp::Named("alpha_hat") = xi_mat_vec,

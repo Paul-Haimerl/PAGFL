@@ -90,7 +90,7 @@ y <- sim$y
 X <- sim$X
 
 # Run the time-varying PAGFL
-estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 2.4)
+estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 3.5)
 print(estim)
 }
 \references{

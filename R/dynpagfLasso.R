@@ -47,7 +47,7 @@
 #' X <- sim$X
 #'
 #' # Run the time-varying PAGFL
-#' estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 2.4)
+#' estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 3.5)
 #' print(estim)
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
@@ -119,7 +119,12 @@ dyn_pagfl <- function(y, X, n_periods, lambda, d = 3, J = floor(NROW(y)^(1 / 7))
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
   estim$groups_hat <- c(estim$groups_hat)
-  dimnames(estim$alpha_hat) <- list(paste0("t=", 1:n_periods), paste0("alpha_", 1:p), paste0("k=", 1:estim$K_hat))
+  if (is.null(colnames(X))){
+    column_names <- paste0("alpha_", 1:p)
+  } else {
+    column_names <- colnames(X)
+  }
+  dimnames(estim$alpha_hat) <- list(paste0("t=", 1:n_periods), column_names, paste0("k=", 1:estim$K_hat))
   return(estim)
 }
 
