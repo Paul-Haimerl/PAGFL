@@ -47,7 +47,7 @@
 #'
 #' # Run the PAGFL procedure for a set of candidate tuning parameter values
 #' lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-#' estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = 'PLS')
+#' estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = "PLS")
 #' print(estim)
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
@@ -55,6 +55,8 @@
 #' Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. *Journal of Econometrics*, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.
 #'
 #' @author Paul Haimerl
+#'
+#' @aliases PAGFL
 #'
 #' @return A list holding
 #' \item{\code{IC}}{the BIC-type information criterion.}
@@ -65,7 +67,7 @@
 #' \item{\code{iter}}{the number of executed algorithm iterations.}
 #' \item{\code{convergence}}{logical. If \code{TRUE}, convergence was achieved. If \code{FALSE}, \code{max_iter} was reached.}
 #' @export
-pagfl <- function(y, X, n_periods, lambda, method = 'PLS', Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 2e3, tol_convergence = 1e-3,
+pagfl <- function(y, X, n_periods, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 2e3, tol_convergence = 1e-3,
                   tol_group = sqrt(p / (sqrt(N * n_periods) * log(log(N * n_periods)))), rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
                   varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE) {
   y <- as.matrix(y)
@@ -85,7 +87,7 @@ pagfl <- function(y, X, n_periods, lambda, method = 'PLS', Z = NULL, min_group_f
   #------------------------------#
 
   # In case of penalized Least Squares, specify an empty instrument matrix Z
-  if (method == 'PLS') {
+  if (method == "PLS") {
     Z <- matrix()
   } else {
     Z <- as.matrix(Z)
@@ -108,20 +110,36 @@ pagfl <- function(y, X, n_periods, lambda, method = 'PLS', Z = NULL, min_group_f
       max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group, varrho = varrho
     )
     # Compute the Information Criterion
-    IC_val <- IC(estimOutput = estimOutput, y = y, X = X, rho = rho, method = method, n_periods = n_periods,
-                 N = N)
+    IC_val <- IC(
+      estimOutput = estimOutput, y = y, X = X, rho = rho, method = method, n_periods = n_periods,
+      N = N
+    )
     return(c(IC = IC_val, lambda = lam, estimOutput))
   })
   # Pick the estimation result with the lowest IC
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
-  if (is.null(colnames(X))){
+  if (is.null(colnames(X))) {
     colnames(estim$alpha_hat) <- paste0("alpha_", 1:p)
   } else {
     colnames(estim$alpha_hat) <- colnames(X)
   }
   rownames(estim$alpha_hat) <- paste0("k=", 1:estim$K_hat)
   estim$groups_hat <- c(estim$groups_hat)
+  return(estim)
+}
+
+#' @export
+PAGFL <- function(y, X, n_periods, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 2e3, tol_convergence = 1e-3,
+                  tol_group = sqrt(p / (sqrt(N * n_periods) * log(log(N * n_periods)))), rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
+                  varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE) {
+  lifecycle::deprecate_warn(when = "1.1.0", what = "PAGFL()", with = "pagfl()", env = asNamespace("PAGFL"))
+  N <- NROW(y) / n_periods
+  p <- ncol(X)
+  estim <- pagfl(
+    y = y, X = X, n_periods = n_periods, lambda = lambda, method = method, Z = Z, min_group_frac = min_group_frac, bias_correc = bias_correc,
+    kappa = kappa, max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group, rho = rho, varrho = varrho, verbose = verbose
+  )
   return(estim)
 }
 
@@ -182,7 +200,7 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
   #------------------------------#
 
   # In case of penalized Least Squares, specify an empty instrument matrix Z
-  if (method == 'PLS') {
+  if (method == "PLS") {
     Z <- matrix()
   } else {
     Z <- as.matrix(Z)
@@ -192,10 +210,9 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
   data <- netFE(y = y, X = X, method = method, n_periods = n_periods, N = N)
   y_tilde <- data[[1]]
   X_tilde <- matrix(data[[2]], ncol = ncol(X))
-  if (method == "PGMM")
-  {
-    Z_tilde = deleteFirstObsMat(Z, n_periods, N, ncol(Z))
-    n_periods = n_periods - 1
+  if (method == "PGMM") {
+    Z_tilde <- deleteFirstObsMat(Z, n_periods, N, ncol(Z))
+    n_periods <- n_periods - 1
   } else {
     Z_tilde <- matrix()
   }
@@ -205,7 +222,7 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
   #------------------------------#
 
   alpha_hat <- getAlpha(X_tilde, y_tilde, Z_tilde, method, n_periods, N, p, groups_0)
-  if (bias_correc){
+  if (bias_correc) {
     alpha_hat <- spjCorrec(alpha_hat, X, y, Z, n_periods, N, p, groups_0, method)
   }
   colnames(alpha_hat) <- paste0("alpha_", 1:p)

@@ -18,6 +18,7 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp, 
-    pbapply
+    pbapply,
+    lifecycle
 BugReports: https://github.com/Paul-Haimerl/PAGFL/issues
 URL: https://github.com/Paul-Haimerl/PAGFL

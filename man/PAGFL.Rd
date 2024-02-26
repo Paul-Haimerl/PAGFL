@@ -2,6 +2,7 @@
 % Please edit documentation in R/pagfLasso.R
 \name{pagfl}
 \alias{pagfl}
+\alias{PAGFL}
 \title{Pairwise Adaptive Group Fused Lasso}
 \usage{
 pagfl(
@@ -95,7 +96,7 @@ X <- sim$X
 
 # Run the PAGFL procedure for a set of candidate tuning parameter values
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = 'PLS')
+estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = "PLS")
 print(estim)
 }
 \references{
