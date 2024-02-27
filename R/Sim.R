@@ -102,6 +102,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
     group_vec <- rep(1:n_groups, length.out = N)
   } else {
     group_vec <- rep(1:n_groups, round(group_proportions * N))
+    if (length(group_vec) != N) group_vec <- rep(group_vec, length.out = N)
   }
   groups_raw <- sample(group_vec, N, replace = FALSE)
   groups <- match(groups_raw, unique(groups_raw))

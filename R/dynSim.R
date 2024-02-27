@@ -45,7 +45,6 @@
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' @export
 sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
-
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
@@ -107,6 +106,7 @@ sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
   #------------------------------#
 
   group_vec <- rep(1:n_groups, round(c(.3, .3, .4) * N))
+  if (length(group_vec) != N) group_vec <- rep(group_vec, length.out = N)
   groups_raw <- sample(group_vec, N, replace = FALSE)
   groups <- match(groups_raw, unique(groups_raw))
   beta_array <- alpha_array[, , groups]
@@ -125,9 +125,7 @@ sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
   gamma <- rep(stats::rnorm(N), each = n_periods)
   # Generate the regressors
   if (DGP != 3) {
-
     gamma <- 0
-
     if (DGP == 1) {
       X <- as.matrix(rep(1, N * n_periods))
       # Construct the observations
@@ -193,6 +191,7 @@ sim_dyn_DGP_rand <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, d = 3,
     group_vec <- rep(1:n_groups, length.out = N)
   } else {
     group_vec <- rep(1:n_groups, round(group_proportions * N))
+    if (length(group_vec) != N) group_vec <- rep(group_vec, length.out = N)
   }
   groups_raw <- sample(group_vec, N, replace = FALSE)
   groups <- match(groups_raw, unique(groups_raw))
