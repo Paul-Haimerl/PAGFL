@@ -57,7 +57,7 @@ sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
   #------------------------------#
 
   # Time trends
-  locations <- c(.05, .7, .6)
+  locations <- c(.5, .7, .6)
   scales <- c(.1, .05, .05)
   trend_mat <- trend_fctn(coef_mat = cbind(locations, scales), n_periods = n_periods)
   trend_mat[, 2] <- trend_mat[, 2] + poly_fctn(coef_mat = t(c(2, -6, 4)), n_periods = n_periods)

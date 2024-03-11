@@ -1,13 +1,34 @@
-# PAGFL Checks
-checks <- function(N, n_periods, y, X, method = NULL, Z = NULL, p, min_group_frac, verbose, dyn, d = NULL, J = NULL) {
-  if (ncol(y) > 1) stop("Please provide a univariate dependent variable\n")
-  if (round(N) != N) stop("n_periods does not match the number of time periods of the dependent variable y\n")
-  if (N * n_periods != nrow(X)) stop("The number of time periods of the dependent variable y and the predictor matrix X do not match\n")
+prelim_checks <- function(y, X, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL) {
+  if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods n_periods\n")
+  if (is.null(n_periods)) {
+    if (!all(index %in% colnames(y)) | !all(index %in% colnames(X))) stop("The passed index variables must be both present in y and X\n")
+    if (NCOL(as.matrix(y)[, !(colnames(y) %in% index)]) > 1) stop("Please provide a univariate dependent variable\n")
+  } else {
+    if (NCOL(as.matrix(y)) > 1) stop("Please provide a univariate dependent variable\n")
+  }
+  if (method == "PGMM") {
+    if (is.null(Z)) stop("PGMM requires a matrix of exogenous instruments Z\n")
+  }
+  if (!is.null(const_coef)) {
+    if (!all(const_coef %in% colnames(X))) stop("Explanatory variables that are to be estimated with time-constant coefficients must be named columns in the regressor matrix X")
+  }
+}
+
+
+second_checks <- function(N, index, n_periods, y, X, method = NULL, Z = NULL, p, min_group_frac, verbose, dyn, d = NULL, J = NULL) {
   if (is.null(min_group_frac)) min_group_frac <- 0
   if (min_group_frac > 1 | min_group_frac < 0) stop("Provide a min_group_frac between 0 and 1\n")
   if (min_group_frac >= .4 & verbose) warning("Large min_group_frac values may lead to all groups falling below the group cardinality threshold, in which case the hierarchical clustering algorithm cannot be employed\n")
-  if (any(is.na(X))) stop("The predictor matrix X contains missing values\n")
-  if (any(is.na(y))) stop("The dependent variable y contains missing values\n")
+  if (is.null(index)) {
+    if (round(N) != N) stop("n_periods does not match the number of time periods of the dependent variable y\n")
+    if (N * n_periods != nrow(X)) stop("The number of time periods of the dependent variable y and the predictor matrix X do not match\n")
+    if (any(is.na(X))) stop("The predictor matrix X contains missing values. In order to work with unbalanced panel data sets, supply cross-sectional and temporal indix variables\n")
+    if (any(is.na(y))) stop("The dependent variable y contains missing values. In order to work with unbalanced panel data sets, supply cross-sectional and temporal indix variables\n")
+  } else {
+    if (verbose) {
+      if (nrow(y) != N * n_periods | nrow(X) != N * n_periods) warning("The panel data set is unbalanced\n")
+    }
+  }
   if (dyn) {
     checksDyn(d = d, J = J)
   } else {
@@ -19,7 +40,6 @@ checks <- function(N, n_periods, y, X, method = NULL, Z = NULL, p, min_group_fra
 checksStat <- function(X, method, Z, p, verbose) {
   if (!(method %in% c("PLS", "PGMM"))) stop("The estimation method must be either PLS or PGMM. Use PLS in case of (weakly) exogenous regressors and PGMM for endogenous regressors.\n")
   if (method == "PGMM") {
-    if (is.null(Z)) stop("PGMM requires a matrix of exogenous instruments Z\n")
     if (ncol(Z) < p) stop(paste("Provide at least p =", p, "exogenous instruments Z"), "\n")
     if (nrow(Z) != nrow(X)) stop("The number of time periods of the instrument matrix Z does do not match the remaining data\n")
   } else {

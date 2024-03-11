@@ -3,9 +3,10 @@
 #' @description The pairwise adaptive group fused lasso (PAGFL) by Mehrabani (2023) jointly estimates the latent group structure and group-specific slope parameters in a panel data model.
 #' It can handle static and dynamic panels, either with or without endogenous regressors.
 #'
-#' @param y a \eqn{NT \times 1} vector or data.frame of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.
-#' @param X a \eqn{NT \times p} matrix or data.frame of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.
-#' @param n_periods the number of observed time periods \eqn{T}.
+#' @param y a \eqn{NT \times 1} vector, matrix, or data.frame of the dependent variable. If no \code{index} variables are explicitly provided, the data must be balanced and ordered in the long format as follows \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} with the scalar \eqn{y_{it}}. If \code{y} is not ordered or not balanced, \code{y} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
+#' @param X a \eqn{NT \times p} vector, matrix, or data.frame of explanatory variables. If no \code{index} variables are explicitly provided, the data must be balanced and ordered in the long format as follows \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}. If \code{X} is not ordered or not balanced, \code{X} must include two index, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
+#' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. However, in such instances no indicator variables must be present in \code{y} or \code{X}.
+#' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Else, the data supplied must be a balanced panel data set ordered in the long format.
 #' @param lambda the tuning parameter governing the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type information criterion selects the best fitting parameter value.
 #' @param method the estimation method. Options are
 #' \describe{
@@ -16,9 +17,9 @@
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
 #' @param bias_correc logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using this correction when facing a dynamic panel. Default is \code{FALSE}.
 #' @param kappa the weight placed on the adaptive penalty weights. Default is 2.
-#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 2000.
-#' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is 0.001.
-#' @param tol_group the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. If left unspecified, the heuristic \eqn{\sqrt{\frac{p}{\sqrt{NT} \log(\log(NT))}}} is used. We recommend the default.
+#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 5e3.
+#' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is 1e-8.
+#' @param tol_group the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. Default is 1e-3.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the information criterion that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
 #' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence of the algorithm. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used.
 #' @param verbose logical. If \code{TRUE}, a progression bar is printed when iterating over candidate \eqn{\lambda} values and helpful warning messages are shown. Default is \code{TRUE}.
@@ -49,6 +50,13 @@
 #' lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
 #' estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = "PLS")
 #' print(estim)
+#'
+#' # Lets pass a panel data set with explicit cross-sectional and time indicators
+#' i_index <- rep(1:50, each = 80)
+#' t_index <- rep(1:80, 50)
+#' y <- cbind(y, i_index = i_index, t_index = t_index)
+#' X <- cbind(X, i_index = i_index, t_index = t_index)
+#' estim <- pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = lambda_set, method = "PLS")
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
 #'
@@ -67,24 +75,46 @@
 #' \item{\code{iter}}{the number of executed algorithm iterations.}
 #' \item{\code{convergence}}{logical. If \code{TRUE}, convergence was achieved. If \code{FALSE}, \code{max_iter} was reached.}
 #' @export
-pagfl <- function(y, X, n_periods, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 2e3, tol_convergence = 1e-3,
-                  tol_group = sqrt(p / (sqrt(N * n_periods) * log(log(N * n_periods)))), rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
+pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 5e3, tol_convergence = 1e-8,
+                  tol_group = 1e-3, rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
                   varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE) {
-  y <- as.matrix(y)
-  X <- as.matrix(X)
-  N <- nrow(y) / n_periods
-  p <- ncol(X)
-  varrho <- abs(varrho)
-
-  #------------------------------#
-  #### Checks                 ####
-  #------------------------------#
-
-  checks(N, n_periods, y, X, method, Z, p, min_group_frac, verbose, dyn = FALSE)
-
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
+
+  prelim_checks(y, X, Z, index, n_periods, method)
+
+  if (!is.null(index)) {
+    df <- merge(x = X, y = y, by = index)
+    if (method == "PGMM") df <- merge(x = df, y = Z, by = index)
+    df <- stats::na.omit(df)
+    df <- df[order(df[, index[1]], df[, index[2]]), ]
+    if (method == "PGMM") {
+      Z <- df[, (ncol(df) - ncol(Z) + 3):ncol(df)]
+      Z <- as.matrix(Z)
+      df <- df[, -((ncol(df) - ncol(Z) + 1):ncol(df))]
+    }
+    y <- df[, ncol(df)]
+    df <- df[, -ncol(df)]
+    X <- df[, !(colnames(df) %in% index)]
+    i_index_labs <- df[, index[1]]
+    i_index <- as.integer(factor(i_index_labs))
+    t_index_labs <- df[, index[2]]
+    t_index <- as.integer(factor(t_index_labs))
+    n_periods <- length(unique(t_index))
+    N <- length(unique(i_index))
+  } else {
+    N <- NROW(y) / n_periods
+    i_index <- i_index_labs <- rep(1:N, each = n_periods)
+    t_index <- rep(1:n_periods, N)
+  }
+
+  y <- as.matrix(y)
+  X <- as.matrix(X)
+  p <- ncol(X)
+  varrho <- abs(varrho)
+
+  second_checks(N, index, n_periods, y, X, method, Z, p, min_group_frac, verbose, dyn = FALSE)
 
   # In case of penalized Least Squares, specify an empty instrument matrix Z
   if (method == "PLS") {
@@ -97,7 +127,7 @@ pagfl <- function(y, X, n_periods, lambda, method = "PLS", Z = NULL, min_group_f
   #### Iterate over lambda    ####
   #------------------------------#
 
-  if (verbose) {
+  if (verbose & length(lambda) > 1) {
     FUN <- pbapply::pblapply
   } else {
     FUN <- lapply
@@ -105,27 +135,21 @@ pagfl <- function(y, X, n_periods, lambda, method = "PLS", Z = NULL, min_group_f
   lambdaList <- FUN(lambda, function(lam) {
     # Run the algorithm
     estimOutput <- pagfl_algo(
-      y = y, X = X, n_periods = n_periods, method = method,
-      Z = Z, bias_correc = bias_correc, lambda = lam, kappa = kappa, min_group_frac = min_group_frac,
+      y = y, X = X, method = method, Z = Z, bias_correc = bias_correc, i_index = i_index,
+      t_index = t_index, N = N, lambda = lam, kappa = kappa, min_group_frac = min_group_frac,
       max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group, varrho = varrho
     )
     # Compute the Information Criterion
-    IC_val <- IC(
-      estimOutput = estimOutput, y = y, X = X, rho = rho, method = method, n_periods = n_periods,
-      N = N
-    )
+    IC_val <- IC(estimOutput = estimOutput, y = y, X = X, rho = rho, method = method, N = N, i_index = i_index)
     return(c(IC = IC_val, lambda = lam, estimOutput))
   })
   # Pick the estimation result with the lowest IC
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
-  if (is.null(colnames(X))) {
-    colnames(estim$alpha_hat) <- paste0("alpha_", 1:p)
-  } else {
-    colnames(estim$alpha_hat) <- colnames(X)
-  }
-  rownames(estim$alpha_hat) <- paste0("k=", 1:estim$K_hat)
   estim$groups_hat <- c(estim$groups_hat)
+  names(estim$groups_hat) <- unique(i_index_labs)
+  rownames(estim$alpha_hat) <- paste("Group", 1:estim$K_hat)
+  colnames(estim$alpha_hat) <- colnames(X)
   return(estim)
 }
 
@@ -193,7 +217,7 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
   #### Checks                 ####
   #------------------------------#
 
-  checks(N = N, n_periods = n_periods, y = y, X = X, p = p, min_group_frac = NULL, verbose = FALSE, dyn = FALSE, method = method, Z = Z)
+  prelim_checks(y = y, X = X, Z = Z, n_periods = n_periods, method = method)
 
   #------------------------------#
   #### Preliminaries          ####
@@ -206,12 +230,14 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
     Z <- as.matrix(Z)
   }
 
+  i_index <- rep(1:N, each = n_periods)
+
   # Net out fixed effects
-  data <- netFE(y = y, X = X, method = method, n_periods = n_periods, N = N)
+  data <- netFE(y = y, X = X, method = method, N = N, i_index = i_index)
   y_tilde <- data[[1]]
   X_tilde <- matrix(data[[2]], ncol = ncol(X))
   if (method == "PGMM") {
-    Z_tilde <- deleteFirstObsMat(Z, n_periods, N, ncol(Z))
+    Z_tilde <- deleteObsMat(Z, N, i_index = i_index, first = TRUE)
     n_periods <- n_periods - 1
   } else {
     Z_tilde <- matrix()
@@ -221,11 +247,11 @@ oracle <- function(y, X, n_periods, groups_0, method = "PLS", Z = NULL, bias_cor
   #### Oracle estimation      ####
   #------------------------------#
 
-  alpha_hat <- getAlpha(X_tilde, y_tilde, Z_tilde, method, n_periods, N, p, groups_0)
+  alpha_hat <- getAlpha(X_tilde, y_tilde, Z_tilde, method, N, i_index = i_index, p, groups_hat = groups_0)
   if (bias_correc) {
-    alpha_hat <- spjCorrec(alpha_hat, X, y, Z, n_periods, N, p, groups_0, method)
+    alpha_hat <- spjCorrec(alpha_hat, X, y, Z, N, i_index = i_index, p = p, groups_0, method)
   }
-  colnames(alpha_hat) <- paste0("alpha_", 1:p)
-  rownames(alpha_hat) <- paste0("k=", 1:max(groups_0))
+  rownames(alpha_hat) <- paste("Group", 1:max(groups_0))
+  colnames(alpha_hat) <- colnames(X)
   return(alpha_hat)
 }

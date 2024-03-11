@@ -8,27 +8,30 @@
 pagfl(
   y,
   X,
-  n_periods,
+  index = NULL,
+  n_periods = NULL,
   lambda,
   method = "PLS",
   Z = NULL,
   min_group_frac = 0.05,
   bias_correc = FALSE,
   kappa = 2,
-  max_iter = 2000,
-  tol_convergence = 0.001,
-  tol_group = sqrt(p/(sqrt(N * n_periods) * log(log(N * n_periods)))),
+  max_iter = 5000,
+  tol_convergence = 1e-08,
+  tol_group = 0.001,
   rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
   varrho = max(sqrt(5 * N * n_periods * p)/log(N * n_periods * p) - 7, 1),
   verbose = TRUE
 )
 }
 \arguments{
-\item{y}{a \eqn{NT \times 1} vector or data.frame of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
+\item{y}{a \eqn{NT \times 1} vector, matrix, or data.frame of the dependent variable. If no \code{index} variables are explicitly provided, the data must be balanced and ordered in the long format as follows \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} with the scalar \eqn{y_{it}}. If \code{y} is not ordered or not balanced, \code{y} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.}
 
-\item{X}{a \eqn{NT \times p} matrix or data.frame of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+\item{X}{a \eqn{NT \times p} vector, matrix, or data.frame of explanatory variables. If no \code{index} variables are explicitly provided, the data must be balanced and ordered in the long format as follows \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}. If \code{X} is not ordered or not balanced, \code{X} must include two index, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.}
 
-\item{n_periods}{the number of observed time periods \eqn{T}.}
+\item{index}{a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. However, in such instances no indicator variables must be present in \code{y} or \code{X}.}
+
+\item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Else, the data supplied must be a balanced panel data set ordered in the long format.}
 
 \item{lambda}{the tuning parameter governing the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type information criterion selects the best fitting parameter value.}
 
@@ -46,11 +49,11 @@ pagfl(
 
 \item{kappa}{the weight placed on the adaptive penalty weights. Default is 2.}
 
-\item{max_iter}{the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 2000.}
+\item{max_iter}{the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 5e3.}
 
-\item{tol_convergence}{the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is 0.001.}
+\item{tol_convergence}{the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is 1e-8.}
 
-\item{tol_group}{the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. If left unspecified, the heuristic \eqn{\sqrt{\frac{p}{\sqrt{NT} \log(\log(NT))}}} is used. We recommend the default.}
+\item{tol_group}{the tolerance limit for within-group differences. Two individuals are placed in the same group if the Frobenius norm of their coefficient parameter difference is below this parameter. Default is 1e-3.}
 
 \item{rho}{the tuning parameter balancing the fitness and penalty terms in the information criterion that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
 
@@ -98,6 +101,13 @@ X <- sim$X
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
 estim <- pagfl(y = y, X = X, n_periods = 80, lambda = lambda_set, method = "PLS")
 print(estim)
+
+# Lets pass a panel data set with explicit cross-sectional and time indicators
+i_index <- rep(1:50, each = 80)
+t_index <- rep(1:80, 50)
+y <- cbind(y, i_index = i_index, t_index = t_index)
+X <- cbind(X, i_index = i_index, t_index = t_index)
+estim <- pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = lambda_set, method = "PLS")
 }
 \references{
 Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. \emph{The Review of Economic Studies}, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.

@@ -132,7 +132,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   X <- XList$X
   Z <- XList$Z
   # Bring into a block-matrix format to make later computations easier
-  X_tilde <- buildDiagX(X = X, n_periods = n_periods, N = N, groups = 1:N)
+  X_tilde <- buildDiagX(X = X, N = N, i_index = rep(1:N, each = n_periods), groups = 1:N)
   # Build a more elaborate error process
   if (!is.null(error_spec)) {
     uList <- split(u, rep(1:((N * n_periods) %/% n_periods), each = n_periods, length.out = N * n_periods))
