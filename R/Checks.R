@@ -1,6 +1,7 @@
 prelim_checks <- function(y, X, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL) {
   if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods n_periods\n")
   if (is.null(n_periods)) {
+    if (length(index) != 2 | !is.character(index)) stop("Please supply a character vector holding two strings as the index\n")
     if (!all(index %in% colnames(y)) | !all(index %in% colnames(X))) stop("The passed index variables must be both present in y and X\n")
     if (NCOL(as.matrix(y)[, !(colnames(y) %in% index)]) > 1) stop("Please provide a univariate dependent variable\n")
   } else {

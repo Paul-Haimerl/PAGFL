@@ -33,8 +33,25 @@ You can install the development version of `PAGFL` (1.1.0) from
 ``` r
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> Skipping install of 'PAGFL' from a github remote, the SHA1 (c4514ba5) has not changed since last install.
-#>   Use `force = TRUE` to force installation
+#> rlang (1.1.2 -> 1.1.3) [CRAN]
+#> glue  (1.6.2 -> 1.7.0) [CRAN]
+#> cli   (3.6.1 -> 3.6.2) [CRAN]
+#> package 'rlang' successfully unpacked and MD5 sums checked
+#> package 'glue' successfully unpacked and MD5 sums checked
+#> package 'cli' successfully unpacked and MD5 sums checked
+#> 
+#> The downloaded binary packages are in
+#>  C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\downloaded_packages
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' (451ms)
+#>       ─  preparing 'PAGFL':
+#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#> ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts
+#>       ─  checking for empty or unneeded directories
+#>       ─  building 'PAGFL_1.1.0.tar.gz'
+#>      
+#> 
 library(PAGFL)
 ```
 
@@ -229,8 +246,8 @@ and modify a list of further settings. Visit the documentation
 ## The Time-varying PAGFL
 
 The development version of the package also includes the functions
-`sim_dyn_DGP`and `dyn_pagfl`, which generate and estimate a grouped
-panel data models with the time-varying coefficients
+`sim_dyn_DGP`and `tv_pagfl`, which generate and estimate a grouped panel
+data models with the time-varying coefficients
 $\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the
 static case, the functional coefficients admit to a group structure
 $\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$.
@@ -243,14 +260,14 @@ functions employing a penalized sieve estimation (*PSE*).
 # Simulate a time-varying panel with a trend and a group pattern
 N <- 50
 n_periods <- 50
-sim_dyn <- sim_dyn_DGP(N = N, n_periods = n_periods, DGP = 1)
+sim_dyn <- sim_tv_DGP(N = N, n_periods = n_periods, DGP = 1)
 y <- sim_dyn$y
 X <- sim_dyn$X
 
-dyn_estim <- dyn_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
+dyn_estim <- tv_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
 ```
 
-In contrast to the time-constant `pagfl`, `dyn_pagfl` does not return a
+In contrast to the time-constant `pagfl`, `tv_pagfl` does not return a
 post-Lasso coefficient matrix but a $T \times p \times \widehat{K}$
 array.
 
@@ -263,7 +280,7 @@ variables that declare the cross-sectional individual and time period
 each observation belongs to.
 
 Lets delete a couple of observations, add indicator variables, and run
-`dyn_pagfl` again.
+`tv_pagfl` again.
 
 ``` r
 # Draw some observations to be omitted
@@ -278,15 +295,15 @@ X <- cbind(X, i_index = i_index, t_index = t_index)
 y <- y[delete_index_y,]
 X <- X[delete_index_X,]
 # Apply the time-varying PAGFL to an unbalanced panel
-dyn_estim_unbalanced <- dyn_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
+dyn_estim_unbalanced <- tv_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
 #> Warning in second_checks(N = N, index = index, n_periods = n_periods, y = y, : The panel data set is unbalanced
 ```
 
-Furthermore, `dyn_pagfl` lets you specify a lot more optionalities than
+Furthermore, `tv_pagfl` lets you specify a lot more optionalities than
 shown here. For example, it is possible to adjust the degree of the
 spline functions, the number of interior knots in the spline system, or
 estimate a panel data model with a mix of time-varying and time-constant
-coefficients. See `?dyn_pagfl()` for details.
+coefficients. See `?tv_pagfl()` for details.
 
 ## References
 

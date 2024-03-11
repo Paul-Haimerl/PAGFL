@@ -31,7 +31,7 @@ The `PAGFL` package makes this powerful procedure easy to use.
 
 You can install the development version of `PAGFL` (1.1.0) from [GitHub](https://github.com/) with:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
 library(PAGFL)
@@ -115,24 +115,24 @@ Furthermore, `pagfl` lets you select a minimum group size, adjust the efficiency
 
 ## The Time-varying PAGFL
 
-The development version of the package also includes the functions `sim_dyn_DGP`and `dyn_pagfl`, which generate and estimate a grouped panel data models with the time-varying coefficients $\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$. Following Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
+The development version of the package also includes the functions `sim_dyn_DGP`and `tv_pagfl`, which generate and estimate a grouped panel data models with the time-varying coefficients $\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$. Following Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
 
 ```{r}
 # Simulate a time-varying panel with a trend and a group pattern
 N <- 50
 n_periods <- 50
-sim_dyn <- sim_dyn_DGP(N = N, n_periods = n_periods, DGP = 1)
+sim_dyn <- sim_tv_DGP(N = N, n_periods = n_periods, DGP = 1)
 y <- sim_dyn$y
 X <- sim_dyn$X
 
-dyn_estim <- dyn_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
+dyn_estim <- tv_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
 ```
 
-In contrast to the time-constant `pagfl`, `dyn_pagfl` does not return a post-Lasso coefficient matrix but a $T \times p \times \widehat{K}$ array.
+In contrast to the time-constant `pagfl`, `tv_pagfl` does not return a post-Lasso coefficient matrix but a $T \times p \times \widehat{K}$ array.
 
 In empirical applications, it is commonplace to encounter unbalanced panel data sets. In such instances, time-varying coefficient functions can be estimated nonetheless. The nonparametric spline functions simply smooth over the time periods with only a limited number or even no observations. However, it is required to provide explicit indicator variables that declare the cross-sectional individual and time period each observation belongs to.
 
-Lets delete a couple of observations, add indicator variables, and run `dyn_pagfl` again.
+Lets delete a couple of observations, add indicator variables, and run `tv_pagfl` again.
 
 ```{r}
 # Draw some observations to be omitted
@@ -147,12 +147,12 @@ X <- cbind(X, i_index = i_index, t_index = t_index)
 y <- y[delete_index_y,]
 X <- X[delete_index_X,]
 # Apply the time-varying PAGFL to an unbalanced panel
-dyn_estim_unbalanced <- dyn_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
+dyn_estim_unbalanced <- tv_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
 ```
 
 
 
-Furthermore, `dyn_pagfl` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the degree of the spline functions, the number of interior knots in the spline system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?dyn_pagfl()` for details.
+Furthermore, `tv_pagfl` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the degree of the spline functions, the number of interior knots in the spline system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
 
 ## References
 
