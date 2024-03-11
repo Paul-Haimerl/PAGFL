@@ -48,12 +48,12 @@
 #' @examples
 #' # Simulate a time-varying panel with a trend and a group pattern
 #' set.seed(1)
-#' sim <- sim_dyn_DGP(N = 50, n_periods = 50, DGP = 1)
+#' sim <- sim_tv_DGP(N = 50, n_periods = 50, DGP = 1)
 #' y <- sim$y
 #' X <- sim$X
 #'
 #' # Run the time-varying PAGFL
-#' estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 6)
+#' estim <- tv_pagfl(y = y, X = X, n_periods = 50, lambda = 6)
 #' print(estim)
 #'
 #' # Lets pass a panel data set with explicit cross-sectional and time indicators
@@ -61,7 +61,7 @@
 #' t_index <- rep(1:50, 50)
 #' y <- cbind(y, i_index = i_index, t_index = t_index)
 #' X <- cbind(X, i_index = i_index, t_index = t_index)
-#' estim <- dyn_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
+#' estim <- tv_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
 #'
@@ -81,7 +81,7 @@
 #' \item{\code{iter}}{the number of executed algorithm iterations.}
 #' \item{\code{convergence}}{logical. If \code{TRUE}, convergence was achieved. If \code{FALSE}, \code{max_iter} was reached.}
 #' @export
-dyn_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
+tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
                       const_coef = NULL, kappa = 2, max_iter = 8e3, tol_convergence = 1e-10, tol_group = 1e-2,
                       rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE) {
   #------------------------------#
@@ -200,20 +200,20 @@ dyn_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = f
 #'
 #' @examples
 #' # Simulate a time-varying panel with a trend and a group pattern
-#' sim <- sim_dyn_DGP(N = 20, n_periods = 50, DGP = 1)
+#' sim <- sim_tv_DGP(N = 20, n_periods = 50, DGP = 1)
 #' y <- sim$y
 #' X <- sim$X
 #' groups_0 <- sim$groups
 #'
 #' # Estimate the time-varying grouped panel data model model, given the true grouping
-#' estim <- dyn_oracle(y = y, X = X, n_periods = 50, groups_0 = groups_0)
+#' estim <- tv_oracle(y = y, X = X, n_periods = 50, groups_0 = groups_0)
 #' print(estim)
 #' @author Paul Haimerl
 #'
 #' @return A \eqn{T \times p \times K} array of the group-specific time-varying coefficients.
 #'
 #' @export
-dyn_oracle <- function(y, X, n_periods, groups_0, d = 3, J = floor(NROW(y)^(1 / 7))) {
+tv_oracle <- function(y, X, n_periods, groups_0, d = 3, J = floor(NROW(y)^(1 / 7))) {
   y <- as.matrix(y)
   X <- as.matrix(X)
   N <- nrow(y) / n_periods

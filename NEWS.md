@@ -1,6 +1,6 @@
 # PAGFL 1.1.0 (development version)
 
-* Introduction of the time-varying *PAGFL* `dyn_pagfl`
+* Introduction of the time-varying *PAGFL* `tv_pagfl`
 * Renamed functions to be consistently snake case
 * Support for unordered panel data sets via `index`
 * Support for unbalanced panel data sets

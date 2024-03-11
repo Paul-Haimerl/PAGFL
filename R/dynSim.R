@@ -29,7 +29,7 @@
 #'
 #' @examples
 #' # Simulate a time-varying panel subject to a time trend and a latent group structure
-#' sim <- sim_dyn_DGP(N = 20, n_periods = 50, DGP = 1)
+#' sim <- sim_tv_DGP(N = 20, n_periods = 50, DGP = 1)
 #' y <- sim$y
 #' X <- sim$X
 #' @references
@@ -44,7 +44,7 @@
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' @export
-sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
+sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
@@ -157,7 +157,7 @@ sim_dyn_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
 }
 
 
-sim_dyn_DGP_rand <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, d = 3, group_proportions = NULL) {
+sim_tv_DGP_rand <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, d = 3, group_proportions = NULL) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
