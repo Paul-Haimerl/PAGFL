@@ -33,7 +33,7 @@ You can install the development version of `PAGFL` (1.1.0) from
 ``` r
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> Skipping install of 'PAGFL' from a github remote, the SHA1 (00b9e591) has not changed since last install.
+#> Skipping install of 'PAGFL' from a github remote, the SHA1 (c4514ba5) has not changed since last install.
 #>   Use `force = TRUE` to force installation
 library(PAGFL)
 ```
@@ -80,29 +80,30 @@ independent variables, the number of time periods, and a penalization
 parameter $\lambda$.
 
 ``` r
-estim <- pagfl(y = y, X = X, n_periods = 150, lambda = 5)
+estim <- pagfl(y = y, X = X, n_periods = 150, lambda = 10)
 print(estim)
 #> $IC
-#> [1] 1.020187
+#> [1] 1.27562
 #> 
 #> $lambda
-#> [1] 5
+#> [1] 10
 #> 
 #> $alpha_hat
-#>        alpha_1   alpha_2
-#> k=1 -0.9874154  1.636026
-#> k=2 -0.5001927 -1.175167
-#> k=3  0.2976462  1.613246
+#>               [,1]      [,2]
+#> Group 1 -0.3373423  1.615148
+#> Group 2 -0.5001927 -1.175167
 #> 
 #> $K_hat
-#> [1] 3
+#> [1] 2
 #> 
 #> $groups_hat
-#>  [1] 1 2 1 3 3 3 3 3 2 2 3 3 1 2 2 2 3 3 2 1 3 3 2 2 1 2 2 3 3 1 1 2 1 1 3 3 1 1
-#> [39] 1 2 3 1 1 2 1 2 1 2 2 1
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
+#>  1  2  1  1  1  1  1  1  2  2  1  1  1  2  2  2  1  1  2  1  1  1  2  2  1  2 
+#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
+#>  2  1  1  1  1  2  1  1  1  1  1  1  1  2  1  1  1  2  1  2  1  2  2  1 
 #> 
 #> $iter
-#> [1] 37
+#> [1] 124
 #> 
 #> $convergence
 #> [1] TRUE
@@ -120,15 +121,20 @@ print(estim)
 6.  the number of executed *ADMM* algorithm iterations
 7.  a logical indicator if convergence was achieved
 
-Selecting a $\lambda$ value a priori can be tricky. Therefore, we
-suggest iterating over a comprehensive range of candidate values. To
-specify a suitable grid, create a logarithmic sequence ranging from 0 to
-a penalty parameter that induces an entirely homogeneous model (i.e.,
-$\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in
-place of any specific value, and a BIC IC selects the best-fitting
-parameter.
+Selecting a $\lambda$ value a priori can be tricky. For instance, it
+seems like `lambda = 10` is too high since the number of groups $K$ is
+underestimated. As a consequence, we suggest iterating over a
+comprehensive range of candidate values. To specify a suitable grid,
+create a logarithmic sequence ranging from 0 to a penalty parameter that
+induces an entirely homogeneous model (i.e., $\widehat{K} = 1$). The
+resulting $\lambda$ grid vector can be passed in place of any specific
+value, and a BIC IC selects the best-fitting parameter.
+
+Moreover, if the explanatory variables in `X` are named, those names
+also appear in the output.
 
 ``` r
+colnames(X) <- c("a", "b")
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
 estim_set <- pagfl(y = y, X = X, n_periods = 150, lambda = lambda_set)
 print(estim_set)
@@ -139,20 +145,22 @@ print(estim_set)
 #> [1] 0.05994843
 #> 
 #> $alpha_hat
-#>        alpha_1   alpha_2
-#> k=1 -0.9874154  1.636026
-#> k=2 -0.5001927 -1.175167
-#> k=3  0.2976462  1.613246
+#>                  a         b
+#> Group 1 -0.9874154  1.636026
+#> Group 2 -0.5001927 -1.175167
+#> Group 3  0.2976462  1.613246
 #> 
 #> $K_hat
 #> [1] 3
 #> 
 #> $groups_hat
-#>  [1] 1 2 1 3 3 3 3 3 2 2 3 3 1 2 2 2 3 3 2 1 3 3 2 2 1 2 2 3 3 1 1 2 1 1 3 3 1 1
-#> [39] 1 2 3 1 1 2 1 2 1 2 2 1
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
+#>  1  2  1  3  3  3  3  3  2  2  3  3  1  2  2  2  3  3  2  1  3  3  2  2  1  2 
+#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
+#>  2  3  3  1  1  2  1  1  3  3  1  1  1  2  3  1  1  2  1  2  1  2  2  1 
 #> 
 #> $iter
-#> [1] 31
+#> [1] 118
 #> 
 #> $convergence
 #> [1] TRUE
@@ -183,29 +191,31 @@ Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be supplied
 estim_endo <- pagfl(y = y_endo, X = X_endo, n_periods = 150, lambda = 0.05, method = 'PGMM', Z = Z, 
-bias_correc = TRUE, max_iter = 5e3)
+bias_correc = TRUE, max_iter = 8e3)
 print(estim_endo)
 #> $IC
-#> [1] 1.923868
+#> [1] 4.101225
 #> 
 #> $lambda
 #> [1] 0.05
 #> 
 #> $alpha_hat
-#>        alpha_1    alpha_2
-#> k=1  0.3416435 -1.9835855
-#> k=2 -1.2817828 -1.4823077
-#> k=3  1.6819715 -0.8715061
+#>               [,1]       [,2]
+#> Group 1  0.3287358 -1.9741355
+#> Group 2 -1.2817828 -1.4823077
+#> Group 3  1.3671438 -0.9847914
 #> 
 #> $K_hat
 #> [1] 3
 #> 
 #> $groups_hat
-#>  [1] 1 1 1 2 1 3 3 1 1 2 1 3 1 1 1 1 1 2 1 1 1 1 2 2 2 1 2 3 1 1 3 2 2 1 3 1 1 1
-#> [39] 1 1 1 1 1 1 3 3 3 1 2 3
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
+#>  1  1  1  2  1  3  3  1  1  2  3  3  1  1  1  1  1  2  1  1  1  1  2  2  2  1 
+#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
+#>  2  3  1  1  3  2  2  1  3  1  1  3  1  1  1  1  1  1  3  3  3  1  2  3 
 #> 
 #> $iter
-#> [1] 5000
+#> [1] 8000
 #> 
 #> $convergence
 #> [1] FALSE
@@ -231,20 +241,52 @@ functions employing a penalized sieve estimation (*PSE*).
 
 ``` r
 # Simulate a time-varying panel with a trend and a group pattern
-sim <- sim_dyn_DGP(N = 50, n_periods = 50, DGP = 1)
-y <- sim$y
-X <- sim$X
+N <- 50
+n_periods <- 50
+sim_dyn <- sim_dyn_DGP(N = N, n_periods = n_periods, DGP = 1)
+y <- sim_dyn$y
+X <- sim_dyn$X
 
-dyn_estim <- dyn_pagfl(y = y, X = X, n_periods = 50, lambda = 2.4)
+dyn_estim <- dyn_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
 ```
 
 In contrast to the time-constant `pagfl`, `dyn_pagfl` does not return a
 post-Lasso coefficient matrix but a $T \times p \times \widehat{K}$
 array.
 
+In empirical applications, it is commonplace to encounter unbalanced
+panel data sets. In such instances, time-varying coefficient functions
+can be estimated nonetheless. The nonparametric spline functions simply
+smooth over the time periods with only a limited number or even no
+observations. However, it is required to provide explicit indicator
+variables that declare the cross-sectional individual and time period
+each observation belongs to.
+
+Lets delete a couple of observations, add indicator variables, and run
+`dyn_pagfl` again.
+
+``` r
+# Draw some observations to be omitted
+delete_index_y <- as.logical(rbinom(n = N * n_periods, prob = 0.9, size = 1))
+delete_index_X <- as.logical(rbinom(n = N * n_periods, prob = 0.9, size = 1))
+# Construct cross-sectional and time indicator variables
+i_index <- rep(1:N, each = n_periods)
+t_index <- rep(1:n_periods, N)
+y <- cbind(y, i_index = i_index, t_index = t_index)
+X <- cbind(X, i_index = i_index, t_index = t_index)
+# Delte some observations
+y <- y[delete_index_y,]
+X <- X[delete_index_X,]
+# Apply the time-varying PAGFL to an unbalanced panel
+dyn_estim_unbalanced <- dyn_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
+#> Warning in second_checks(N = N, index = index, n_periods = n_periods, y = y, : The panel data set is unbalanced
+```
+
 Furthermore, `dyn_pagfl` lets you specify a lot more optionalities than
 shown here. For example, it is possible to adjust the degree of the
-spline functions or the number of knots. See `?dyn_pagfl()` for details.
+spline functions, the number of interior knots in the spline system, or
+estimate a panel data model with a mix of time-varying and time-constant
+coefficients. See `?dyn_pagfl()` for details.
 
 ## References
 
