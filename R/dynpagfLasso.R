@@ -82,7 +82,7 @@
 #' \item{\code{convergence}}{logical. If \code{TRUE}, convergence was achieved. If \code{FALSE}, \code{max_iter} was reached.}
 #' @export
 tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
-                      const_coef = NULL, kappa = 2, max_iter = 8e3, tol_convergence = 1e-10, tol_group = 1e-2,
+                      const_coef = NULL, kappa = 2, max_iter = 10e3, tol_convergence = 1e-10, tol_group = 1e-2,
                       rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE) {
   #------------------------------#
   #### Preliminaries          ####
@@ -90,6 +90,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
 
   prelim_checks(y = y, X = X, index = index, n_periods = n_periods, const_coef = const_coef)
 
+  regressor_names <- colnames(X)[!(colnames(X) %in% index) & !(colnames(X) %in% const_coef)]
   if (!is.null(index)) {
     df <- merge(x = X, y = y, by = index)
     df <- stats::na.omit(df)
@@ -107,6 +108,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     t_index <- t_index_labs <- rep(1:n_periods, N)
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
   }
+  coef_rownames <- unique(t_index_labs)[order(unique(t_index))]
 
   y <- as.matrix(y)
   X <- as.matrix(X)
@@ -158,8 +160,12 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     # In case of time-constant regressors, separate them from the spline coefficients
     if (p_const > 0) {
       indx <- (ncol(estimOutput$alpha_hat) - p_const + 1):ncol(estimOutput$alpha_hat)
-      alpha_const <- as.matrix(estimOutput$alpha_hat[, indx])
-      estimOutput$alpha_hat <- as.matrix(estimOutput$alpha_hat[, -indx])
+      alpha_const <- estimOutput$alpha_hat[, indx]
+      estimOutput$alpha_hat <- estimOutput$alpha_hat[, -indx]
+      if (estimOutput$K_hat == 1){
+        estimOutput$alpha_hat <- t(estimOutput$alpha_hat)
+        alpha_const <- t(alpha_const)
+      }
     }
     # Transform the spline coefficients to time-varying functional coefficients
     estimOutput[[1]] <- getDynAlpha(xi = estimOutput[["alpha_hat"]], K_hat = estimOutput[["K_hat"]], p = p, n_periods = n_periods, B)
@@ -172,7 +178,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
   # Pick the estimation result with the lowest IC
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
-  dimnames(estim$alpha_hat) <- list(as.character(unique(t_index_labs)), colnames(X), paste0("Group ", 1:estim$K_hat))
+  dimnames(estim$alpha_hat) <- list(coef_rownames, regressor_names, paste0("Group ", 1:estim$K_hat))
   if (!is.null(const_coef)) {
     dimnames(estim$alpha_const_hat) <- list(paste0("Group ", 1:estim$K_hat), const_coef)
   }

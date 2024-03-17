@@ -15,7 +15,7 @@ tv_pagfl(
   min_group_frac = 0.05,
   const_coef = NULL,
   kappa = 2,
-  max_iter = 8000,
+  max_iter = 10000,
   tol_convergence = 1e-10,
   tol_group = 0.01,
   rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
