@@ -82,8 +82,8 @@
 #' \item{\code{convergence}}{logical. If \code{TRUE}, convergence was achieved. If \code{FALSE}, \code{max_iter} was reached.}
 #' @export
 tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
-                      const_coef = NULL, kappa = 2, max_iter = 10e3, tol_convergence = 1e-10, tol_group = 1e-2,
-                      rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE) {
+                     const_coef = NULL, kappa = 2, max_iter = 10e3, tol_convergence = 1e-10, tol_group = 1e-2,
+                     rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
@@ -162,7 +162,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
       indx <- (ncol(estimOutput$alpha_hat) - p_const + 1):ncol(estimOutput$alpha_hat)
       alpha_const <- estimOutput$alpha_hat[, indx]
       estimOutput$alpha_hat <- estimOutput$alpha_hat[, -indx]
-      if (estimOutput$K_hat == 1){
+      if (estimOutput$K_hat == 1) {
         estimOutput$alpha_hat <- t(estimOutput$alpha_hat)
         alpha_const <- t(alpha_const)
       }
@@ -175,15 +175,28 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     }
     return(c(IC = IC_val, lambda = lam, estimOutput))
   })
+
+  #------------------------------#
+  #### Prepare the output     ####
+  #------------------------------#
+
   # Pick the estimation result with the lowest IC
   IC_vec <- lapply(lambdaList, function(x) x[[1]])
   estim <- lambdaList[[which.min(IC_vec)]]
+  # Attach names to the output
   dimnames(estim$alpha_hat) <- list(coef_rownames, regressor_names, paste0("Group ", 1:estim$K_hat))
   if (!is.null(const_coef)) {
     dimnames(estim$alpha_const_hat) <- list(paste0("Group ", 1:estim$K_hat), const_coef)
   }
   estim$groups_hat <- c(estim$groups_hat)
   names(estim$groups_hat) <- unique(i_index_labs)
+  # Omit estimates at the beginning and end of the observational period without support
+  if (!is.null(index)) {
+    alpha_hat <- delete_missing_t(i_index = i_index, t_index = t_index, K_hat = estim$K_hat, groups_hat = estim$groups_hat,
+                                    alpha_hat = estim$alpha_hat)
+    dimnames(alpha_hat) <- dimnames(estim$alpha_hat)
+    estim$alpha_hat <- alpha_hat
+  }
   return(estim)
 }
 

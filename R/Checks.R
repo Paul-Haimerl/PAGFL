@@ -3,9 +3,11 @@ prelim_checks <- function(y, X, Z = NULL, index = NULL, n_periods = NULL, method
   if (is.null(n_periods)) {
     if (length(index) != 2 | !is.character(index)) stop("Please supply a character vector holding two strings as the index\n")
     if (!all(index %in% colnames(y)) | !all(index %in% colnames(X))) stop("The passed index variables must be both present in y and X\n")
-    if (NCOL(as.matrix(y)[, !(colnames(y) %in% index)]) > 1) stop("Please provide a univariate dependent variable\n")
+    if (NCOL(as.matrix(y)[, !(colnames(y) %in% index)]) != 1) stop("Please provide a univariate dependent variable y\n")
+    if (NCOL(as.matrix(X)[, !(colnames(X) %in% index)]) == 0) stop("Please provide an explanatory variable in addition to the index variables in X\n")
   } else {
-    if (NCOL(as.matrix(y)) > 1) stop("Please provide a univariate dependent variable\n")
+    if (NCOL(as.matrix(y)) != 1) stop("Please provide a univariate dependent variable y\n")
+    if (NCOL(as.matrix(X)) == 0) stop("Please provide an explanatory variable in X\n")
   }
   if (method == "PGMM") {
     if (is.null(Z)) stop("PGMM requires a matrix of exogenous instruments Z\n")

@@ -41,3 +41,7 @@ buildZ <- function(X, B, t_index, J, d, p) {
     .Call(`_PAGFL_buildZ`, X, B, t_index, J, d, p)
 }
 
+delete_missing_t <- function(i_index, t_index, K_hat, groups_hat, alpha_hat) {
+    .Call(`_PAGFL_delete_missing_t`, i_index, t_index, K_hat, groups_hat, alpha_hat)
+}
+

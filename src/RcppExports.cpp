@@ -189,6 +189,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// delete_missing_t
+arma::cube delete_missing_t(const arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& K_hat, const arma::vec& groups_hat, arma::cube& alpha_hat);
+RcppExport SEXP _PAGFL_delete_missing_t(SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP K_hatSEXP, SEXP groups_hatSEXP, SEXP alpha_hatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::uvec& >::type i_index(i_indexSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type K_hat(K_hatSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type groups_hat(groups_hatSEXP);
+    Rcpp::traits::input_parameter< arma::cube& >::type alpha_hat(alpha_hatSEXP);
+    rcpp_result_gen = Rcpp::wrap(delete_missing_t(i_index, t_index, K_hat, groups_hat, alpha_hat));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_buildDiagX", (DL_FUNC) &_PAGFL_buildDiagX, 4},
@@ -201,6 +216,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_dyn_pagfl_algo", (DL_FUNC) &_PAGFL_dyn_pagfl_algo, 15},
     {"_PAGFL_getDynAlpha", (DL_FUNC) &_PAGFL_getDynAlpha, 5},
     {"_PAGFL_buildZ", (DL_FUNC) &_PAGFL_buildZ, 6},
+    {"_PAGFL_delete_missing_t", (DL_FUNC) &_PAGFL_delete_missing_t, 5},
     {NULL, NULL, 0}
 };
 

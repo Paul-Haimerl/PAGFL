@@ -1028,3 +1028,29 @@ arma::mat buildZ(const arma::mat &X, const arma::mat &B, const arma::uvec &t_ind
     }
     return Z;
 }
+
+// [[Rcpp::export]]
+arma::cube delete_missing_t(const arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &K_hat, const arma::vec &groups_hat, arma::cube &alpha_hat) {
+    arma::umat df = arma::join_rows(i_index, t_index);
+    int n_periods = alpha_hat.n_rows;
+    double min_t, max_t;
+    arma::uvec g_k, current_indices;
+    arma::umat tmp;
+    arma::uvec row_indices;
+    for (unsigned int k = 0; k < K_hat; k++)
+    {
+        g_k = arma::find(groups_hat == k + 1);
+        arma::uvec row_indices_temp;
+        for (unsigned int j = 0; j < g_k.n_elem; ++j) {
+            current_indices = arma::find(df.col(0) == g_k[j]);
+            row_indices_temp = arma::join_vert(row_indices_temp, current_indices);
+        }
+        row_indices = row_indices_temp;
+        tmp = df.rows(row_indices);
+        min_t = arma::min(tmp.col(1));
+        max_t = arma::max(tmp.col(1));
+        if (min_t > 1) alpha_hat.subcube(0, 0, k, min_t - 2, alpha_hat.n_cols - 1, k).fill(arma::datum::nan);
+        if (max_t < n_periods) alpha_hat.subcube(max_t, 0, k, n_periods - 1, alpha_hat.n_cols - 1, k).fill(arma::datum::nan);
+    }
+    return alpha_hat;
+}
