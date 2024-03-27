@@ -108,7 +108,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     t_index <- t_index_labs <- rep(1:n_periods, N)
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
   }
-  coef_rownames <- unique(t_index_labs)[order(unique(t_index))]
+  coef_rownames <- as.character(unique(t_index_labs)[order(unique(t_index))])
 
   y <- as.matrix(y)
   X <- as.matrix(X)

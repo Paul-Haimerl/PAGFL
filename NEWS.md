@@ -6,6 +6,8 @@
 * Support for unbalanced panel data sets
 * Maximum within-group heterogeneity `group_tol` set to a machine inaccuracy value
 * Possibility to estimate a mix of time-constant and time-varying coefficients in the same panel data model
+* Improved checks and error/warning messages
+* Bugfixes
 
 # PAGFL 1.0.1
 

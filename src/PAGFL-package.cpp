@@ -1041,8 +1041,8 @@ arma::cube delete_missing_t(const arma::uvec &i_index, const arma::uvec &t_index
     {
         g_k = arma::find(groups_hat == k + 1);
         arma::uvec row_indices_temp;
-        for (unsigned int j = 0; j < g_k.n_elem; ++j) {
-            current_indices = arma::find(df.col(0) == g_k[j]);
+        for (unsigned int j = 0; j < g_k.n_elem; j++) {
+            current_indices = arma::find(df.col(0) == g_k[j] + 1);
             row_indices_temp = arma::join_vert(row_indices_temp, current_indices);
         }
         row_indices = row_indices_temp;

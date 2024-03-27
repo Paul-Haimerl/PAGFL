@@ -10,6 +10,7 @@
 #'  \item{2}{simulates a trend and an additional exogenous explanatory variable, as described by DGP 2 in Su et al. (2019, sec. 6.1)}
 #'  \item{1}{draws a dynamic panel data model with one \eqn{AR} lag, following DGP 3 in Su et al. (2019, sec. 6.1)}
 #' }
+#' @param sd_error standard deviation of the cross-sectional errors. Default is 1.
 #'
 #' @details
 #' The scalar dependent variable \eqn{y_{it}} is driven by the following panel data model:
@@ -44,7 +45,7 @@
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' @export
-sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
+sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1, sd_error = 1) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
@@ -94,7 +95,7 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
       trend_mat_star <- trend_fctn(coef_mat = t(trend_coef[k, , 2]), n_periods = n_periods)
       poly_coef <- t(alpha_coef[, k, 2])
       alpha_mat <- poly_fctn(coef_mat = poly_coef, n_periods = n_periods)
-      trend_coef_mat <- -.5 * alpha_mat + trend_mat_star
+      trend_coef_mat <- -.5 + alpha_mat + trend_mat_star
       alpha_array[, , k] <- 3 / 2 * trend_coef_mat
     } else {
       alpha_array[, , k] <- trend_mat[, k]
@@ -119,13 +120,12 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
   #### Construct X and y      ####
   #------------------------------#
 
-  # Draw the cross-sectional errors
-  u <- stats::rnorm(N * n_periods)
   # Draw the fixed effects
   gamma <- rep(stats::rnorm(N), each = n_periods)
   # Generate the regressors
   if (DGP != 3) {
-    gamma <- 0
+    # Draw the cross-sectional errors
+    u <- stats::rnorm(N * n_periods, sd = sd_error)
     if (DGP == 1) {
       X <- as.matrix(rep(1, N * n_periods))
       # Construct the observations
@@ -136,6 +136,8 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
       y <- rowSums(X * beta_mat) + gamma + u
     }
   } else {
+    # Draw the cross-sectional errors
+    u <- matrix(stats::rnorm(N * (n_periods + 1), sd = sd_error), ncol = N)
     y <- c()
     X <- c()
     u <- matrix(u, ncol = N)
@@ -143,11 +145,11 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, DGP = 1) {
       group <- groups[i]
       y_i <- rep(0, n_periods + 1)
       for (t in 2:(n_periods + 1)) {
-        y_i[t] <- y_i[t - 1] * alpha_array[t - 1, , group] + u[t - 1, i]
+        y_i[t] <- y_i[t - 1] * alpha_array[t - 1, , groups[i]] + u[t, i]
       }
       y_i <- y_i + unique(gamma)[i]
-      y <- c(y, y_i[-(n_periods + 1)])
-      X <- c(X, y_i[-1])
+      y <- c(y, y_i[-1])
+      X <- c(X, y_i[-(n_periods + 1)])
     }
     y <- as.matrix(y)
     X <- as.matrix(X)

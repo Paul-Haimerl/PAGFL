@@ -4,7 +4,7 @@
 \alias{sim_tv_DGP}
 \title{Simulate a Time-varying Panel With a Latent Group Structure}
 \usage{
-sim_tv_DGP(N = 50, n_periods = 40, DGP = 1)
+sim_tv_DGP(N = 50, n_periods = 40, DGP = 1, sd_error = 1)
 }
 \arguments{
 \item{N}{the number of cross-sectional units. Default is 50.}
@@ -17,6 +17,8 @@ sim_tv_DGP(N = 50, n_periods = 40, DGP = 1)
 \item{2}{simulates a trend and an additional exogenous explanatory variable, as described by DGP 2 in Su et al. (2019, sec. 6.1)}
 \item{1}{draws a dynamic panel data model with one \eqn{AR} lag, following DGP 3 in Su et al. (2019, sec. 6.1)}
 }}
+
+\item{sd_error}{standard deviation of the cross-sectional errors. Default is 1.}
 }
 \value{
 A list holding
