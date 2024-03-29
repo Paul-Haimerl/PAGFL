@@ -82,8 +82,9 @@ pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, method = "PLS", 
   #### Preliminaries          ####
   #------------------------------#
 
-  prelim_checks(y, X, Z, index, n_periods, method)
+  prelim_checks(y, X, Z, index, n_periods, method, verbose = verbose)
 
+  regressor_names <- colnames(X)[!(colnames(X) %in% index)]
   if (!is.null(index)) {
     df <- merge(x = X, y = y, by = index)
     if (method == "PGMM") df <- merge(x = df, y = Z, by = index)
@@ -149,7 +150,7 @@ pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, method = "PLS", 
   estim$groups_hat <- c(estim$groups_hat)
   names(estim$groups_hat) <- unique(i_index_labs)
   rownames(estim$alpha_hat) <- paste("Group", 1:estim$K_hat)
-  colnames(estim$alpha_hat) <- colnames(X)
+  colnames(estim$alpha_hat) <- regressor_names
   return(estim)
 }
 

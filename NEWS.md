@@ -2,11 +2,12 @@
 
 * Introduction of the time-varying *PAGFL* `tv_pagfl`
 * Renamed functions to be consistently snake case
-* Support for unordered panel data sets via `index`
-* Support for unbalanced panel data sets
+* Support for unordered and/ or unbalanced panel data sets via `index`
 * Maximum within-group heterogeneity `group_tol` set to a machine inaccuracy value
 * Possibility to estimate a mix of time-constant and time-varying coefficients in the same panel data model
 * Improved checks and error/warning messages
+* Added row and column names to the estimation output
+* Automated testing
 * Bugfixes
 
 # PAGFL 1.0.1

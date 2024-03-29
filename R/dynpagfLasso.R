@@ -88,7 +88,7 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
   #### Preliminaries          ####
   #------------------------------#
 
-  prelim_checks(y = y, X = X, index = index, n_periods = n_periods, const_coef = const_coef)
+  prelim_checks(y = y, X = X, index = index, n_periods = n_periods, const_coef = const_coef, verbose = verbose)
 
   regressor_names <- colnames(X)[!(colnames(X) %in% index) & !(colnames(X) %in% const_coef)]
   if (!is.null(index)) {
@@ -109,7 +109,6 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
   }
   coef_rownames <- as.character(unique(t_index_labs)[order(unique(t_index))])
-
   y <- as.matrix(y)
   X <- as.matrix(X)
   if (!is.null(const_coef)) {
@@ -121,6 +120,16 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
     p_const <- 0
   }
   p <- ncol(X)
+  # In case of only time-constant coefficients, revert to pagfl()
+  if (p == 0) {
+    estim <- pagfl(
+      y = y, X = X_const, index = index, n_periods = n_periods, lambda = lambda, method = "PLS",
+      min_group_frac = min_group_frac, kappa = kappa, max_iter = max_iter, tol_convergence = tol_convergence,
+      tol_group = tol_group, rho = rho, verbose = F
+    )
+    names(estim)[3] <- "alpha_const_hat"
+    return(estim)
+  }
 
   second_checks(
     N = N, index = index, n_periods = n_periods, y = y, X = X, p = p, min_group_frac = min_group_frac,
@@ -192,8 +201,10 @@ tv_pagfl <- function(y, X, index = NULL, n_periods = NULL, lambda, d = 3, J = fl
   names(estim$groups_hat) <- unique(i_index_labs)
   # Omit estimates at the beginning and end of the observational period without support
   if (!is.null(index)) {
-    alpha_hat <- delete_missing_t(i_index = i_index, t_index = t_index, K_hat = estim$K_hat, groups_hat = estim$groups_hat,
-                                    alpha_hat = estim$alpha_hat)
+    alpha_hat <- delete_missing_t(
+      i_index = i_index, t_index = t_index, K_hat = estim$K_hat, groups_hat = estim$groups_hat,
+      alpha_hat = estim$alpha_hat
+    )
     dimnames(alpha_hat) <- dimnames(estim$alpha_hat)
     estim$alpha_hat <- alpha_hat
   }
