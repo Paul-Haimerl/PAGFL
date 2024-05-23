@@ -49,14 +49,6 @@
 #' sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 0)
 #' y <- sim$y
 #'
-#' # Simulate a time-varying panel with two explanatory variables and a specific latent group structure
-#' sim <- sim_tv_DGP(
-#'   N = 20, n_periods = 50, intercept = FALSE, p = 2,
-#'   group_proportions = c(0.2, 0.7, 0.1)
-#' )
-#' y <- sim$y
-#' X <- sim$X
-#'
 #' @author Paul Haimerl
 #'
 #' @return A list holding
