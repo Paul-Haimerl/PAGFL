@@ -6,37 +6,38 @@
 #' @param n_periods the number of simulated time periods \eqn{T}. Default is 40.
 #' @param p the number of explanatory variables. Default is 2.
 #' @param n_groups the number of latent groups \eqn{K}. Default is 3.
-#' @param group_proportions a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{\frac{N}{K}}. Default is \code{NULL}.
-#' @param error_spec the used error specification. Options are
+#' @param group_proportions a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
+#' @param error_spec options include
 #' \describe{
-#' \item{\code{NULL}}{for \eqn{iid} errors.}
-#' \item{\code{'AR'}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
-#' \item{\code{'GARCH'}}{for a \eqn{GARCH(1,1)} error process with a 0.05 constant, a 0.05 ARCH and a 0.9 GARCH coefficient.}
+#' \item{\code{"iid"}}{for \eqn{iid} errors.}
+#' \item{\code{"AR"}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
+#' \item{\code{"GARCH"}}{for a \eqn{GARCH(1,1)} error process with a 0.05 constant, a 0.05 ARCH and a 0.9 GARCH coefficient.}
 #' }
-#' Default is \code{NULL}.
-#' @param dyn_panel Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of the dependent variable (see sec. Details for information on the \eqn{AR} coefficient). Default is \code{FALSE}.
+#' Default is \code{"iid"}.
+#' @param dynamic Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as a regressor (see sec. Details for more information on the \eqn{AR} coefficient). Default is \code{FALSE}.
+#' @param dyn_panel `r lifecycle::badge("deprecated")` deprecated and replaced by \code{dynamic}.
 #' @param q the number of exogenous instruments when a panel with endogenous regressors is to be simulated. If panel data set with exogenous regressors is supposed to be generated, pass \code{NULL}. Default is \code{NULL}.
-#' @param alpha_0 an optional pre-specified \eqn{K \times p} parameter matrix. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). If \code{dyn_panel = TRUE}, the first column represents the stationary \eqn{AR} coefficient. Default is \code{NULL}.
+#' @param alpha_0 an optional pre-specified \eqn{K \times p} coefficient matrix. If \code{dynamic = TRUE}, the first column represents the stationary \eqn{AR} coefficient. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). Default is \code{NULL}.
 #'
 #' @details
-#' The scalar dependent variable \eqn{y_{it}} is driven by the following panel data model
-#' \deqn{y_{it} = \eta_i + \beta_i^\prime x_{it} + u_{it}, \quad i = \{1, \dots, N\}, \quad t = \{1, \dots, T\}.}
-#' \eqn{\eta_i} represents individual fixed effects and \eqn{x_{it} = (x_{it,1}, \dots, x_{it,p})} a \eqn{p \times 1} vector of regressors.
-#' The individual slope coefficient vectors \eqn{\beta_i} are subject to a latent group structure \eqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\}}.
+#' The scalar dependent variable \eqn{y_{it}} is generated according to the following grouped panel data model
+#' \deqn{y_{it} = \gamma_i + \beta_i^\prime x_{it} + u_{it}, \quad i = \{1, \dots, N\}, \quad t = \{1, \dots, T\}.}
+#' \eqn{\gamma_i} represents individual fixed effects and \eqn{x_{it}} a \eqn{p \times 1} vector of regressors.
+#' The individual slope coefficient vectors \eqn{\beta_i} are subject to a latent group structure \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\}}, where \eqn{K = }\code{n_groups}.
 #' As a consequence, the group-level coefficients \eqn{\bold{\alpha} = (\alpha^\prime_1, \dots, \alpha^\prime_K)^\prime} follow the partition \eqn{\bold{G}} of \eqn{N} cross-sectional units \eqn{\bold{G} = (G_1, \dots, G_K)} such that \eqn{\cup_{k=1}^K = \{1,\dots,N\}} and \eqn{G_k \cap G_l = \emptyset, \; \alpha_k \neq \alpha_l} for any two groups \eqn{k \neq l} (Mehrabani, 2023, sec. 2.1).
 #'
 #' If a panel data set with exogenous regressors is generated (set \code{q = NULL}), the \eqn{p} predictors are simulated as:
-#' \deqn{x_{it,j} = 0.2 \eta_i + e_{it,j}, \quad \eta_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
-#' where \eqn{e_{it,j}} denotes a series of innovations. \eqn{\eta_i} and \eqn{e_i} are independent of each other.
+#' \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
+#' where \eqn{e_{it,j}} denotes a series of innovations. \eqn{\gamma_i} and \eqn{e_i} are independent of each other.
 #'
 #' In case \code{alpha_0 = NULL}, the group-level slope parameters \eqn{\alpha_{k}} are drawn from \eqn{\sim U[-2, 2]}.
 #'
-#' If a dynamic panel is specified (\code{dyn_panel = TRUE}), the \eqn{AR} coefficients \eqn{\beta^{\text{AR}}_i} are drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
-#' The individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \eta_i} to account for the autoregressive dependency.
+#' If a dynamic panel is specified (\code{dynamic = TRUE}), the \eqn{AR} coefficients \eqn{\beta^{\text{AR}}_i} are drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
+#' The individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \gamma_i} to account for the autoregressive dependency.
 #' I refer to Mehrabani (2023, sec 6) for details.
 #'
-#' When specifying an endogenous panel (set \code{q} to \eqn{q \geq p}), \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors with \eqn{\text{E}(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{\bold{Z}}, for which \eqn{\text{E}(u|Z) = 0} holds.
-#' The instruments and the first stage coefficients are generated in the same fashion as \eqn{\bold{X}} and \eqn{\bold{\alpha}} when \code{q = NULL}, respectively.
+#' When specifying an endogenous panel (set \code{q} to \eqn{q \geq p}), the \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors with \eqn{\text{E}(u|X) \neq 0}. However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{\bold{Z}}, for which \eqn{\text{E}(u|Z) = 0} holds.
+#' The instruments and the first stage coefficients are generated in the same fashion as \eqn{\bold{X}} and \eqn{\bold{\alpha}} when \code{q = NULL}.
 #'
 #' The function nests, among other, the DGPs employed in the simulation study of Mehrabani (2023, sec. 6).
 #'
@@ -53,20 +54,26 @@
 #' @author Paul Haimerl
 #'
 #' @return A list holding
-#' \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dyn_panel = TRUE}, the first column holds the \eqn{AR} coefficient.}
+#' \item{\code{alpha}}{the \eqn{K \times p} matrix of group-specific slope parameters. In case of \code{dynamic = TRUE}, the first column holds the \eqn{AR} coefficient.}
 #' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
 #' @export
-sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportions = NULL, error_spec = NULL, dyn_panel = FALSE, q = NULL, alpha_0 = NULL) {
+sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportions = NULL, error_spec = "iid", dynamic = FALSE, dyn_panel = lifecycle::deprecated(), q = NULL, alpha_0 = NULL) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
 
+  if (lifecycle::is_present(dyn_panel)){
+    lifecycle::deprecate_warn("1.1.0", "sim_DGP(dyn_panel)", "sim_DGP(dynamic)")
+    dynamic <- dyn_panel
+  }
+
+  error_spec <- match.arg(error_spec, c("AR", "GARCH", "iid"))
   simChecks(
     dyn = FALSE, N = N, n_groups = n_groups, group_proportions = group_proportions, error_spec = error_spec,
-    alpha_0 = alpha_0, dyn_panel = dyn_panel, q = q, p = p
+    alpha_0 = alpha_0, dyn_panel = dynamic, q = q, p = p
   )
 
   #------------------------------#
@@ -76,7 +83,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   # Separate the AR coefficient from the slope parameters of exogenous explanatory variables
   if (is.null(alpha_0)) {
     alpha <- matrix(stats::runif(p * n_groups, -2, 2), ncol = p)
-    if (dyn_panel) {
+    if (dynamic) {
       alpha_ar <- stats::runif(n_groups, -.99, .99)
       alpha_0 <- cbind(alpha_ar, alpha)
     } else {
@@ -84,7 +91,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
       alpha_ar <- NULL
     }
   } else {
-    if (dyn_panel) {
+    if (dynamic) {
       alpha_ar <- as.matrix(alpha_0[, 1])
       alpha <- as.matrix(alpha_0[, -1])
     } else {
@@ -128,11 +135,11 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
     eps <- NULL
   }
   # Generate the regressors
-  XList <- simX(N = N, n_periods = n_periods, p = p, dyn_panel = dyn_panel, eps = eps, q = q)
+  XList <- simX(N = N, n_periods = n_periods, p = p, dyn_panel = dynamic, eps = eps, q = q)
   X <- XList$X
   Z <- XList$Z
   # Bring into a block-matrix format to make later computations easier
-  X_tilde <- buildDiagX(X = X, N = N, i_index = rep(1:N, each = n_periods), groups = 1:N)
+  X_tilde <- buildDiagX_block(X = X, N = N, i_index = rep(1:N, each = n_periods), groups = 1:N)
   # Build a more elaborate error process
   if (!is.null(error_spec)) {
     uList <- split(u, rep(1:((N * n_periods) %/% n_periods), each = n_periods, length.out = N * n_periods))
@@ -144,7 +151,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   }
   # Construct the observation
   y <- X_tilde %*% beta_vec + u
-  if (dyn_panel) {
+  if (dynamic) {
     beta_ar_vec <- c(t(alpha_ar[groups]))
     # Adjust the individual FE in case of a dynamic panel
     y <- y + (1 - beta_ar_vec) * rep(stats::rnorm(N), each = n_periods)

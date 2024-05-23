@@ -1,13 +1,17 @@
 # PAGFL 1.1.0 (development version)
 
 * Introduction of the time-varying *PAGFL* `tv_pagfl`
+* Introduction of s3 methods (`summary()`, `coef()`, `fitted()`, `resid()`) for the output of `pagfl` and `tv_pagfl`
+* Change of the user interface to formula objects
+* Implementation of unit testing
 * Renamed functions to be consistently snake case
 * Support for unordered and/ or unbalanced panel data sets via `index`
-* Maximum within-group heterogeneity `group_tol` set to a machine inaccuracy value
-* Possibility to estimate a mix of time-constant and time-varying coefficients in the same panel data model
-* Improved checks and error/warning messages
+* Possibility to estimate a mix of time-constant and time-varying coefficients in the same panel data model (`const_coef`)
 * Added row and column names to the estimation output
-* Automated testing
+* Maximum within-group heterogeneity `group_tol` set to a machine inaccuracy value
+* Improved documentation, checks, and error/warning messages
+* Enabled 64bit C++ compiler to support large datasets
+* Improvements to efficiency and numerical stability
 * Bugfixes
 
 # PAGFL 1.0.1

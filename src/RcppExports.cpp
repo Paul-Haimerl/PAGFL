@@ -11,9 +11,36 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// buildDiagX
-arma::mat buildDiagX(const arma::mat& X, const unsigned int& N, arma::uvec& i_index, const arma::uvec& groups);
-RcppExport SEXP _PAGFL_buildDiagX(SEXP XSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP groupsSEXP) {
+// bspline_system
+arma::mat bspline_system(arma::vec& x, const unsigned int& d, const arma::vec& knots, bool intercept);
+RcppExport SEXP _PAGFL_bspline_system(SEXP xSEXP, SEXP dSEXP, SEXP knotsSEXP, SEXP interceptSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< bool >::type intercept(interceptSEXP);
+    rcpp_result_gen = Rcpp::wrap(bspline_system(x, d, knots, intercept));
+    return rcpp_result_gen;
+END_RCPP
+}
+// demeanIndVec
+arma::vec demeanIndVec(arma::vec x, unsigned int N, arma::uvec i_index);
+RcppExport SEXP _PAGFL_demeanIndVec(SEXP xSEXP, SEXP NSEXP, SEXP i_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type i_index(i_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(demeanIndVec(x, N, i_index));
+    return rcpp_result_gen;
+END_RCPP
+}
+// buildDiagX_block
+arma::mat buildDiagX_block(const arma::mat& X, const unsigned int& N, arma::uvec& i_index, const arma::uvec& groups);
+RcppExport SEXP _PAGFL_buildDiagX_block(SEXP XSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP groupsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,79 +48,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
     Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
-    rcpp_result_gen = Rcpp::wrap(buildDiagX(X, N, i_index, groups));
+    rcpp_result_gen = Rcpp::wrap(buildDiagX_block(X, N, i_index, groups));
     return rcpp_result_gen;
 END_RCPP
 }
-// getAlpha
-arma::mat getAlpha(const arma::mat& X, const arma::vec& y, arma::mat& Z, const std::string& method, const unsigned int& N, arma::uvec& i_index, const unsigned int& p, const arma::uvec& groups_hat);
-RcppExport SEXP _PAGFL_getAlpha(SEXP XSEXP, SEXP ySEXP, SEXP ZSEXP, SEXP methodSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP pSEXP, SEXP groups_hatSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type groups_hat(groups_hatSEXP);
-    rcpp_result_gen = Rcpp::wrap(getAlpha(X, y, Z, method, N, i_index, p, groups_hat));
-    return rcpp_result_gen;
-END_RCPP
-}
-// deleteObsMat
-arma::mat deleteObsMat(const arma::mat& X, const unsigned int& N, arma::uvec& i_index, const bool first);
-RcppExport SEXP _PAGFL_deleteObsMat(SEXP XSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP firstSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    Rcpp::traits::input_parameter< const bool >::type first(firstSEXP);
-    rcpp_result_gen = Rcpp::wrap(deleteObsMat(X, N, i_index, first));
-    return rcpp_result_gen;
-END_RCPP
-}
-// netFE
-std::vector<arma::mat> netFE(arma::vec& y, arma::mat& X, const std::string& method, const unsigned int& N, arma::uvec& i_index);
-RcppExport SEXP _PAGFL_netFE(SEXP ySEXP, SEXP XSEXP, SEXP methodSEXP, SEXP NSEXP, SEXP i_indexSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(netFE(y, X, method, N, i_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// spjCorrec
-arma::mat spjCorrec(const arma::mat& alpha_mat, arma::mat& X, arma::vec& y, arma::mat& Z, const unsigned int& N, arma::uvec& i_index, const unsigned int& p, const arma::uvec& groups_hat, const std::string& method);
-RcppExport SEXP _PAGFL_spjCorrec(SEXP alpha_matSEXP, SEXP XSEXP, SEXP ySEXP, SEXP ZSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP pSEXP, SEXP groups_hatSEXP, SEXP methodSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type alpha_mat(alpha_matSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type groups_hat(groups_hatSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(spjCorrec(alpha_mat, X, y, Z, N, i_index, p, groups_hat, method));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pagfl_algo
-Rcpp::List pagfl_algo(arma::vec& y, arma::mat& X, const std::string& method, arma::mat& Z, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const bool& bias_correc, const double& lambda, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho);
-RcppExport SEXP _PAGFL_pagfl_algo(SEXP ySEXP, SEXP XSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP bias_correcSEXP, SEXP lambdaSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP) {
+// pagfl_routine
+Rcpp::List pagfl_routine(arma::vec& y, arma::mat& X, const std::string& method, arma::mat& Z, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const bool& bias_correc, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho);
+RcppExport SEXP _PAGFL_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP bias_correcSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -105,62 +66,49 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const bool& >::type bias_correc(bias_correcSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type lambda_vec(lambda_vecSEXP);
     Rcpp::traits::input_parameter< const double& >::type kappa(kappaSEXP);
     Rcpp::traits::input_parameter< const double& >::type min_group_frac(min_group_fracSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_convergence(tol_convergenceSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_group(tol_groupSEXP);
     Rcpp::traits::input_parameter< const double& >::type varrho(varrhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(pagfl_algo(y, X, method, Z, i_index, t_index, N, bias_correc, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho));
+    Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
+    rcpp_result_gen = Rcpp::wrap(pagfl_routine(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho));
     return rcpp_result_gen;
 END_RCPP
 }
-// IC
-double IC(const Rcpp::List& estimOutput, arma::vec& y, arma::mat& X, const double& rho, const std::string& method, const unsigned int& N, arma::uvec& i_index);
-RcppExport SEXP _PAGFL_IC(SEXP estimOutputSEXP, SEXP ySEXP, SEXP XSEXP, SEXP rhoSEXP, SEXP methodSEXP, SEXP NSEXP, SEXP i_indexSEXP) {
+// tv_pagfl_routine
+Rcpp::List tv_pagfl_routine(arma::vec& y, arma::mat& X, arma::mat& X_const, const unsigned int& d, const unsigned int& M, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const unsigned int& p_const, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho, const bool& verbose);
+RcppExport SEXP _PAGFL_tv_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP X_constSEXP, SEXP dSEXP, SEXP MSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP p_constSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::List& >::type estimOutput(estimOutputSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(IC(estimOutput, y, X, rho, method, N, i_index));
-    return rcpp_result_gen;
-END_RCPP
-}
-// dyn_pagfl_algo
-Rcpp::List dyn_pagfl_algo(arma::vec& y, arma::mat& Z, const arma::mat& B, const unsigned int& d, const unsigned int& J, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int N, const double& lambda, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho);
-RcppExport SEXP _PAGFL_dyn_pagfl_algo(SEXP ySEXP, SEXP ZSEXP, SEXP BSEXP, SEXP dSEXP, SEXP JSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP lambdaSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_const(X_constSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type J(JSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M(MSEXP);
     Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
     Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type p_const(p_constSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type lambda_vec(lambda_vecSEXP);
     Rcpp::traits::input_parameter< const double& >::type kappa(kappaSEXP);
     Rcpp::traits::input_parameter< const double& >::type min_group_frac(min_group_fracSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_convergence(tol_convergenceSEXP);
     Rcpp::traits::input_parameter< const double& >::type tol_group(tol_groupSEXP);
     Rcpp::traits::input_parameter< const double& >::type varrho(varrhoSEXP);
-    rcpp_result_gen = Rcpp::wrap(dyn_pagfl_algo(y, Z, B, d, J, i_index, t_index, N, lambda, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho));
+    Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(tv_pagfl_routine(y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
-// getDynAlpha
-arma::cube getDynAlpha(const arma::mat& xi, const unsigned int& K_hat, const unsigned int& p, const unsigned int& n_periods, const arma::mat& B);
-RcppExport SEXP _PAGFL_getDynAlpha(SEXP xiSEXP, SEXP K_hatSEXP, SEXP pSEXP, SEXP n_periodsSEXP, SEXP BSEXP) {
+// getTVAlpha
+arma::cube getTVAlpha(const arma::mat& xi, const unsigned int& K_hat, const unsigned int& p, const unsigned int& n_periods, const arma::mat& B);
+RcppExport SEXP _PAGFL_getTVAlpha(SEXP xiSEXP, SEXP K_hatSEXP, SEXP pSEXP, SEXP n_periodsSEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -169,23 +117,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int& >::type p(pSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type n_periods(n_periodsSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(getDynAlpha(xi, K_hat, p, n_periods, B));
-    return rcpp_result_gen;
-END_RCPP
-}
-// buildZ
-arma::mat buildZ(const arma::mat& X, const arma::mat& B, const arma::uvec& t_index, const unsigned int& J, const unsigned int& d, const unsigned int& p);
-RcppExport SEXP _PAGFL_buildZ(SEXP XSEXP, SEXP BSEXP, SEXP t_indexSEXP, SEXP JSEXP, SEXP dSEXP, SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type B(BSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type J(JSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type d(dSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(buildZ(X, B, t_index, J, d, p));
+    rcpp_result_gen = Rcpp::wrap(getTVAlpha(xi, K_hat, p, n_periods, B));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -204,19 +136,46 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fitMeasures
+arma::vec fitMeasures(unsigned int& N, const unsigned int& k, const arma::vec& residuals, arma::vec& y, arma::uvec& i_index);
+RcppExport SEXP _PAGFL_fitMeasures(SEXP NSEXP, SEXP kSEXP, SEXP residualsSEXP, SEXP ySEXP, SEXP i_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int& >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type residuals(residualsSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(fitMeasures(N, k, residuals, y, i_index));
+    return rcpp_result_gen;
+END_RCPP
+}
+// getFE
+arma::vec getFE(const arma::vec& y, const arma::uvec& i_index, const unsigned int& N, const std::string& method);
+RcppExport SEXP _PAGFL_getFE(SEXP ySEXP, SEXP i_indexSEXP, SEXP NSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type i_index(i_indexSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(getFE(y, i_index, N, method));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_PAGFL_buildDiagX", (DL_FUNC) &_PAGFL_buildDiagX, 4},
-    {"_PAGFL_getAlpha", (DL_FUNC) &_PAGFL_getAlpha, 8},
-    {"_PAGFL_deleteObsMat", (DL_FUNC) &_PAGFL_deleteObsMat, 4},
-    {"_PAGFL_netFE", (DL_FUNC) &_PAGFL_netFE, 5},
-    {"_PAGFL_spjCorrec", (DL_FUNC) &_PAGFL_spjCorrec, 9},
-    {"_PAGFL_pagfl_algo", (DL_FUNC) &_PAGFL_pagfl_algo, 15},
-    {"_PAGFL_IC", (DL_FUNC) &_PAGFL_IC, 7},
-    {"_PAGFL_dyn_pagfl_algo", (DL_FUNC) &_PAGFL_dyn_pagfl_algo, 15},
-    {"_PAGFL_getDynAlpha", (DL_FUNC) &_PAGFL_getDynAlpha, 5},
-    {"_PAGFL_buildZ", (DL_FUNC) &_PAGFL_buildZ, 6},
+    {"_PAGFL_bspline_system", (DL_FUNC) &_PAGFL_bspline_system, 4},
+    {"_PAGFL_demeanIndVec", (DL_FUNC) &_PAGFL_demeanIndVec, 3},
+    {"_PAGFL_buildDiagX_block", (DL_FUNC) &_PAGFL_buildDiagX_block, 4},
+    {"_PAGFL_pagfl_routine", (DL_FUNC) &_PAGFL_pagfl_routine, 16},
+    {"_PAGFL_tv_pagfl_routine", (DL_FUNC) &_PAGFL_tv_pagfl_routine, 18},
+    {"_PAGFL_getTVAlpha", (DL_FUNC) &_PAGFL_getTVAlpha, 5},
     {"_PAGFL_delete_missing_t", (DL_FUNC) &_PAGFL_delete_missing_t, 5},
+    {"_PAGFL_fitMeasures", (DL_FUNC) &_PAGFL_fitMeasures, 5},
+    {"_PAGFL_getFE", (DL_FUNC) &_PAGFL_getFE, 4},
     {NULL, NULL, 0}
 };
 
