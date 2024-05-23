@@ -9,21 +9,24 @@
 [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL)
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
-
+[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://codecov.io/gh/Paul-Haimerl/PAGFL)
 <!-- badges: end -->
 
-In panel data analysis, unobservable group structures are a common
-challenge. Disregarding group-level heterogeneity by assuming an
-entirely homogeneous panel can introduce bias. Conversely, estimating
-individual coefficients for each cross-sectional unit is inefficient and
-may lead to high uncertainty.
+Unobservable group structures are a common challenge in panel data
+analysis. Disregarding group-level heterogeneity can introduce bias.
+Conversely, estimating individual coefficients for each cross-sectional
+unit is inefficient and may lead to high uncertainty.
 
-Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002))
-introduces the pairwise adaptive group fused Lasso (*PAGFL*), a fast
-methodology to identify latent group structures and estimate
-group-specific coefficients simultaneously.
+This package efficiently addresses the issue of unobservable group
+structures by implementing the pairwise adaptive group fused Lasso
+(*PAGFL*) by Mehrabani
+([2023](https://doi.org/10.1016/j.jeconom.2022.12.002)). *PAGFL* is a
+regularizer that identifies latent group structures and estimates
+group-specific coefficients in a single step. On top of that, we extend
+the PAGFL to time-varying functional coefficients.
 
-The `PAGFL` package makes this powerful procedure easy to use.
+The `PAGFL` package makes this powerful procedure easy to use. On top of
+that, we extend the `PAGFL` to time-varying functional coefficients.
 
 ## Installation
 
@@ -33,25 +36,6 @@ You can install the development version of `PAGFL` (1.1.0) from
 ``` r
 # install.packages('devtools')
 devtools::install_github('Paul-Haimerl/PAGFL')
-#> rlang (1.1.2 -> 1.1.3) [CRAN]
-#> glue  (1.6.2 -> 1.7.0) [CRAN]
-#> cli   (3.6.1 -> 3.6.2) [CRAN]
-#> package 'rlang' successfully unpacked and MD5 sums checked
-#> package 'glue' successfully unpacked and MD5 sums checked
-#> package 'cli' successfully unpacked and MD5 sums checked
-#> 
-#> The downloaded binary packages are in
-#>  C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\downloaded_packages
-#> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\Rtmpo3hHfu\remotes50846bbc3e13\Paul-Haimerl-PAGFL-24da74e/DESCRIPTION' (451ms)
-#>       ─  preparing 'PAGFL':
-#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
-#> ─  cleaning src
-#>       ─  checking for LF line-endings in source and make files and shell scripts
-#>       ─  checking for empty or unneeded directories
-#>       ─  building 'PAGFL_1.1.0.tar.gz'
-#>      
-#> 
 library(PAGFL)
 ```
 
@@ -67,7 +51,7 @@ panel with a group structure:
 ``` r
 # Simulate a simple panel with three distinct groups and two exogenous explanatory variables
 set.seed(1)
-sim <- sim_DGP(N = 50, n_periods = 150, p = 2, n_groups = 3)
+sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
 y <- sim$y
 X <- sim$X
 ```
@@ -97,46 +81,67 @@ independent variables, the number of time periods, and a penalization
 parameter $\lambda$.
 
 ``` r
-estim <- pagfl(y = y, X = X, n_periods = 150, lambda = 10)
-print(estim)
-#> $IC
-#> [1] 1.27562
+estim <- pagfl(y ~ X, n_periods = 150, lambda = 10)
+summary(estim)
+#> Call:
+#> pagfl(formula = y ~ X, n_periods = 150, lambda = 10)
 #> 
-#> $lambda
-#> [1] 10
+#> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
-#> $alpha_hat
-#>               [,1]      [,2]
-#> Group 1 -0.3373423  1.615148
-#> Group 2 -0.5001927 -1.175167
+#> Convergence reached:
+#> TRUE (48 iterations)
 #> 
-#> $K_hat
-#> [1] 2
+#> Information criterion:
+#>        IC    lambda 
+#>  1.369653 10.000000 
 #> 
-#> $groups_hat
-#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-#>  1  2  1  1  1  1  1  1  2  2  1  1  1  2  2  2  1  1  2  1  1  1  2  2  1  2 
-#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
-#>  2  1  1  1  1  2  1  1  1  1  1  1  1  2  1  1  1  2  1  2  1  2  2  1 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.84943 -0.74149 -0.01570  0.78188  4.80284 
 #> 
-#> $iter
-#> [1] 124
+#> 2 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+#>  1  1  2  1  1  1  1  2  1  1  2  2  2  1  1  1  1  1  2  1 
 #> 
-#> $convergence
-#> [1] TRUE
+#> Coefficients:
+#>                X1       X2
+#> Group 1 -0.30939  1.60784
+#> Group 2 -0.51484 -1.16445
+#> 
+#> Residual standard error: 1.15695 on 2978 degrees of freedom
+#> Mean squared error 1.32872
+#> Multiple R-squared: 0.64641, Adjusted R-squared: 0.64392
 ```
 
-`pagfl` returns a list holding
+`pagfl()` returns an object of type `pagfl` which holds
 
-1.  the value of the IC (see Mehrabani
-    [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 3.4)
-2.  the $\lambda$ parameter
-3.  the $\widehat{K} \times p$ post-Lasso coefficient matrix
-    $\hat{\boldsymbol{\alpha}}^p$
-4.  the estimated number of groups $\widehat{K}$
-5.  the estimated group structure
-6.  the number of executed *ADMM* algorithm iterations
-7.  a logical indicator if convergence was achieved
+1.  `model`: A `data.frame` containing the dependent and explanatory
+    variables as well as individual and time indices (if provided).
+2.  `coefficients`: A $K \times p$ matrix of the post-Lasso
+    group-specific parameter estimates.
+3.  `groups`: A `list` containing (i) the total number of groups
+    $\hat{K}$ and (ii) a vector of estimated group memberships
+    $(\hat{g}_1, \dots, \hat{g}_N)$, where $\hat{g}_i = k$ if $i$ is
+    assigned to group $k$.
+4.  `residuals`: A vector of residuals of the demeaned model.
+5.  `fitted`: A vector of fitted values of the demeaned model.
+6.  `args`: A list of additional arguments.
+7.  `IC`: A `list` containing (i) the value of the IC, (ii) the employed
+    tuning parameter $\lambda$, and (iii) the mean squared error.
+8.  `convergence`: A `list` containing (i) a logical variable if
+    convergence was achieved and (ii) the number of executed *ADMM*
+    algorithm iterations.
+9.  `call`: The function call.
+
+Furthermore, `pagfl` objects can be used in a variety of useful generic
+methods like `summary()`, `fitted()`, `resid()`, `df.residual`,
+`formula`, and `coef()`.
+
+``` r
+estim_fit <- fitted(estim)
+```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 Selecting a $\lambda$ value a priori can be tricky. For instance, it
 seems like `lambda = 10` is too high since the number of groups $K$ is
@@ -152,35 +157,40 @@ also appear in the output.
 
 ``` r
 colnames(X) <- c("a", "b")
+data <- cbind(y = c(y), X)
+
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-estim_set <- pagfl(y = y, X = X, n_periods = 150, lambda = lambda_set)
-print(estim_set)
-#> $IC
-#> [1] 1.020187
+estim_set <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = lambda_set)
+summary(estim_set)
+#> Call:
+#> pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = lambda_set)
 #> 
-#> $lambda
-#> [1] 0.05994843
+#> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
-#> $alpha_hat
-#>                  a         b
-#> Group 1 -0.9874154  1.636026
-#> Group 2 -0.5001927 -1.175167
-#> Group 3  0.2976462  1.613246
+#> Convergence reached:
+#> TRUE (49 iterations)
 #> 
-#> $K_hat
-#> [1] 3
+#> Information criterion:
+#>         IC     lambda 
+#> 1.12938906 0.05994843 
 #> 
-#> $groups_hat
-#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-#>  1  2  1  3  3  3  3  3  2  2  3  3  1  2  2  2  3  3  2  1  3  3  2  2  1  2 
-#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
-#>  2  3  3  1  1  2  1  1  3  3  1  1  1  2  3  1  1  2  1  2  1  2  2  1 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.43373 -0.65970 -0.01794  0.72318  3.79962 
 #> 
-#> $iter
-#> [1] 118
+#> 3 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+#>  1  1  2  3  1  3  3  2  3  3  2  2  2  1  1  1  3  1  2  3 
 #> 
-#> $convergence
-#> [1] TRUE
+#> Coefficients:
+#>                 a        b
+#> Group 1 -0.90820  1.65921
+#> Group 2 -0.51484 -1.16445
+#> Group 3  0.30230  1.56543
+#> 
+#> Residual standard error: 1.03725 on 2978 degrees of freedom
+#> Mean squared error 1.068
+#> Multiple R-squared: 0.71579, Adjusted R-squared: 0.71379
 ```
 
 When, as above, the specific estimation method is left unspecified,
@@ -206,36 +216,41 @@ y_endo <- sim_endo$y
 X_endo <- sim_endo$X
 Z <- sim_endo$Z
 
-# Note that the method PGMM and the instrument matrix Z needs to be supplied
-estim_endo <- pagfl(y = y_endo, X = X_endo, n_periods = 150, lambda = 0.05, method = 'PGMM', Z = Z, 
-bias_correc = TRUE, max_iter = 8e3)
-print(estim_endo)
-#> $IC
-#> [1] 4.101225
+# Note that the method PGMM and the instrument matrix Z needs to be passed
+estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 150, lambda = 0.05, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 8e3)
+summary(estim_endo)
+#> Call:
+#> pagfl(formula = y_endo ~ X_endo, n_periods = 150, lambda = 0.05, 
+#>     method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 8000)
 #> 
-#> $lambda
-#> [1] 0.05
+#> Balanced panel: N = 50, T = 150, obs = 7450
 #> 
-#> $alpha_hat
-#>               [,1]       [,2]
-#> Group 1  0.3287358 -1.9741355
-#> Group 2 -1.2817828 -1.4823077
-#> Group 3  1.3671438 -0.9847914
+#> Convergence reached:
+#> FALSE (8000 iterations)
 #> 
-#> $K_hat
-#> [1] 3
+#> Information criterion:
+#>       IC   lambda 
+#> 1.844708 0.050000 
 #> 
-#> $groups_hat
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -4.62981 -0.88029  0.00097  0.89209  5.38628 
+#> 
+#> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-#>  1  1  1  2  1  3  3  1  1  2  3  3  1  1  1  1  1  2  1  1  1  1  2  2  2  1 
+#>  1  2  3  1  2  1  3  2  2  3  3  1  1  1  2  1  1  1  1  1  1  1  3  1  1  1 
 #> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
-#>  2  3  1  1  3  2  2  1  3  1  1  3  1  1  1  1  1  1  3  3  3  1  2  3 
+#>  3  2  2  1  1  2  3  1  3  1  2  2  1  1  3  1  1  1  1  1  1  1  1  3 
 #> 
-#> $iter
-#> [1] 8000
+#> Coefficients:
+#>                X1       X2
+#> Group 1 -0.63567 -0.90973
+#> Group 2 -0.48163  1.34957
+#> Group 3  1.30702 -2.01686
 #> 
-#> $convergence
-#> [1] FALSE
+#> Residual standard error: 1.34688 on 7398 degrees of freedom
+#> Mean squared error 1.80144
+#> Multiple R-squared: 0.84243, Adjusted R-squared: 0.84134
 ```
 
 Furthermore, `pagfl` lets you select a minimum group size, adjust the
@@ -246,8 +261,8 @@ and modify a list of further settings. Visit the documentation
 ## The Time-varying PAGFL
 
 The development version of the package also includes the functions
-`sim_dyn_DGP`and `tv_pagfl`, which generate and estimate a grouped panel
-data models with the time-varying coefficients
+`sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate a grouped
+panel data models with the time-varying coefficients
 $\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the
 static case, the functional coefficients admit to a group structure
 $\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$.
@@ -258,51 +273,121 @@ functions employing a penalized sieve estimation (*PSE*).
 
 ``` r
 # Simulate a time-varying panel with a trend and a group pattern
-N <- 50
-n_periods <- 50
-sim_dyn <- sim_tv_DGP(N = N, n_periods = n_periods, DGP = 1)
-y <- sim_dyn$y
-X <- sim_dyn$X
+N <- 20
+n_periods <- 100
+tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 0)
+y <- tv_sim$y
+X <- tv_sim$X
 
-dyn_estim <- tv_pagfl(y = y, X = X, n_periods = n_periods, lambda = 6)
+tv_estim <- tv_pagfl(y ~ 1 + X, n_periods = 100, lambda = 8)
+summary(tv_estim)
+#> Call:
+#> tv_pagfl(formula = y ~ 1 + X, n_periods = 100, lambda = 8)
+#> 
+#> Balanced panel: N = 20, T = 100, obs = 2000
+#> 
+#> Convergence reached:
+#> TRUE (1021 iterations)
+#> 
+#> Information criterion:
+#>      IC  lambda 
+#> 1.18797 8.00000 
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.76481 -0.63770 -0.00388  0.65288  4.20256 
+#> 
+#> 3 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+#>  1  1  2  2  1  2  1  2  2  1  2  1  2  2  3  2  2  1  3  2 
+#> 
+#> Residual standard error: 1.0116 on 1973 degrees of freedom
+#> Mean squared error 1.00951
+#> Multiple R-squared: 0.77166, Adjusted R-squared: 0.76865
 ```
 
-In contrast to the time-constant `pagfl`, `tv_pagfl` does not return a
-post-Lasso coefficient matrix but a $T \times p \times \widehat{K}$
-array.
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+
+`tv_pagfl()` returns an object of class `tvpagfl` which contains
+
+1.  `model`: A `data.frame` containing the dependent and explanatory
+    variables as well as individual and time indices (if provided).
+2.  `coefficients`: A list holding (i) a
+    $T \times p^{(1)} \times \hat{K}$ array of the post-Lasso
+    group-specific functional coefficients and (ii) a $K \times p^{(2)}$
+    matrix of time-constant parameter estimates (when running a mixed
+    time-varying panel data model).
+3.  `groups`: A `list` containing (i) the total number of groups
+    $\hat{K}$ and (ii) a vector of estimated group memberships
+    $(\hat{g}_1, \dots, \hat{g}_N)$, where $\hat{g}_i = k$ if $i$ is
+    assigned to group $k$.
+4.  `residuals`: A vector of residuals of the demeaned model.
+5.  `fitted`: A vector of fitted values of the demeaned model.
+6.  `args`: A list of additional arguments.
+7.  `IC`: A `list` containing (i) the value of the IC, (ii) the employed
+    tuning parameter $\lambda$, and (iii) the mean squared error.
+8.  `convergence`: A `list` containing (i) a logical variable if
+    convergence was achieved and (ii) the number of executed *ADMM*
+    algorithm iterations.
+9.  `call`: The function call.
+
+Again, `tvpagfl` objects have generic `summary()`, `fitted()`,
+`resid()`, `df.residual`, `formula`, and `coef()` methods.
 
 In empirical applications, it is commonplace to encounter unbalanced
 panel data sets. In such instances, time-varying coefficient functions
 can be estimated nonetheless. The nonparametric spline functions simply
-smooth over the time periods with only a limited number or even no
-observations. However, it is required to provide explicit indicator
-variables that declare the cross-sectional individual and time period
-each observation belongs to.
+interpolate missing periods. However, when using unbalanced datasets it
+is required to provide explicit indicator variables that declare the
+cross-sectional individual and time period each observation belongs to.
 
-Lets delete a couple of observations, add indicator variables, and run
-`tv_pagfl` again.
+Lets delete 30% of observations, add indicator variables, and run
+`tv_pagfl()` again.
 
 ``` r
 # Draw some observations to be omitted
-delete_index_y <- as.logical(rbinom(n = N * n_periods, prob = 0.9, size = 1))
-delete_index_X <- as.logical(rbinom(n = N * n_periods, prob = 0.9, size = 1))
+delete_index <- as.logical(rbinom(n = N * n_periods, prob = 0.7, size = 1))
 # Construct cross-sectional and time indicator variables
 i_index <- rep(1:N, each = n_periods)
 t_index <- rep(1:n_periods, N)
-y <- cbind(y, i_index = i_index, t_index = t_index)
-X <- cbind(X, i_index = i_index, t_index = t_index)
-# Delte some observations
-y <- y[delete_index_y,]
-X <- X[delete_index_X,]
+data <- cbind(y = c(y), i_index = i_index, t_index = t_index)
+# Delete some observations and create a named data.frame
+data <- data[delete_index,]
 # Apply the time-varying PAGFL to an unbalanced panel
-dyn_estim_unbalanced <- tv_pagfl(y = y, X = X, index = c("i_index", "t_index"), lambda = 6)
-#> Warning in second_checks(N = N, index = index, n_periods = n_periods, y = y, : The panel data set is unbalanced
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 8)
+summary(tv_estim_unbalanced)
+#> Call:
+#> tv_pagfl(formula = y ~ 1, data = data, index = c("i_index", "t_index"), 
+#>     lambda = 8)
+#> 
+#> Unbalanced panel: N = 20, T = 57-79, obs = 1424
+#> 
+#> Convergence reached:
+#> TRUE (402 iterations)
+#> 
+#> Information criterion:
+#>      IC  lambda 
+#> 1.15543 8.00000 
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.75275 -0.65157 -0.01055  0.66519  3.61407 
+#> 
+#> 2 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+#>  1  1  2  2  1  2  1  2  2  1  2  1  2  2  1  2  2  1  1  2 
+#> 
+#> Residual standard error: 1.02785 on 1397 degrees of freedom
+#> Mean squared error 1.03645
+#> Multiple R-squared: 0.75995, Adjusted R-squared: 0.75549
 ```
 
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+
 Furthermore, `tv_pagfl` lets you specify a lot more optionalities than
-shown here. For example, it is possible to adjust the degree of the
-spline functions, the number of interior knots in the spline system, or
-estimate a panel data model with a mix of time-varying and time-constant
+shown here. For example, it is possible to adjust the polyomial degree
+and the number of interior knots in the spline basis system, or estimate
+a panel data model with a mix of time-varying and time-constant
 coefficients. See `?tv_pagfl()` for details.
 
 ## References
