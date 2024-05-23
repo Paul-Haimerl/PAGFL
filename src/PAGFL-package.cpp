@@ -1,10 +1,8 @@
 #define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
-#include <omp.h>
 using namespace Rcpp;
 using namespace arma;
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::plugins(cpp11)]]
 
 arma::vec bspline_basis(arma::vec &x, const arma::vec &knot_vec, const unsigned int &d, const unsigned int &indx)
@@ -269,8 +267,6 @@ arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const ar
     ind_mat = ind_mat.t();
     arma::vec delta(n);
     // Vector of complete fusion parameter differences
-    omp_set_num_threads(omp_get_max_threads() - 2);
-    #pragma omp parallel for
     for (unsigned int i = 0; i < n / p; i++)
     {
         arma::uvec ind = arma::conv_to<arma::uvec>::from(ind_mat.row(i)) - 1;
@@ -363,8 +359,6 @@ std::vector<arma::mat> buildDiagX(const arma::mat &X, const arma::vec &y, const 
     std::vector<arma::mat> XtX_tilde_vec(nGroups);
     arma::mat beta_mat = arma::zeros<arma::mat>(N, X.n_cols);
 
-    omp_set_num_threads(omp_get_max_threads() - 2);
-    #pragma omp parallel for
     for (unsigned int i = 0; i < nGroups; i++)
     {
         arma::mat groupMatrix, XtX_tilde, Xt_tilde;
@@ -455,8 +449,6 @@ arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned
     // Impose a certain grouping
     unsigned int nGroups = arma::max(groups);
     arma::mat alpha_mat = arma::zeros<arma::mat>(nGroups, p);
-    omp_set_num_threads(omp_get_max_threads() - 2);
-    #pragma omp parallel for
     for (unsigned int k = 0; k < nGroups; k++)
     {
         arma::mat groupX, groupXt, groupXtX;
