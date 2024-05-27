@@ -1343,7 +1343,7 @@ arma::mat get_X_cov(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsign
     arma::vec support = arma::regspace<arma::vec>(1, n_periods);
     arma::mat B = bspline_system(support, d, knots, TRUE);
     arma::mat Z;
-    Z = buildZ(X = X, B, t_index, J, d, X.n_cols);
+    Z = buildZ(X, B, t_index, J, d, X.n_cols);
     if (p_const > 0)
     {
         Z = join_rows(Z, X_const);
@@ -1377,7 +1377,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     arma::vec support = arma::regspace<arma::vec>(1, n_periods);
     arma::mat B = bspline_system(support, d, knots, TRUE);
     arma::mat Z;
-    Z = buildZ(X = X, B, t_index, M, d, X.n_cols);
+    Z = buildZ(X, B, t_index, M, d, X.n_cols);
     if (p_const > 0)
     {
         Z = join_rows(Z, X_const);
