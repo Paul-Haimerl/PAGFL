@@ -20,7 +20,8 @@ LinkingTo:
 Imports: 
     Rcpp, 
     lifecycle,
-    ggplot2
+    ggplot2,
+    RcppParallel
 BugReports: https://github.com/Paul-Haimerl/PAGFL/issues
 URL: https://github.com/Paul-Haimerl/PAGFL
 Suggests: 
