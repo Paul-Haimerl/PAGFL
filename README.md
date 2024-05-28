@@ -9,6 +9,7 @@
 [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL)
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://codecov.io/gh/Paul-Haimerl/PAGFL)
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data
@@ -39,16 +40,16 @@ devtools::install_github('Paul-Haimerl/PAGFL')
 #> package 'farver' successfully unpacked and MD5 sums checked
 #> 
 #> The downloaded binary packages are in
-#>  C:\Users\phaim\AppData\Local\Temp\RtmpQ5Jkuv\downloaded_packages
+#>  C:\Users\phaim\AppData\Local\Temp\RtmpOEmzrk\downloaded_packages
 #> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpQ5Jkuv\remotesafd947b90174f\Paul-Haimerl-PAGFL-2d18306/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpQ5Jkuv\remotesafd947b90174f\Paul-Haimerl-PAGFL-2d18306/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpQ5Jkuv\remotesafd947b90174f\Paul-Haimerl-PAGFL-2d18306/DESCRIPTION' (572ms)
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpOEmzrk\remotes870e43c677a48\Paul-Haimerl-PAGFL-fe92e7c/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpOEmzrk\remotes870e43c677a48\Paul-Haimerl-PAGFL-fe92e7c/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpOEmzrk\remotes870e43c677a48\Paul-Haimerl-PAGFL-fe92e7c/DESCRIPTION' (1.2s)
 #>       ─  preparing 'PAGFL':
-#>    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
+#>      checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
 #> ─  cleaning src
-#>       ─  checking for LF line-endings in source and make files and shell scripts (534ms)
-#>   ─  checking for empty or unneeded directories
-#>        NB: this package now depends on R (>= 3.5.0)
-#>      WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+#>       ─  checking for LF line-endings in source and make files and shell scripts (1.4s)
+#>       ─  checking for empty or unneeded directories
+#>      NB: this package now depends on R (>=        NB: this package now depends on R (>= 3.5.0)
+#>        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
 #>      serialize/load version 3 cannot be read in older versions of R.
 #>      File(s) containing such objects:
 #>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
@@ -57,7 +58,7 @@ devtools::install_github('Paul-Haimerl/PAGFL')
 #>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
 #>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
 #>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
-#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
+#>      'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'         'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
 #> ─  building 'PAGFL_1.1.0.tar.gz'
 #>      
 #> 

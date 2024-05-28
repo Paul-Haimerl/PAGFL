@@ -18,11 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macos-latest,   r: 'release'}
+          - {os: windows-latest, r: 'devel'}
+          - {os: windows-latest, r: 'oldrel'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'oldrel-1'}
+          - {os: macOS-14, r: 'devel'}
+          - {os: macos-latest, r: 'release'}
+          - {os: macOS-latest,   r: 'oldrel'}
+          - {os: ubuntu-latest, r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest, r: 'release'}
+          - {os: ubuntu-latest, r: 'oldrel-1'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -47,11 +51,3 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          flags: smart-tests
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
