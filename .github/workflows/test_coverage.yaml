@@ -48,14 +48,6 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
           restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
 
-      - name: Install system dependencies
-        env:
-          RHUB_PLATFORM: linux-x86_64-ubuntu-gcc
-        run: |
-          Rscript -e "remotes::install_github('r-hub/sysreqs')"
-          sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
-          sudo -s eval "$sysreqs"
-
       - name: Install dependencies
         run: |
           install.packages(c("covr", "sessioninfo"))
@@ -72,10 +64,6 @@ jobs:
     
       - name: Test coverage
         run: |
-          ## 1. Get 'Repository Upload Token' from Codecov:
-          ##    https://app.codecov.io/gh/<org>/<repo>/settings
-          ## 2. Set 'CODECOV_TOKEN' in GitHub Secrets:
-          ##    https://github.com/<org>/<repo>/settings/environments/
           coverage <- covr::package_coverage()
           print(coverage)
           covr::codecov(coverage = coverage, token="${{secrets.CODECOV_TOKEN}}")
