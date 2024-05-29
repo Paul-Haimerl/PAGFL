@@ -23,6 +23,9 @@ test_that("pagfl PLS output", {
   estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), lambda = 5)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t)
+  # with bias correction
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, bias_correc = TRUE)
+  check_pagfl_output(estim = estim, X = X)
 })
 
 test_that("pagfl PGMM output", {
