@@ -9,8 +9,8 @@ demeanIndVec <- function(x, N, i_index) {
     .Call(`_PAGFL_demeanIndVec`, x, N, i_index)
 }
 
-buildDiagX_block <- function(X, N, i_index, groups) {
-    .Call(`_PAGFL_buildDiagX_block`, X, N, i_index, groups)
+buildDiagX_block_dense <- function(X, N, i_index, groups) {
+    .Call(`_PAGFL_buildDiagX_block_dense`, X, N, i_index, groups)
 }
 
 pagfl_routine <- function(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho) {

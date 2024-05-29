@@ -62,7 +62,6 @@ check_pagfl_output <- function(estim, X, i_index = NULL, t_index = NULL) {
   }
 }
 
-
 check_tv_pagfl_output <- function(estim, X, i_index = NULL, t_index = NULL) {
   alpha_hat <- estim$coefficients$tv
   expect_equal(colnames(alpha_hat)[-1], colnames(X))
@@ -78,4 +77,30 @@ check_tv_pagfl_output <- function(estim, X, i_index = NULL, t_index = NULL) {
   } else {
     expect_equal(names(estim$groups$groups), as.character(1:10))
   }
+}
+
+check_pagfl_sim <- function(sim, N, n_periods, p, q = NULL, alpha_0 = NULL, K) {
+  expect_length(sim$y, N * n_periods)
+  expect_equal(dim(sim$X), c(N * n_periods, p))
+  expect_equal(max(sim$groups), K)
+  expect_length(sim$groups, N)
+  if (is.null(alpha_0)) {
+    expect_equal(dim(sim$alpha), c(K, p))
+  } else {
+    expect_equal(sim$alpha, alpha_0, ignore_attr = TRUE)
+  }
+  if (is.null(q)) {
+    expect_null(sim$Z)
+  } else {
+    expect_equal(dim(sim$Z), c(N * n_periods, q))
+  }
+}
+
+check_tv_pagfl_sim <- function(sim, N, n_periods, p, K) {
+  expect_length(sim$y, N * n_periods)
+  expect_equal(dim(sim$X), c(N * n_periods, p))
+  expect_equal(max(sim$groups), K)
+  expect_length(sim$groups, N)
+  expect_equal(dim(sim$alpha), c(15, 2, 3))
+  expect_equal(dim(sim$beta), c(15, 2, 10))
 }

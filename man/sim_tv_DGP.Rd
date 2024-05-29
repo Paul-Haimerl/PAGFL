@@ -88,7 +88,7 @@ The final coefficient function follows as \eqn{\alpha_k (t/T) = 3 * F(t/T, locat
 }
 \examples{
 # Simulate a time-varying panel subject to a time trend and a latent group structure
-sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 0)
+sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 1)
 y <- sim$y
 
 }

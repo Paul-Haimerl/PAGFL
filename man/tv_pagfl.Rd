@@ -129,7 +129,7 @@ In case of an unbalanced panel data set, the earliest and latest available obser
 \examples{
 # Simulate a time-varying panel with a trend and a group pattern
 set.seed(1)
-sim <- sim_tv_DGP(N = 30, n_periods = 50, intercept = TRUE, p = 0)
+sim <- sim_tv_DGP(N = 30, n_periods = 50, intercept = TRUE, p = 1)
 y <- sim$y
 
 # Run the time-varying PAGFL with only an intercept

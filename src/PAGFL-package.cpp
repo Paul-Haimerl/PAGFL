@@ -1,6 +1,7 @@
 #define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
 #include <RcppParallel.h>
+#include <tuple>
 using namespace Rcpp;
 using namespace arma;
 using namespace RcppParallel;
@@ -190,7 +191,7 @@ arma::vec fdIndVec(arma::vec x, unsigned int N, arma::uvec i_index)
 }
 
 // Obtain the penalty matrix
-arma::mat buildLambda(const unsigned int &p, const unsigned int &N)
+arma::sp_mat buildLambda(const unsigned int &p, const unsigned int &N)
 {
     std::vector<arma::mat> D_vec;
     // Create a complete fusion penalty matrix D
@@ -211,7 +212,7 @@ arma::mat buildLambda(const unsigned int &p, const unsigned int &N)
         D = arma::join_vert(D, D_vec[i]);
     }
     // Create a complete group penalty matrix Lambda
-    arma::mat Lambda = arma::kron(D, arma::eye<arma::mat>(p, p));
+    arma::sp_mat Lambda = sp_mat(arma::kron(D, arma::eye<arma::mat>(p, p)));
     return Lambda;
 }
 
@@ -237,13 +238,15 @@ arma::vec getOmega(const arma::vec &delta, const double &kappa, const unsigned i
 }
 
 // Update the slope parameter vector
-arma::vec getBeta(arma::vec invXovY, arma::mat invXovLambda, double varrho, arma::vec v, arma::vec delta)
+arma::vec getBeta(arma::vec invXovY, arma::mat invXov, arma::sp_mat VarLambdat, double varrho, arma::vec v, arma::vec delta)
 {
     // See Mehrabani (2023, sec 5.1 step 2a/ 5.2 step 2a)
-    arma::vec lagr_vev = invXovLambda * (delta - v / varrho);
-    arma::vec beta = invXovY + lagr_vev;
+    arma::vec lagr_vev = VarLambdat * (delta - v / varrho);
+    arma::vec beta = invXovY + invXov * lagr_vev;
     return beta;
 }
+
+
 
 // Apply the soft thresholding operator (see Mehrabani (2023, eq. 5.1))
 arma::vec softThreshold(const arma::uvec &ind, const arma::vec &a, const arma::vec &b)
@@ -279,7 +282,7 @@ struct DeltaWorker : public Worker{
 };
 
 // Update the parameter difference vector (see Mehrabani (2023, sec 5.1 step 2b))
-arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const arma::vec &v, const arma::mat &Lambda, const double &varrho, const unsigned int &N, const unsigned int &p)
+arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const arma::vec &v, const arma::sp_mat &Lambda, const double &varrho, const unsigned int &N, const unsigned int &p)
 {
     // Sum of parameter differences and the Lagrangian parameters
     arma::vec xi = Lambda * beta + v / varrho;
@@ -292,11 +295,6 @@ arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const ar
     // Vector of complete fusion parameter differences
     DeltaWorker deltaWorker(ind_mat, xi, ada_weights, delta, p);
     parallelFor(0, n / p, deltaWorker);
-    // for (unsigned int i = 0; i < n / p; i++)
-    // {
-    //     arma::uvec ind = arma::conv_to<arma::uvec>::from(ind_mat.row(i)) - 1;
-    //     delta.subvec(i * p, (i + 1) * p - 1) = softThreshold(ind, xi, ada_weights);
-    // }
     return delta;
 }
 
@@ -309,7 +307,7 @@ bool stoppingCrit(const arma::vec &resid, const double &tol)
 }
 
 // Constructs  a block diagonal matrix from a vector of matrices
-arma::mat buildBlockDiag(const std::vector<arma::mat> &XList)
+arma::sp_mat buildBlockDiag(const std::vector<arma::mat> &XList)
 {
     // Calculate the total number of rows and columns for the block diagonal matrix
     int total_rows = 0;
@@ -330,12 +328,11 @@ arma::mat buildBlockDiag(const std::vector<arma::mat> &XList)
         row_start += X.n_rows;
         col_start += X.n_cols;
     }
-    return block_diag;
+    return sp_mat(block_diag);
 }
 
 // Constructs a NT x Kp block predictor matrix
-// [[Rcpp::export]]
-arma::mat buildDiagX_block(const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups)
+arma::sp_mat buildDiagX_block(const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups)
 {
     // Construct a vector with one element per cross-sectional individual
     std::vector<arma::mat> XMat_vec(N);
@@ -361,7 +358,38 @@ arma::mat buildDiagX_block(const arma::mat &X, const unsigned int &N, arma::uvec
         XMat_tilde_vec[i] = groupMatrix;
     }
     // Create the final block matrix
-    arma::mat X_tilde = buildBlockDiag(XMat_tilde_vec);
+    arma::sp_mat X_tilde = buildBlockDiag(XMat_tilde_vec);
+    return X_tilde;
+}
+
+// [[Rcpp::export]]
+arma::mat buildDiagX_block_dense(const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups)
+{
+    // Construct a vector with one element per cross-sectional individual
+    std::vector<arma::mat> XMat_vec(N);
+    arma::uvec ind_seq;
+    for (unsigned int i = 0; i < N; i++)
+    {
+        ind_seq = arma::find(i_index == i + 1);
+        XMat_vec[i] = X.rows(ind_seq);
+    }
+    // Impose a certain grouping
+    unsigned int nGroups = arma::max(groups);
+    std::vector<arma::mat> XMat_tilde_vec(nGroups);
+    for (unsigned int i = 0; i < nGroups; i++)
+    {
+        arma::mat groupMatrix;
+        for (unsigned int j = 0; j < N; j++)
+        {
+            if (groups[j] == i + 1)
+            {
+                groupMatrix = arma::join_cols(groupMatrix, XMat_vec[j]);
+            }
+        }
+        XMat_tilde_vec[i] = groupMatrix;
+    }
+    // Create the final block matrix
+    arma::mat X_tilde = arma::mat(buildBlockDiag(XMat_tilde_vec));
     return X_tilde;
 }
 
@@ -405,7 +433,7 @@ struct BetaWorker : public Worker {
 };
 
 // Constructs a NT x Kp block predictor matrix, inverse and cross-product
-std::vector<arma::mat> buildDiagX(const arma::mat &X, const arma::vec &y, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const bool &robust)
+std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X, const arma::vec &y, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const bool &robust)
 {
     // Construct a vector with one element per cross-sectional individual
     std::vector<arma::mat> XMat_vec(N);
@@ -423,49 +451,20 @@ std::vector<arma::mat> buildDiagX(const arma::mat &X, const arma::vec &y, const 
     std::vector<arma::mat> XtX_tilde_vec(nGroups);
     arma::mat beta_mat = arma::zeros<arma::mat>(N, X.n_cols);
 
-    // for (unsigned int i = 0; i < nGroups; i++)
-    // {
-    //     arma::mat groupMatrix, XtX_tilde, Xt_tilde;
-    //     arma::vec beta, group_y, Xty_tilde;
-    //     for (unsigned int j = 0; j < N; j++)
-    //     {
-    //         if (groups[j] == i + 1)
-    //         {
-    //             groupMatrix = arma::join_cols(groupMatrix, XMat_vec[j]);
-    //             group_y = arma::join_cols(group_y, y_vec[j]);
-    //         }
-    //     }
-    //     XMat_tilde_vec[i] = groupMatrix;
-    //     Xt_tilde = groupMatrix.t();
-    //     XtX_tilde = Xt_tilde * groupMatrix;
-    //     XtX_tilde_vec[i] = XtX_tilde;
-    //     Xty_tilde = Xt_tilde * group_y;
-    //     if (robust)
-    //     {
-    //     beta = ols_naive(XtX_tilde, Xty_tilde);
-    //     }
-    //     else
-    //     {
-    //          beta = ols_chol(XtX_tilde, Xty_tilde);
-    //     }
-    //     beta_mat.row(i) = beta.t();
-    // }
-
     BetaWorker betaWorker(groups, XMat_vec, y_vec, robust, beta_mat, XMat_tilde_vec, XtX_tilde_vec);
     parallelFor(0, nGroups, betaWorker);
 
     // Create the final block matrices
-    arma::mat X_tilde = buildBlockDiag(XMat_tilde_vec);
-    arma::mat XtX = buildBlockDiag(XtX_tilde_vec);
+    arma::sp_mat X_tilde = buildBlockDiag(XMat_tilde_vec);
+    arma::sp_mat XtX = buildBlockDiag(XtX_tilde_vec);
     std::vector<arma::mat> X_tilde_vec(3);
     X_tilde_vec[0] = X_tilde;
     X_tilde_vec[1] = XtX;
-    X_tilde_vec[2] = arma::vectorise(beta_mat.t());
-    return X_tilde_vec;
+    return std::make_tuple(X_tilde, XtX, arma::vectorise(beta_mat.t()));
 }
 
 // inverts the error var-cov matrix for each group
-arma::mat invertV(const arma::mat &V, const unsigned int &q)
+arma::sp_mat invertV(const arma::mat &V, const unsigned int &q)
 {
     unsigned int N = V.n_rows / q;
     std::vector<arma::mat> W_list(N);
@@ -478,12 +477,12 @@ arma::mat invertV(const arma::mat &V, const unsigned int &q)
         W_list[i] = arma::pinv(V_red);
     }
     // Put everything back together
-    arma::mat W = buildBlockDiag(W_list);
+    arma::sp_mat W = buildBlockDiag(W_list);
     return W;
 }
 
 // Compute the weight matrix for the GMM
-arma::mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec &y, const unsigned int &q)
+arma::sp_mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec &y, const unsigned int &q)
 {
     // Initial estimate with an identity weight matrix
     arma::mat Xt = X_block.t() * Z_block * Z_block.t();
@@ -494,7 +493,7 @@ arma::mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec &y,
     arma::vec u = y - X_block * beta;
     arma::mat V = Z_block.t() * u * u.t() * Z_block;
     // Use the inverse as the subsequent weight matrix (tossing all matrices off the diagonal)
-    arma::mat W = invertV(V, q);
+    arma::sp_mat W = invertV(V, q);
     return W;
 }
 
@@ -551,30 +550,6 @@ arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned
     // Impose a certain grouping
     unsigned int nGroups = arma::max(groups);
     arma::mat alpha_mat = arma::zeros<arma::mat>(nGroups, p);
-    // for (unsigned int k = 0; k < nGroups; k++)
-    // {
-    //     arma::mat groupX, groupXt, groupXtX;
-    //     arma::vec groupy, alpha_group, groupXty;
-    //     // Obtain which individuals are part of group k
-    //     for (unsigned int j = 0; j < N; j++){
-    //         if (groups[j] == k + 1){
-    //             groupX = arma::join_cols(groupX, XMat_vec[j]);
-    //             groupy = arma::join_cols(groupy, y_vec[j]);
-    //         }
-    //     }
-    //     groupXt = groupX.t();
-    //     groupXtX = groupXt * groupX;
-    //     groupXty = groupXt * groupy;
-    //     if (robust)
-    //     {
-    //         alpha_group = ols_naive(groupXtX, groupXty);
-    //     }
-    //     else
-    //     {
-    //         alpha_group = ols_chol(groupXtX, groupXty);
-    //     }
-    //     alpha_mat.row(k) = alpha_group.t();
-    // }
     AlphaWorker alphaWorker(groups, XMat_vec, y_vec, robust, alpha_mat);
     parallelFor(0, nGroups, alphaWorker);
 
@@ -732,8 +707,8 @@ std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &meth
         netFEVec = &fdIndVec;
     }
 
-    arma::mat X_tilde = netFEMat(X, N, i_index);
     arma::mat y_tilde = netFEVec(y, N, i_index);
+    arma::mat X_tilde = netFEMat(X, N, i_index);
     std::vector<arma::mat> data(2);
     data[0] = y_tilde;
     data[1] = X_tilde;
@@ -885,7 +860,7 @@ arma::uvec relabelGroups(const arma::uvec &groups)
 }
 
 // Assigns individuals to groups based on the estimated parameter differences
-arma::uvec getGroups(const arma::vec &beta, const arma::vec &y, const arma::mat &X, const arma::mat &Lambda, const unsigned int &p, const unsigned int &N, const double &tol)
+arma::uvec getGroups(const arma::vec &beta, const arma::vec &y, const arma::mat &X, const arma::sp_mat &Lambda, const unsigned int &p, const unsigned int &N, const double &tol)
 {
     // Assign the groups based on which estimates are equal enough
     unsigned int n = N * (N - 1) / 2;
@@ -1038,7 +1013,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 }
 
 // PAGFL routine
-Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::mat &XtX, arma::vec &Xty, arma::vec &invXcovY, arma::mat &invXcovLambda, const arma::mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, arma::vec &beta, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, arma::vec &beta, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
 {
 
     //------------------------------//
@@ -1077,7 +1052,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     {
         // Update the ...
         // parameter estimates (sec. 5.1/ 5.2 step 2a)
-        beta = getBeta(invXcovY, invXcovLambda, varrho, v_old, delta);
+        beta = getBeta(invXcovY, invXcov, VarLambdat, varrho, v_old, delta);
         // parameter differences (step 2b)
         delta = getDelta(ada_weights, beta, v_old, Lambda, varrho, N, p);
         // Lagrangian parameters (step 2c)
@@ -1201,16 +1176,17 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     unsigned int n = N * (N - 1) * p / 2;
     unsigned int q = Z.n_cols;
     // Compute some constants
-    arma::mat Lambda = buildLambda(p, N);
-    arma::mat VarLambdat = varrho * Lambda.t();
+    arma::sp_mat Lambda = buildLambda(p, N);
+    arma::sp_mat VarLambdat = varrho * Lambda.t();
 
     //------------------------------//
     // Initial estimates            //
     //------------------------------//
 
-    arma::mat X_block, XtX, Xt, Z_block, W;
+    arma::sp_mat X_block, Xt, Z_block, W;
+    arma::mat XtX;
     arma::vec beta, u, Xty;
-    std::vector<arma::mat> X_block_vec;
+    std::tuple<arma::sp_mat, arma::sp_mat, arma::mat> X_block_vec;
     if (method == "PGMM")
     {
         Z_tilde = deleteObsMat(Z, N, i_index, TRUE);
@@ -1222,7 +1198,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
         W = arma::eye<arma::mat>(Z_block.n_cols, Z_block.n_cols);
         // Recompute the initial non-penalized beta estimate
         Xt = X_block.t() * Z_block * W * Z_block.t();
-        XtX = Xt * X_block + .05 / sqrt(y_tilde.n_elem);
+        XtX = arma::mat(Xt * X_block + .05 / sqrt(y_tilde.n_elem));
         Xty = Xt * y_tilde;
         beta = arma::inv(XtX) * Xty;
     }
@@ -1230,22 +1206,22 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     {
         // Build a predictor block matrix
         X_block_vec = buildDiagX(X_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), FALSE);
-        X_block = X_block_vec[0];
-        XtX = X_block_vec[1];
-        beta = X_block_vec[2];
+        X_block = std::get<0>(X_block_vec);
+        XtX = std::get<1>(X_block_vec);
+        beta = std::get<2>(X_block_vec);
         Xty = X_block.t() * y_tilde;
     }
     // Pre-invert the predictor var-cov matrix
-    arma::mat invXcov = arma::inv(XtX + VarLambdat * Lambda);
+    arma::mat XtXLambda = arma::mat(XtX + VarLambdat * Lambda);
+    arma::mat invXcov = arma::inv(XtXLambda);
     arma::vec invXcovY = invXcov * Xty;
-    arma::mat invXcovLambda = invXcov * VarLambdat;
 
     Rcpp::List estimOutput, IC_list, output;
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, XtX, Xty, invXcovY, invXcovLambda, Lambda, method, Z, Z_tilde, beta, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
+        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, beta, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, X_tilde, rho, N, i_index);
         output = Rcpp::List::create(
@@ -1258,7 +1234,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
 
 
 // Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &ZtZ, arma::mat &Z_tilde, arma::mat &Zty, arma::vec &invZcovY, arma::mat &invZcovLambda, arma::vec &pi, const arma::mat &Lambda, const arma::mat &B, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, arma::vec &pi, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
 {
 
     float lambda_star = n_periods * lambda / (2 * N);
@@ -1285,7 +1261,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &ZtZ, arma:
     {
         // Update the ...
         // parameter estimates (step 2a)
-        pi = getBeta(invZcovY, invZcovLambda, varrho, v_old, delta);
+        pi = getBeta(invZcovY, invZcov, VarLambdat, varrho, v_old, delta);
         // parameter differences (step 2b)
         delta = getDelta(ada_weights, pi, v_old, Lambda, varrho, N, p_star);
         // Lagrangian parameters (step 2c)
@@ -1331,38 +1307,6 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &ZtZ, arma:
 }
 
 
-// Get the inverse differenced predictor design matrix
-arma::mat get_X_cov(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const double &varrho)
-{
-    //------------------------------//
-    // Build the B-spline basis     //
-    //------------------------------//
-
-    unsigned int n_periods = arma::max(t_index);
-    arma::vec knots = arma::linspace(1, n_periods, J + 2);
-    arma::vec support = arma::regspace<arma::vec>(1, n_periods);
-    arma::mat B = bspline_system(support, d, knots, TRUE);
-    arma::mat Z;
-    Z = buildZ(X, B, t_index, J, d, X.n_cols);
-    if (p_const > 0)
-    {
-        Z = join_rows(Z, X_const);
-    }
-
-    // Net out fixed effects
-    std::vector<arma::mat> data = netFE(y, Z, "PLS", N, i_index);
-    arma::vec y_tilde = data[0];
-    arma::mat Z_tilde = data[1];
-    std::vector<arma::mat> Z_block_vec = buildDiagX(Z_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), TRUE);
-    arma::mat Z_block = Z_block_vec[0];
-    arma::mat ZtZ = Z_block_vec[1];
-    unsigned int p_star = Z.n_cols;
-    arma::mat Lambda = buildLambda(p_star, N);
-    arma::mat VarLambdat = varrho * Lambda.t();
-    arma::mat invZcov = arma::pinv(ZtZ + VarLambdat * Lambda);
-    return invZcov;
-}
-
 // Combine the time-varying PAGFL algo and the IC
 // [[Rcpp::export]]
 Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &verbose)
@@ -1395,23 +1339,23 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     // Compute some constants
     unsigned int p_star = Z.n_cols;
     unsigned int n = N * (N - 1) * p_star / 2;
-    arma::mat Lambda = buildLambda(p_star, N);
-    arma::mat VarLambdat = varrho * Lambda.t();
+    arma::sp_mat Lambda = buildLambda(p_star, N);
+    arma::sp_mat VarLambdat = varrho * Lambda.t();
 
     //------------------------------//
     // Initial estimates            //
     //------------------------------//
 
     // Build a predictor block matrix (either block-wise or once, depending on the dimensionality)
-    std::vector<arma::mat> Z_block_vec = buildDiagX(Z_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), TRUE);
-    arma::mat Z_block = Z_block_vec[0];
-    arma::mat ZtZ = Z_block_vec[1];
-    arma::vec pi = Z_block_vec[2];
+    std::tuple<arma::sp_mat, arma::sp_mat, arma::mat> Z_block_vec = buildDiagX(Z_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), TRUE);
+    arma::sp_mat Z_block = std::get<0>(Z_block_vec);
+    arma::sp_mat ZtZ = std::get<1>(Z_block_vec);
+    arma::vec pi = std::get<2>(Z_block_vec);
     arma::mat Zty = Z_block.t() * y_tilde;
     // Pre-invert the predictor var-cov matrix
-    arma::mat invZcov = arma::pinv(ZtZ + VarLambdat * Lambda);
+    arma::mat ZtZLambda = arma::mat(ZtZ + VarLambdat * Lambda);
+    arma::mat invZcov = arma::pinv(ZtZLambda);
     arma::vec invZcovY = invZcov * Zty;
-    arma::mat invZcovLambda = invZcov * VarLambdat;
 
     //------------------------------//
     // Run the algorithm            //
@@ -1422,7 +1366,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = tv_pagfl_algo(y, y_tilde, ZtZ, Z_tilde, Zty, invZcovY, invZcovLambda, pi, Lambda, B, d, M, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
+        estimOutput = tv_pagfl_algo(y, y_tilde, Z_tilde, invZcovY, invZcov, pi, VarLambdat, Lambda, B, d, M, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, Z_tilde, rho, N, i_index);
         output = Rcpp::List::create(

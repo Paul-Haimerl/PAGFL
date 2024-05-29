@@ -75,7 +75,7 @@ checksDyn <- function(d, M, p) {
 }
 
 # Checks for simulating data
-simChecks <- function(dyn, N, n_groups, group_proportions, error_spec = "iid", alpha_0 = NULL, dyn_panel = FALSE, q = NULL, p, locations = NULL, scales = NULL, polynomial_coef = NULL, d = NULL) {
+simChecks <- function(dyn, N, n_groups, group_proportions, error_spec = "iid", alpha_0 = NULL, dyn_panel = FALSE, q = NULL, p, locations = NULL, scales = NULL, polynomial_coef = NULL, d = NULL, dynamic, intercept = FALSE) {
   if (N < n_groups) stop("Number of groups cannot exceed number of observations\n")
   if (p == 0) stop("Include at least one explanatory variable\n")
   if (!is.null(group_proportions)) {
@@ -97,13 +97,14 @@ simChecks <- function(dyn, N, n_groups, group_proportions, error_spec = "iid", a
   }
   if (dyn){
     if (!is.null(locations)){
-      if (!is.matrix(locations) | (dim(locations) != c(p, n_groups))) stop("`locations` must be a matrix with p rows and one column per group\n")
+      if (!is.matrix(locations) | all(dim(locations) != c(p, n_groups))) stop("`locations` must be a matrix with p rows and one column per group\n")
     }
     if (!is.null(scales)){
-      if (!is.matrix(scales) | (dim(scales) != c(p, n_groups))) stop("`scales` must be a matrix with p rows and one column per group\n")
+      if (!is.matrix(scales) | all(dim(scales) != c(p, n_groups))) stop("`scales` must be a matrix with p rows and one column per group\n")
     }
     if (!is.null(polynomial_coef)){
-      if (!is.array(polynomial_coef) | (dim(polynomial_coef) != c(p, d, n_groups))) stop("`polynomial_coef` must be an array with p rows, d columns ane one plane per group\n")
+      if (!is.array(polynomial_coef) | all(dim(polynomial_coef) != c(p, d, n_groups))) stop("`polynomial_coef` must be an array with p rows, d columns ane one plane per group\n")
     }
+    if (p < 2 & intercept & dynamic) warning("`p = 1` but both an intercept and a dynamic AR coefficient are specified\n")
   }
 }

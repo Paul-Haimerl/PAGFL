@@ -44,7 +44,7 @@ install.packages("PAGFL")
 
 ## Data
 
-The `PAGFL` packages includes a function that automatically simulates a panel with a group structure:
+The `PAGFL` packages includes a function that automatically simulates a panel data set with a group structure in the slope coefficients:
 
 ```{r}
 # Simulate a simple panel with three distinct groups and two exogenous explanatory variables
@@ -87,9 +87,9 @@ Furthermore, `pagfl` objects can be used in a variety of useful generic methods 
 estim_fit <- fitted(estim)
 ```
 
-Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 10` is too high since the number of groups $K$ is underestimated. As a consequence, we suggest iterating over a comprehensive range of candidate values. To specify a suitable grid, create a logarithmic sequence ranging from 0 to a penalty parameter that induces an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
+Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 10` is too high since the number of groups $K$ is underestimated. We suggest iterating over a comprehensive range of candidate values to trace out the correct model. To specify a suitable grid, create a logarithmic sequence ranging from 0 to a penalty parameter that induces an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
 
-Moreover, if the explanatory variables in `X` are named, those names also appear in the output.
+Furthermore, it is also possible to supply a `data.frame` with named variables and choose a specific formula that selects the variables in that `data.frame`. If the explanatory variables in `X` are named, these names also appear in the output.
 
 ```{r}
 colnames(X) <- c("a", "b")
@@ -108,8 +108,8 @@ Specify a slightly more elaborate endogenous and dynamic panel data set and appl
 # Generate a panel where the predictors X correlate with the cross-sectional innovation, 
 # but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
 # innovations, an AR lag of the dependent variable, and specific group sizes
-sim_endo <- sim_DGP(N = 50, n_periods = 150, p = 2, n_groups = 3, group_proportions = c(0.2, 0.2, 0.6), 
-error_spec = 'GARCH', q = 3)
+sim_endo <- sim_DGP(N = 50, n_periods = 150, p = 3, n_groups = 3, group_proportions = c(0.2, 0.2, 0.6), 
+error_spec = 'GARCH', q = 3, dynamic = TRUE)
 y_endo <- sim_endo$y
 X_endo <- sim_endo$X
 Z <- sim_endo$Z
@@ -130,7 +130,7 @@ The development version of the package also includes the functions `sim_tv_DGP()
 # Simulate a time-varying panel with a trend and a group pattern
 N <- 20
 n_periods <- 100
-tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 0)
+tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
 y <- tv_sim$y
 X <- tv_sim$X
 

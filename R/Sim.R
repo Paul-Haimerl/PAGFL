@@ -73,13 +73,14 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   error_spec <- match.arg(error_spec, c("AR", "GARCH", "iid"))
   simChecks(
     dyn = FALSE, N = N, n_groups = n_groups, group_proportions = group_proportions, error_spec = error_spec,
-    alpha_0 = alpha_0, dyn_panel = dynamic, q = q, p = p
+    alpha_0 = alpha_0, dyn_panel = dynamic, q = q, p = p, dynamic = dynamic
   )
 
   #------------------------------#
   #### Generate parameters    ####
   #------------------------------#
 
+  if (dynamic) p <- p - 1
   # Separate the AR coefficient from the slope parameters of exogenous explanatory variables
   if (is.null(alpha_0)) {
     alpha <- matrix(stats::runif(p * n_groups, -2, 2), ncol = p)
@@ -122,6 +123,8 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
 
   # Draw the cross-sectional errors
   u <- stats::rnorm(N * n_periods)
+  # Draw the FE
+  gamma <- rep(stats::rnorm(N), each = n_periods)
   # In case of a endogenous panel, correlate the errors with the regressor
   if (!is.null(q)) {
     corr_mat <- diag(p + 1)
@@ -139,9 +142,9 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   X <- XList$X
   Z <- XList$Z
   # Bring into a block-matrix format to make later computations easier
-  X_tilde <- buildDiagX_block(X = X, N = N, i_index = rep(1:N, each = n_periods), groups = 1:N)
+  X_tilde <- buildDiagX_block_dense(X = X, N = N, i_index = rep(1:N, each = n_periods), groups = 1:N)
   # Build a more elaborate error process
-  if (!is.null(error_spec)) {
+  if (error_spec != "iid") {
     uList <- split(u, rep(1:((N * n_periods) %/% n_periods), each = n_periods, length.out = N * n_periods))
     if (error_spec == "AR") {
       u <- simAR(errorList = uList)
@@ -150,12 +153,16 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
     }
   }
   # Construct the observation
-  y <- X_tilde %*% beta_vec + u
+  y <- X_tilde %*% beta_vec + u + gamma
   if (dynamic) {
     beta_ar_vec <- c(t(alpha_ar[groups]))
     # Adjust the individual FE in case of a dynamic panel
-    y <- y + (1 - beta_ar_vec) * rep(stats::rnorm(N), each = n_periods)
-    y <- generateARpanel(y = y, N = N, beta = beta_ar_vec)
+    y <- y + (1 - beta_ar_vec) * gamma
+    ARPanel <- generateARpanel(y = y, N = N, beta = beta_ar_vec)
+    y <- ARPanel[,"y"]
+    names(y) <- NULL
+    X <- cbind(ARPanel[,"X"], X)
+    rownames(X) <- NULL
   }
   return(list(alpha = alpha_0, groups = groups, y = y, X = X, Z = Z))
 }
@@ -214,5 +221,8 @@ generateARpanel <- function(y, N, beta) {
   yARMat <- mapply(function(ar, yy) {
     stats::filter(c(0, yy), filter = ar, method = "recursive")[-1]
   }, beta, yList, SIMPLIFY = T)
-  return(c(yARMat))
+  # Create a regressor vector
+  xARVec <- unlist(lapply(yList, function(x) c(0, x[-length(x)])))
+  out <- cbind(X = xARVec, y = c(yARMat))
+  return(out)
 }

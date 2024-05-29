@@ -46,7 +46,7 @@
 #'
 #' @examples
 #' # Simulate a time-varying panel subject to a time trend and a latent group structure
-#' sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 0)
+#' sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 1)
 #' y <- sim$y
 #'
 #' @author Paul Haimerl
@@ -77,13 +77,15 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
   }
 
   if (intercept) {
-    p_star <- p + 1
+    p_star <- p
+    p <- p - 1
   } else {
     p_star <- p
   }
+
   simChecks(
-    dyn = TRUE, N = N, n_groups = n_groups, group_proportions = group_proportions, p = p_star, locations = scales,
-    scales = scales, polynomial_coef = polynomial_coef, d = d
+    dyn = TRUE, N = N, n_groups = n_groups, group_proportions = group_proportions, p = p_star, locations = locations,
+    scales = scales, polynomial_coef = polynomial_coef, d = d, intercept = intercept, dynamic = dynamic
   )
 
   #------------------------------#

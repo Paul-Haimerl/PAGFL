@@ -38,9 +38,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// buildDiagX_block
-arma::mat buildDiagX_block(const arma::mat& X, const unsigned int& N, arma::uvec& i_index, const arma::uvec& groups);
-RcppExport SEXP _PAGFL_buildDiagX_block(SEXP XSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP groupsSEXP) {
+// buildDiagX_block_dense
+arma::mat buildDiagX_block_dense(const arma::mat& X, const unsigned int& N, arma::uvec& i_index, const arma::uvec& groups);
+RcppExport SEXP _PAGFL_buildDiagX_block_dense(SEXP XSEXP, SEXP NSEXP, SEXP i_indexSEXP, SEXP groupsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -48,7 +48,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
     Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
-    rcpp_result_gen = Rcpp::wrap(buildDiagX_block(X, N, i_index, groups));
+    rcpp_result_gen = Rcpp::wrap(buildDiagX_block_dense(X, N, i_index, groups));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -169,7 +169,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_bspline_system", (DL_FUNC) &_PAGFL_bspline_system, 4},
     {"_PAGFL_demeanIndVec", (DL_FUNC) &_PAGFL_demeanIndVec, 3},
-    {"_PAGFL_buildDiagX_block", (DL_FUNC) &_PAGFL_buildDiagX_block, 4},
+    {"_PAGFL_buildDiagX_block_dense", (DL_FUNC) &_PAGFL_buildDiagX_block_dense, 4},
     {"_PAGFL_pagfl_routine", (DL_FUNC) &_PAGFL_pagfl_routine, 16},
     {"_PAGFL_tv_pagfl_routine", (DL_FUNC) &_PAGFL_tv_pagfl_routine, 18},
     {"_PAGFL_getTVAlpha", (DL_FUNC) &_PAGFL_getTVAlpha, 5},

@@ -28,7 +28,8 @@ formula.tvpagfl <- function(x, ...) {
 #' @method df.residual tvpagfl
 #' @export
 df.residual.tvpagfl <- function(object, ...) {
-  length(object$args$labs$t) - length(unique(object$args$labs$i)) - ncol(object$coefficients)
+  M <- object$args$M + object$args$d + 1
+  length(object$args$labs$t) - length(unique(object$args$labs$i)) - max(ncol(object$coefficients$tv), 0) * M - max(ncol(object$coefficients$const), 0)
 }
 
 #' @name tv_pagfl
@@ -80,7 +81,7 @@ print.summary.tvpagfl <- function(x, ...) {
   }
   cat("\nResidual standard error:", round(x$r.se, 5), "on", x$r.df, "degrees of freedom\n")
   cat("Mean squared error", round(x$IC$msr, 5))
-  cat("\nMultiple R-squared:", paste0(round(x$r.squared, 5), ","), "Adjusted R-squared:", round(x$adj.r.squared, 5))
+  cat("\nMultiple R-squared:", paste0(round(x$r.squared, 5), ","), "Adjusted R-squared:", round(x$adj.r.squared, 5), "\n")
   # Plot of the functional coefficient
   p <- dim(x$coefficients$tv)[2]
   var_names <- colnames(x$coefficients$tv)

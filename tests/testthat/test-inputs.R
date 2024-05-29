@@ -3,7 +3,6 @@ test_that("pagfl inputs", {
   y <- sim$y
   X <- sim$X
   data <- as.data.frame(cbind(y = c(y), X))
-
   # Wrong number of time periods
   expect_error(pagfl(y ~ X, n_periods = 151, lambda = 1, verbose = F))
   # Different dim of y and X
@@ -21,6 +20,14 @@ test_that("pagfl inputs", {
   expect_error(pagfl(y ~ a + c, data = data, index = c("i", "t"), lambda = 1, verbose = F))
   # PGMM but no instruments
   expect_error(pagfl(y ~ a + c, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, verbose = F))
+  # No method
+  expect_error(pagfl(y ~ a + c, data = data, index = c("i", "t"), method = "A", lambda = 1, verbose = F))
+  # Incorrect argument
+  expect_error(pagfl(y ~ a + c, data = data, index = c("i", "t"), kappa = -1, lambda = 1, verbose = F))
+  # No index or n_periods
+  expect_error(pagfl(y ~ X, lambda = 1, verbose = F))
+  # No dependent variable
+  expect_error(pagfl( ~ X, lambda = 1, verbose = F))
 })
 
 test_that("Unbalanced panel pagfl", {
