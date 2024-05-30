@@ -9,7 +9,7 @@
 [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL)
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://codecov.io/gh/Paul-Haimerl/PAGFL)
+[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data
@@ -81,23 +81,23 @@ independent variables, the number of time periods, and a penalization
 parameter $\lambda$.
 
 ``` r
-estim <- pagfl(y ~ X, n_periods = 150, lambda = 10)
+estim <- pagfl(y ~ X, n_periods = 150, lambda = 20)
 summary(estim)
 #> Call:
-#> pagfl(formula = y ~ X, n_periods = 150, lambda = 10)
+#> pagfl(formula = y ~ X, n_periods = 150, lambda = 20)
 #> 
 #> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
 #> Convergence reached:
-#> TRUE (48 iterations)
+#> TRUE (49 iterations)
 #> 
 #> Information criterion:
 #>        IC    lambda 
-#>  1.369653 10.000000 
+#>  1.353997 20.000000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -3.84943 -0.74149 -0.01570  0.78188  4.80284 
+#> -4.47230 -0.72086 -0.00120  0.76214  4.31838 
 #> 
 #> 2 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
@@ -105,12 +105,12 @@ summary(estim)
 #> 
 #> Coefficients:
 #>                X1       X2
-#> Group 1 -0.30939  1.60784
-#> Group 2 -0.51484 -1.16445
+#> Group 1 -0.36838  1.61275
+#> Group 2 -0.49489 -1.23534
 #> 
-#> Residual standard error: 1.15695 on 2978 degrees of freedom
-#> Mean squared error 1.32872
-#> Multiple R-squared: 0.64641, Adjusted R-squared: 0.64392
+#> Residual standard error: 1.15012 on 2978 degrees of freedom
+#> Mean squared error 1.31307
+#> Multiple R-squared: 0.65845, Adjusted R-squared: 0.65605
 ```
 
 `pagfl()` returns an object of type `pagfl` which holds
@@ -144,7 +144,7 @@ estim_fit <- fitted(estim)
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 Selecting a $\lambda$ value a priori can be tricky. For instance, it
-seems like `lambda = 10` is too high since the number of groups $K$ is
+seems like `lambda = 20` is too high since the number of groups $K$ is
 underestimated. We suggest iterating over a comprehensive range of
 candidate values to trace out the correct model. To specify a suitable
 grid, create a logarithmic sequence ranging from 0 to a penalty
@@ -171,15 +171,15 @@ summary(estim_set)
 #> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
 #> Convergence reached:
-#> TRUE (49 iterations)
+#> TRUE (50 iterations)
 #> 
 #> Information criterion:
-#>         IC     lambda 
-#> 1.12938906 0.05994843 
+#>        IC    lambda 
+#> 1.1287693 0.2154435 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -3.43373 -0.65970 -0.01794  0.72318  3.79962 
+#> -3.47858 -0.66283 -0.02688  0.72880  3.77812 
 #> 
 #> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
@@ -187,13 +187,13 @@ summary(estim_set)
 #> 
 #> Coefficients:
 #>                 a        b
-#> Group 1 -0.90820  1.65921
-#> Group 2 -0.51484 -1.16445
-#> Group 3  0.30230  1.56543
+#> Group 1 -0.95114  1.61719
+#> Group 2 -0.49489 -1.23534
+#> Group 3  0.24172  1.61613
 #> 
-#> Residual standard error: 1.03725 on 2978 degrees of freedom
-#> Mean squared error 1.068
-#> Multiple R-squared: 0.71579, Adjusted R-squared: 0.71379
+#> Residual standard error: 1.03695 on 2978 degrees of freedom
+#> Mean squared error 1.06738
+#> Multiple R-squared: 0.72236, Adjusted R-squared: 0.7204
 ```
 
 When, as above, the specific estimation method is left unspecified,
@@ -213,94 +213,45 @@ Jochmans ([2015](https://doi.org/10.1093/restud/rdv007)).
 # Generate a panel where the predictors X correlate with the cross-sectional innovation, 
 # but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
 # innovations, an AR lag of the dependent variable, and specific group sizes
-sim_endo <- sim_DGP(N = 50, n_periods = 150, p = 3, n_groups = 3, group_proportions = c(0.2, 0.2, 0.6), 
-error_spec = 'GARCH', q = 3, dynamic = TRUE)
+sim_endo <- sim_DGP(N = 25, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
+error_spec = 'GARCH', q = 2, dynamic = TRUE)
 y_endo <- sim_endo$y
 X_endo <- sim_endo$X
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 150, lambda = 0.05, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 8e3)
+estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 #> Call:
-#> pagfl(formula = y_endo ~ X_endo, n_periods = 150, lambda = 0.05, 
-#>     method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 8000)
+#> pagfl(formula = y_endo ~ X_endo, n_periods = 200, lambda = 15, 
+#>     method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 20000)
 #> 
-#> Balanced panel: N = 50, T = 150, obs = 7450
+#> Balanced panel: N = 25, T = 200, obs = 4975
 #> 
 #> Convergence reached:
-#> FALSE (8000 iterations)
+#> FALSE (20000 iterations)
 #> 
 #> Information criterion:
-#>       IC   lambda 
-#> 62.46243  0.05000 
+#>      IC  lambda 
+#> 56.2871 15.0000 
 #> 
 #> Residuals:
-#>        Min         1Q     Median         3Q        Max 
-#> -128.46780   -2.02895    0.04609    2.04622  124.59214 
+#>       Min        1Q    Median        3Q       Max 
+#> -97.91933  -2.40370   0.01101   2.41854  77.69418 
 #> 
-#> 50 groups:
-#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
-#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
-#> 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 
+#> 3 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 
+#>  1  2  2  1  2  2  2  2  2  1  1  1  1  1  1  1  1  1  1  2  3  1  1  1  1 
 #> 
 #> Coefficients:
-#>                 X1       X2        X3
-#> Group 1  -0.44350 -0.96124  -0.70939
-#> Group 2  -0.61481  0.93842   0.79249
-#> Group 3   1.58353 -1.16948   0.01354
-#> Group 4   3.44751  1.05904  -2.88120
-#> Group 5  -0.32307 -0.41772  -1.20652
-#> Group 6  -0.44016 -0.86162  -0.76535
-#> Group 7  -0.50395  0.94475   0.92831
-#> Group 8  -0.33754  1.62927   0.39693
-#> Group 9  -0.22891  1.67052   0.25658
-#> Group 10  2.87160 -0.55799  -0.28494
-#> Group 11  1.13710 -1.12550  -0.08852
-#> Group 12 -0.37960  1.42798   0.50544
-#> Group 13 -0.52562  1.24439   0.55260
-#> Group 14 -0.78492  0.97468   0.87230
-#> Group 15 -1.18853  0.55425   1.39910
-#> Group 16 -0.15667  0.53897  -1.98583
-#> Group 17 11.70099 23.70372 -18.46125
-#> Group 18 -0.33704  1.77336   0.22105
-#> Group 19 -0.55662  1.54238   0.48446
-#> Group 20 -0.41993 -0.74794  -1.19545
-#> Group 21  2.26677 -1.02248  -0.25016
-#> Group 22  1.02610 -0.86303   0.09218
-#> Group 23 -0.71444  0.94060   0.76828
-#> Group 24  0.20153  2.47028  -0.33026
-#> Group 25 -0.55133  1.35822   0.38033
-#> Group 26  1.30536 -2.31563   0.77344
-#> Group 27 -0.05412 -0.31867  -1.15595
-#> Group 28 -0.48691 -0.65839  -1.03238
-#> Group 29 -0.51067  0.80794   1.14805
-#> Group 30 -0.28835  1.18793   0.75920
-#> Group 31  1.68521  0.03901  -0.87841
-#> Group 32  1.09465 -1.71411   0.08705
-#> Group 33 -0.07883  2.28995  -0.35989
-#> Group 34 -0.33840 -0.58439  -0.92273
-#> Group 35 -0.45171  1.10963   0.58127
-#> Group 36 -0.83542  1.05535   0.79209
-#> Group 37 -0.60578  1.16530   0.86749
-#> Group 38 -0.57428 -0.72214  -0.92067
-#> Group 39 -0.43498 -0.32104  -1.15274
-#> Group 40 -0.24326  1.96780  -0.57518
-#> Group 41 -0.67670  1.11055   0.71490
-#> Group 42  0.79726 -1.51192   0.08595
-#> Group 43 -0.24530  2.05534  -0.15127
-#> Group 44 -0.42896  1.38029   0.54661
-#> Group 45 -0.33135  1.88495  -0.04121
-#> Group 46 -0.66531  1.04490   0.90118
-#> Group 47 -0.68594  0.83586   1.05208
-#> Group 48 -0.50928  1.84577   0.14510
-#> Group 49 -0.35369  1.59613   0.39314
-#> Group 50 -0.69344  1.54479   0.34252
+#>                 X1       X2
+#> Group 1  -2.01709  1.07102
+#> Group 2  -2.08412 -0.93513
+#> Group 3 -10.47215  4.24136
 #> 
-#> Residual standard error: 7.8626 on 7397 degrees of freedom
-#> Mean squared error 61.38062
-#> Multiple R-squared: -1.24816, Adjusted R-squared: -1.26396
+#> Residual standard error: 7.51953 on 4948 degrees of freedom
+#> Mean squared error 56.23651
+#> Multiple R-squared: -8.37322, Adjusted R-squared: -8.42247
 ```
 
 Furthermore, `pagfl` lets you select a minimum group size, adjust the
@@ -327,33 +278,32 @@ N <- 20
 n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
 y <- tv_sim$y
-X <- tv_sim$X
 
-tv_estim <- tv_pagfl(y ~ 1 + X, n_periods = 100, lambda = 8)
+tv_estim <- tv_pagfl(y ~ 1, n_periods = n_periods, lambda = 5)
 summary(tv_estim)
 #> Call:
-#> tv_pagfl(formula = y ~ 1 + X, n_periods = 100, lambda = 8)
+#> tv_pagfl(formula = y ~ 1, n_periods = n_periods, lambda = 5)
 #> 
 #> Balanced panel: N = 20, T = 100, obs = 2000
 #> 
 #> Convergence reached:
-#> FALSE (10000 iterations)
+#> TRUE (207 iterations)
 #> 
 #> Information criterion:
 #>      IC  lambda 
-#> 1.86726 8.00000 
+#> 1.18412 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -3.70929 -0.70734 -0.00153  0.66780  3.27217 
+#> -3.83243 -0.68348  0.02244  0.65131  2.94155 
 #> 
-#> 7 groups:
+#> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
-#>  1  1  2  3  2  4  1  1  4  5  2  1  4  4  1  1  2  6  7  2 
+#>  1  1  2  3  3  2  1  3  1  1  2  3  2  1  2  1  3  3  2  3 
 #> 
-#> Residual standard error: 1.02584 on 1966 degrees of freedom
-#> Mean squared error 1.03445
-#> Multiple R-squared: 0.90585, Adjusted R-squared: 0.90427
+#> Residual standard error: 1.00966 on 1973 degrees of freedom
+#> Mean squared error 1.00566
+#> Multiple R-squared: 0.73854, Adjusted R-squared: 0.73509
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
@@ -404,32 +354,32 @@ data <- cbind(y = c(y), i_index = i_index, t_index = t_index)
 # Delete some observations and create a named data.frame
 data <- data[delete_index,]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 8)
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 10)
 summary(tv_estim_unbalanced)
 #> Call:
 #> tv_pagfl(formula = y ~ 1, data = data, index = c("i_index", "t_index"), 
-#>     lambda = 8)
+#>     lambda = 10)
 #> 
-#> Unbalanced panel: N = 20, T = 65-75, obs = 1402
+#> Unbalanced panel: N = 20, T = 62-78, obs = 1376
 #> 
 #> Convergence reached:
-#> TRUE (1231 iterations)
+#> TRUE (133 iterations)
 #> 
 #> Information criterion:
-#>      IC  lambda 
-#> 7.29296 8.00000 
+#>       IC   lambda 
+#>  1.16034 10.00000 
 #> 
 #> Residuals:
-#>       Min        1Q    Median        3Q       Max 
-#> -10.92348  -1.25308   0.07571   1.35308  12.98260 
+#>      Min       1Q   Median       3Q      Max 
+#> -3.62126 -0.66947  0.00878  0.63187  3.02198 
 #> 
-#> 17 groups:
+#> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
-#>  1  2  3  4  5  6  7  1  8  9 10 11 12  6 13 14 15  9 16 17 
+#>  1  1  2  3  3  2  1  3  1  1  2  3  2  1  2  1  3  3  2  3 
 #> 
-#> Residual standard error: 2.53082 on 1375 degrees of freedom
-#> Mean squared error 6.28169
-#> Multiple R-squared: 0.42342, Adjusted R-squared: 0.41252
+#> Residual standard error: 1.00077 on 1349 degrees of freedom
+#> Mean squared error 0.98188
+#> Multiple R-squared: 0.74348, Adjusted R-squared: 0.73854
 ```
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />

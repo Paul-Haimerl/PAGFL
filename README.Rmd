@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![CRAN_Version_Badge](http://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL) [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://codecov.io/gh/Paul-Haimerl/PAGFL)
+[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data analysis. Disregarding group-level heterogeneity can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
@@ -65,7 +65,7 @@ $$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$ with $\cu
 To execute the PAGFL procedure, simply pass the dependent and independent variables, the number of time periods, and a penalization parameter $\lambda$.
 
 ```{r}
-estim <- pagfl(y ~ X, n_periods = 150, lambda = 10)
+estim <- pagfl(y ~ X, n_periods = 150, lambda = 20)
 summary(estim)
 ```
 
@@ -87,7 +87,7 @@ Furthermore, `pagfl` objects can be used in a variety of useful generic methods 
 estim_fit <- fitted(estim)
 ```
 
-Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 10` is too high since the number of groups $K$ is underestimated. We suggest iterating over a comprehensive range of candidate values to trace out the correct model. To specify a suitable grid, create a logarithmic sequence ranging from 0 to a penalty parameter that induces an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
+Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated. We suggest iterating over a comprehensive range of candidate values to trace out the correct model. To specify a suitable grid, create a logarithmic sequence ranging from 0 to a penalty parameter that induces an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
 
 Furthermore, it is also possible to supply a `data.frame` with named variables and choose a specific formula that selects the variables in that `data.frame`. If the explanatory variables in `X` are named, these names also appear in the output.
 
@@ -108,14 +108,14 @@ Specify a slightly more elaborate endogenous and dynamic panel data set and appl
 # Generate a panel where the predictors X correlate with the cross-sectional innovation, 
 # but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
 # innovations, an AR lag of the dependent variable, and specific group sizes
-sim_endo <- sim_DGP(N = 50, n_periods = 150, p = 3, n_groups = 3, group_proportions = c(0.2, 0.2, 0.6), 
-error_spec = 'GARCH', q = 3, dynamic = TRUE)
+sim_endo <- sim_DGP(N = 25, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
+error_spec = 'GARCH', q = 2, dynamic = TRUE)
 y_endo <- sim_endo$y
 X_endo <- sim_endo$X
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 150, lambda = 0.05, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 8e3)
+estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 ```
 
@@ -132,9 +132,8 @@ N <- 20
 n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
 y <- tv_sim$y
-X <- tv_sim$X
 
-tv_estim <- tv_pagfl(y ~ 1 + X, n_periods = 100, lambda = 8)
+tv_estim <- tv_pagfl(y ~ 1, n_periods = n_periods, lambda = 5)
 summary(tv_estim)
 ```
 
@@ -166,7 +165,7 @@ data <- cbind(y = c(y), i_index = i_index, t_index = t_index)
 # Delete some observations and create a named data.frame
 data <- data[delete_index,]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 8)
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 10)
 summary(tv_estim_unbalanced)
 ```
 

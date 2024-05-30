@@ -9,7 +9,7 @@ summary.tvpagfl <- function(object, ...) {
   k <- k_tv + k_const
   N <- length(unique(object$args$labs$i))
   i_index <- as.numeric(factor(object$args$labs$i))
-  measures_vec <- fitMeasures(N = N, k = k, tmp$residuals, object$model[[1]], i_index)
+  measures_vec <- fitMeasures(N = N, k = k, residuals = tmp$residuals, y = object$model[[1]], i_index = i_index, method = "PLS")
   out <- c(tmp, r.df = round(measures_vec[1]), r.squared = measures_vec[2], adj.r.squared = measures_vec[3], r.se = measures_vec[4], msr = tmp$IC$msr)
   class(out) <- "summary.tvpagfl"
   return(out)
