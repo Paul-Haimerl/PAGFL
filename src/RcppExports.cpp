@@ -137,8 +137,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fitMeasures
-arma::vec fitMeasures(unsigned int& N, const unsigned int& k, const arma::vec& residuals, arma::vec& y, arma::uvec& i_index);
-RcppExport SEXP _PAGFL_fitMeasures(SEXP NSEXP, SEXP kSEXP, SEXP residualsSEXP, SEXP ySEXP, SEXP i_indexSEXP) {
+arma::vec fitMeasures(unsigned int& N, const unsigned int& k, const arma::vec& residuals, arma::vec& y, arma::uvec& i_index, const std::string& method);
+RcppExport SEXP _PAGFL_fitMeasures(SEXP NSEXP, SEXP kSEXP, SEXP residualsSEXP, SEXP ySEXP, SEXP i_indexSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -147,7 +147,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type residuals(residualsSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(fitMeasures(N, k, residuals, y, i_index));
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(fitMeasures(N, k, residuals, y, i_index, method));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -174,7 +175,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_tv_pagfl_routine", (DL_FUNC) &_PAGFL_tv_pagfl_routine, 18},
     {"_PAGFL_getTVAlpha", (DL_FUNC) &_PAGFL_getTVAlpha, 5},
     {"_PAGFL_delete_missing_t", (DL_FUNC) &_PAGFL_delete_missing_t, 5},
-    {"_PAGFL_fitMeasures", (DL_FUNC) &_PAGFL_fitMeasures, 5},
+    {"_PAGFL_fitMeasures", (DL_FUNC) &_PAGFL_fitMeasures, 6},
     {"_PAGFL_getFE", (DL_FUNC) &_PAGFL_getFE, 4},
     {NULL, NULL, 0}
 };
