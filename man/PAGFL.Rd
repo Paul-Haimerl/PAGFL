@@ -29,6 +29,7 @@ pagfl(
   rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
   varrho = max(sqrt(5 * N * n_periods * p)/log(N * n_periods * p) - 7, 1),
   verbose = TRUE,
+  parallel = TRUE,
   ...
 )
 
@@ -47,9 +48,9 @@ pagfl(
 \method{fitted}{pagfl}(object, ...)
 }
 \arguments{
-\item{formula}{a formula object that describes the model to be estimated.}
+\item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} of a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.}
 
 \item{index}{a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
@@ -69,19 +70,21 @@ pagfl(
 
 \item{bias_correc}{logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when facing a dynamic panel. Default is \code{FALSE}.}
 
-\item{kappa}{a non-negative value controlling the adaptive penalty weights. Default is 2.}
+\item{kappa}{the a non-negative weight placed on the adaptive penalty weights. Default is 2.}
 
 \item{max_iter}{the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 5000.}
 
 \item{tol_convergence}{the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-8}}.}
 
-\item{tol_group}{the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.}
+\item{tol_group}{the tolerance limit for within-group differences. Two individuals \eqn{i}, \eqn{j} are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.}
 
 \item{rho}{the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
 
 \item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used.}
 
-\item{verbose}{logical. If \code{TRUE}, a progress bar is printed when iterating over candidate \eqn{\lambda} values and helpful warning messages are shown. Default is \code{TRUE}.}
+\item{verbose}{logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.}
+
+\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores.}
 
 \item{...}{ellipsis}
 

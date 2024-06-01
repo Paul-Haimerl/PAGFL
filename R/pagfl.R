@@ -3,8 +3,8 @@
 #' @description The pairwise adaptive group fused lasso (\emph{PAGFL}) by Mehrabani (2023) jointly estimates the latent group structure and group-specific slope parameters in a panel data model.
 #' It can handle static and dynamic panels, either with or without endogenous regressors.
 #'
-#' @param formula a formula object that describes the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} of a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
+#' @param formula a formula object describing the model to be estimated.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
 #' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
@@ -16,13 +16,14 @@
 #' @param Z a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \eqn{\bold{Z}} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, either pass \code{NULL} or \eqn{\bold{Z}} is disregarded. Default is \code{NULL}.
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
 #' @param bias_correc logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when facing a dynamic panel. Default is \code{FALSE}.
-#' @param kappa a non-negative value controlling the adaptive penalty weights. Default is 2.
+#' @param kappa the a non-negative weight placed on the adaptive penalty weights. Default is 2.
 #' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 5000.
 #' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-8}}.
-#' @param tol_group the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.
+#' @param tol_group the tolerance limit for within-group differences. Two individuals \eqn{i}, \eqn{j} are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
 #' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used.
-#' @param verbose logical. If \code{TRUE}, a progress bar is printed when iterating over candidate \eqn{\lambda} values and helpful warning messages are shown. Default is \code{TRUE}.
+#' @param verbose logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.
+#' @param parallel logical. If \code{TRUE}, certain operations are parallelized across multiple cores.
 #' @param ... ellipsis
 #'
 #' @details
@@ -92,7 +93,7 @@
 #' @export
 pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 5e3, tol_convergence = 1e-8,
                   tol_group = 1e-3, rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
-                  varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE, ...) {
+                  varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
@@ -162,7 +163,7 @@ pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, 
     y = y, X = X, method = method, Z = Z, bias_correc = bias_correc, i_index = i_index,
     t_index = t_index, N = N, lambda_vec = lambda, kappa = kappa, min_group_frac = min_group_frac,
     max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group, varrho = varrho,
-    rho = rho
+    rho = rho, parallel = parallel
   )
   # Estimate fixed effects
   fe_vec <- getFE(y = y, i_index = i_index, N = N, method = method)

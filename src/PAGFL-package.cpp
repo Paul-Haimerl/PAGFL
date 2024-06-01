@@ -282,7 +282,7 @@ struct DeltaWorker : public Worker{
 };
 
 // Update the parameter difference vector (see Mehrabani (2023, sec 5.1 step 2b))
-arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const arma::vec &v, const arma::sp_mat &Lambda, const double &varrho, const unsigned int &N, const unsigned int &p)
+arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const arma::vec &v, const arma::sp_mat &Lambda, const double &varrho, const unsigned int &N, const unsigned int &p, const bool &parallel)
 {
     // Sum of parameter differences and the Lagrangian parameters
     arma::vec xi = Lambda * beta + v / varrho;
@@ -293,8 +293,16 @@ arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const ar
     ind_mat = ind_mat.t();
     arma::vec delta(n);
     // Vector of complete fusion parameter differences
-    DeltaWorker deltaWorker(ind_mat, xi, ada_weights, delta, p);
-    parallelFor(0, n / p, deltaWorker);
+    if (parallel){
+        DeltaWorker deltaWorker(ind_mat, xi, ada_weights, delta, p);
+        parallelFor(0, n / p, deltaWorker);
+    } else {
+        for (unsigned int i = 0; i < n / p; i++)
+        {
+            arma::uvec ind = arma::conv_to<arma::uvec>::from(ind_mat.row(i)) - 1;
+            delta.subvec(i * p, (i + 1) * p - 1) = softThreshold(ind, xi, ada_weights);
+        }
+    }
     return delta;
 }
 
@@ -433,7 +441,7 @@ struct BetaWorker : public Worker {
 };
 
 // Constructs a NT x Kp block predictor matrix, inverse and cross-product
-std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X, const arma::vec &y, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const bool &robust)
+std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X, const arma::vec &y, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const bool &robust, const bool &parallel)
 {
     // Construct a vector with one element per cross-sectional individual
     std::vector<arma::mat> XMat_vec(N);
@@ -450,9 +458,38 @@ std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X,
     std::vector<arma::mat> XMat_tilde_vec(nGroups);
     std::vector<arma::mat> XtX_tilde_vec(nGroups);
     arma::mat beta_mat = arma::zeros<arma::mat>(N, X.n_cols);
-
-    BetaWorker betaWorker(groups, XMat_vec, y_vec, robust, beta_mat, XMat_tilde_vec, XtX_tilde_vec);
-    parallelFor(0, nGroups, betaWorker);
+    if (parallel){
+        BetaWorker betaWorker(groups, XMat_vec, y_vec, robust, beta_mat, XMat_tilde_vec, XtX_tilde_vec);
+        parallelFor(0, nGroups, betaWorker);
+    } else {
+        for (unsigned int i = 0; i < nGroups; i++)
+        {
+            arma::mat groupMatrix, XtX_tilde, Xt_tilde;
+            arma::vec beta, group_y, Xty_tilde;
+            for (unsigned int j = 0; j < N; j++)
+            {
+                if (groups[j] == i + 1)
+                {
+                    groupMatrix = arma::join_cols(groupMatrix, XMat_vec[j]);
+                    group_y = arma::join_cols(group_y, y_vec[j]);
+                }
+            }
+            XMat_tilde_vec[i] = groupMatrix;
+            Xt_tilde = groupMatrix.t();
+            XtX_tilde = Xt_tilde * groupMatrix;
+            XtX_tilde_vec[i] = XtX_tilde;
+            Xty_tilde = Xt_tilde * group_y;
+            if (robust)
+            {
+                beta = ols_naive(XtX_tilde, Xty_tilde);
+            }
+            else
+            {
+                beta = ols_chol(XtX_tilde, Xty_tilde);
+            }
+            beta_mat.row(i) = beta.t();
+        }
+    }
 
     // Create the final block matrices
     arma::sp_mat X_tilde = buildBlockDiag(XMat_tilde_vec);
@@ -533,7 +570,7 @@ struct AlphaWorker : public Worker {
 };
 
 // Group-wise OLS estimation
-arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const unsigned int &p, const bool robust)
+arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const arma::uvec &groups, const unsigned int &p, const bool robust, const bool &parallel)
 {
     // Construct a vector with one element per cross-sectional individual
     std::vector<arma::mat> XMat_vec(N);
@@ -550,14 +587,41 @@ arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned
     // Impose a certain grouping
     unsigned int nGroups = arma::max(groups);
     arma::mat alpha_mat = arma::zeros<arma::mat>(nGroups, p);
-    AlphaWorker alphaWorker(groups, XMat_vec, y_vec, robust, alpha_mat);
-    parallelFor(0, nGroups, alphaWorker);
+    if (parallel){
+        AlphaWorker alphaWorker(groups, XMat_vec, y_vec, robust, alpha_mat);
+        parallelFor(0, nGroups, alphaWorker);
+    } else {
+        for (unsigned int k = 0; k < nGroups; k++)
+        {
+            arma::mat groupX, groupXt, groupXtX;
+            arma::vec groupy, alpha_group, groupXty;
+            // Obtain which individuals are part of group k
+            for (unsigned int j = 0; j < N; j++){
+                if (groups[j] == k + 1){
+                    groupX = arma::join_cols(groupX, XMat_vec[j]);
+                    groupy = arma::join_cols(groupy, y_vec[j]);
+                }
+            }
+            groupXt = groupX.t();
+            groupXtX = groupXt * groupX;
+            groupXty = groupXt * groupy;
+            if (robust)
+            {
+                alpha_group = ols_naive(groupXtX, groupXty);
+            }
+            else
+            {
+                alpha_group = ols_chol(groupXtX, groupXty);
+            }
+            alpha_mat.row(k) = alpha_group.t();
+        }
+    }
 
     return alpha_mat;
 }
 
 // Computes the post-lasso estimates based on an estimated grouping
-arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const std::string &method, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const arma::uvec &groups_hat, const bool robust)
+arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const std::string &method, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const arma::uvec &groups_hat, const bool robust, const bool &parallel)
 {
     // Compute the post-lasso estimates
     arma::vec alpha, y_tilde;
@@ -595,7 +659,7 @@ arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const s
     }
     else
     {
-        alpha_mat = getGroupwiseOLS(y, X, N, i_index, groups_hat, p, robust);
+        alpha_mat = getGroupwiseOLS(y, X, N, i_index, groups_hat, p, robust, parallel);
     }
     return alpha_mat;
 }
@@ -772,7 +836,7 @@ arma::mat getEvenT_mat(const arma::mat &X, const unsigned int &N, arma::uvec i_i
 }
 
 // Compute the Split-panel Jackknife bias corrected estimates
-arma::mat spjCorrec(const arma::mat &alpha_mat, arma::mat &X, arma::vec &y, arma::mat &Z, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const arma::uvec &groups_hat, const std::string &method)
+arma::mat spjCorrec(const arma::mat &alpha_mat, arma::mat &X, arma::vec &y, arma::mat &Z, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const arma::uvec &groups_hat, const std::string &method, const bool &parallel)
 {
     // Discard the last time period in case n_periods is not even
     arma::uvec i_index_trunc = getEvenT_index(i_index, N);
@@ -817,7 +881,7 @@ arma::mat spjCorrec(const arma::mat &alpha_mat, arma::mat &X, arma::vec &y, arma
             i_index_half = deleteOneObsperI(i_index_half);
         }
         // Estimate
-        alpha_half = getAlpha(X_half_tilde, y_half_tilde, Z_half_tilde, method, N, i_index_half, p, groups_hat, FALSE);
+        alpha_half = getAlpha(X_half_tilde, y_half_tilde, Z_half_tilde, method, N, i_index_half, p, groups_hat, FALSE, parallel);
         // Store
         alpha_cube.slice(i - 1) = alpha_half;
     }
@@ -969,7 +1033,7 @@ float getSSQ(const arma::vec &y, const arma::mat &X, const arma::mat alpha, cons
 }
 
 // Allocate individuals that are part of trivial groups to the best-fitting non-trivial group
-arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const arma::mat &X, arma::mat &Z, const std::string &method, const float &min_group_frac, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const bool robust)
+arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const arma::mat &X, arma::mat &Z, const std::string &method, const float &min_group_frac, const unsigned int &N, arma::uvec &i_index, const unsigned int &p, const bool robust, const bool &parallel)
 {
     int limit = std::floor(min_group_frac * N);
     // Identify trivial and non-trivial groups
@@ -1002,7 +1066,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
                 groups_hat_tmp = groups_hat;
                 groups_hat_tmp(trivialInd(i)) = nonTrivialGroups(j);
                 groups_hat_tmp_label = relabelGroups(groups_hat_tmp);
-                arma::mat alpha_tmp = getAlpha(X, y, Z, method, N, i_index, p, groups_hat_tmp_label, robust);
+                arma::mat alpha_tmp = getAlpha(X, y, Z, method, N, i_index, p, groups_hat_tmp_label, robust, parallel);
                 ssq_vec(j) = getSSQ(y, X, alpha_tmp, groups_hat_tmp_label, N, i_index);
             }
             // Select the non-trivial group with the best fit
@@ -1013,7 +1077,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 }
 
 // PAGFL routine
-Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, arma::vec &beta, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, arma::vec &beta, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
 {
 
     //------------------------------//
@@ -1054,7 +1118,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
         // parameter estimates (sec. 5.1/ 5.2 step 2a)
         beta = getBeta(invXcovY, invXcov, VarLambdat, varrho, v_old, delta);
         // parameter differences (step 2b)
-        delta = getDelta(ada_weights, beta, v_old, Lambda, varrho, N, p);
+        delta = getDelta(ada_weights, beta, v_old, Lambda, varrho, N, p, parallel);
         // Lagrangian parameters (step 2c)
         resid = Lambda * beta - delta;
         v_new = v_old + varrho * resid;
@@ -1075,7 +1139,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     arma::uvec groups_hat;
     if (min_group_frac > 0.0)
     {
-        groups_hat = mergeTrivialGroups(groups_hat_prelim, y_tilde, X_tilde, Z_tilde, method, min_group_frac, N, i_index, p, FALSE);
+        groups_hat = mergeTrivialGroups(groups_hat_prelim, y_tilde, X_tilde, Z_tilde, method, min_group_frac, N, i_index, p, FALSE, parallel);
     }
     else
     {
@@ -1085,7 +1149,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     int K_hat = arma::max(groups_hat);
 
     // Post lasso estimates
-    arma::mat alpha_mat = getAlpha(X_tilde, y_tilde, Z_tilde, method, N, i_index, p, groups_hat, FALSE);
+    arma::mat alpha_mat = getAlpha(X_tilde, y_tilde, Z_tilde, method, N, i_index, p, groups_hat, FALSE, parallel);
     // Apply Split-panel Jackknife bias correction
     if (bias_correc)
     {
@@ -1094,7 +1158,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
             n_periods = n_periods + 1;
             i_index = addOneObsperI(i_index);
         }
-        alpha_mat = spjCorrec(alpha_mat, X, y, Z, N, i_index, p, groups_hat, method);
+        alpha_mat = spjCorrec(alpha_mat, X, y, Z, N, i_index, p, groups_hat, method, parallel);
         if (method == "PGMM")
         {
             n_periods = n_periods - 1;
@@ -1159,7 +1223,7 @@ Rcpp::List IC(const Rcpp::List &estimOutput, arma::vec &y_tilde, arma::mat &X_ti
 
 // Combine the PAGFL algo and the IC
 // [[Rcpp::export]]
-Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, arma::mat &Z, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const bool &bias_correc, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho)
+Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, arma::mat &Z, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const bool &bias_correc, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel)
 {
 
     //------------------------------//
@@ -1205,7 +1269,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     else
     {
         // Build a predictor block matrix
-        X_block_vec = buildDiagX(X_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), FALSE);
+        X_block_vec = buildDiagX(X_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), FALSE, parallel);
         X_block = std::get<0>(X_block_vec);
         XtX = std::get<1>(X_block_vec);
         beta = std::get<2>(X_block_vec);
@@ -1221,7 +1285,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, beta, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
+        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, beta, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, X_tilde, rho, N, i_index);
         output = Rcpp::List::create(
@@ -1234,7 +1298,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
 
 
 // Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, arma::vec &pi, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho)
+Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, arma::vec &pi, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
 {
 
     float lambda_star = n_periods * lambda / (2 * N);
@@ -1263,7 +1327,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, a
         // parameter estimates (step 2a)
         pi = getBeta(invZcovY, invZcov, VarLambdat, varrho, v_old, delta);
         // parameter differences (step 2b)
-        delta = getDelta(ada_weights, pi, v_old, Lambda, varrho, N, p_star);
+        delta = getDelta(ada_weights, pi, v_old, Lambda, varrho, N, p_star, parallel);
         // Lagrangian parameters (step 2c)
         resid = Lambda * pi - delta;
         v_new = v_old + varrho * resid;
@@ -1286,7 +1350,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, a
     arma::mat R;
     if (min_group_frac > 0.0)
     {
-        groups_hat = mergeTrivialGroups(groups_hat_prelim, y_tilde, Z_tilde, R, "PLS", min_group_frac, N, i_index, p_star, TRUE);
+        groups_hat = mergeTrivialGroups(groups_hat_prelim, y_tilde, Z_tilde, R, "PLS", min_group_frac, N, i_index, p_star, TRUE, parallel);
     }
     else
     {
@@ -1295,7 +1359,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, a
     // Get the total number of groups
     int K_hat = arma::max(groups_hat);
     // Post lasso estimates
-    arma::mat xi_mat_vec = getAlpha(Z_tilde, y_tilde, R, "PLS", N, i_index, p_star, groups_hat, TRUE);
+    arma::mat xi_mat_vec = getAlpha(Z_tilde, y_tilde, R, "PLS", N, i_index, p_star, groups_hat, TRUE, parallel);
     // Return the estimates
     Rcpp::List output = Rcpp::List::create(
         Rcpp::Named("alpha_hat") = xi_mat_vec,
@@ -1309,7 +1373,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, a
 
 // Combine the time-varying PAGFL algo and the IC
 // [[Rcpp::export]]
-Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &verbose)
+Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel)
 {
 
     //------------------------------//
@@ -1347,7 +1411,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     //------------------------------//
 
     // Build a predictor block matrix (either block-wise or once, depending on the dimensionality)
-    std::tuple<arma::sp_mat, arma::sp_mat, arma::mat> Z_block_vec = buildDiagX(Z_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), TRUE);
+    std::tuple<arma::sp_mat, arma::sp_mat, arma::mat> Z_block_vec = buildDiagX(Z_tilde, y_tilde, N, i_index, arma::regspace<arma::uvec>(1, N), TRUE, parallel);
     arma::sp_mat Z_block = std::get<0>(Z_block_vec);
     arma::sp_mat ZtZ = std::get<1>(Z_block_vec);
     arma::vec pi = std::get<2>(Z_block_vec);
@@ -1366,7 +1430,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = tv_pagfl_algo(y, y_tilde, Z_tilde, invZcovY, invZcov, pi, VarLambdat, Lambda, B, d, M, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho);
+        estimOutput = tv_pagfl_algo(y, y_tilde, Z_tilde, invZcovY, invZcov, pi, VarLambdat, Lambda, B, d, M, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, Z_tilde, rho, N, i_index);
         output = Rcpp::List::create(

@@ -23,7 +23,7 @@
 #' The scalar dependent variable \eqn{y_{it}} is generated according to the following grouped panel data model
 #' \deqn{y_{it} = \gamma_i + \beta_i^\prime x_{it} + u_{it}, \quad i = \{1, \dots, N\}, \quad t = \{1, \dots, T\}.}
 #' \eqn{\gamma_i} represents individual fixed effects and \eqn{x_{it}} a \eqn{p \times 1} vector of regressors.
-#' The individual slope coefficient vectors \eqn{\beta_i} are subject to a latent group structure \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\}}, where \eqn{K = }\code{n_groups}.
+#' The individual slope coefficient vectors \eqn{\beta_i} are subject to a latent group structure \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\},} where \eqn{K =} \code{n_groups}.
 #' As a consequence, the group-level coefficients \eqn{\bold{\alpha} = (\alpha^\prime_1, \dots, \alpha^\prime_K)^\prime} follow the partition \eqn{\bold{G}} of \eqn{N} cross-sectional units \eqn{\bold{G} = (G_1, \dots, G_K)} such that \eqn{\cup_{k=1}^K = \{1,\dots,N\}} and \eqn{G_k \cap G_l = \emptyset, \; \alpha_k \neq \alpha_l} for any two groups \eqn{k \neq l} (Mehrabani, 2023, sec. 2.1).
 #'
 #' If a panel data set with exogenous regressors is generated (set \code{q = NULL}), the \eqn{p} predictors are simulated as:

@@ -3,22 +3,23 @@
 #' @description The time-varying pairwise adaptive group fused lasso (time-varying \emph{PAGFL}) jointly estimates the latent group structure and group-specific time-varying functional coefficients in a panel data model.
 #' The time-varying coefficients are modeled as polynomial B-splines.
 #'
-#' @param formula a formula object that describes the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} of a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
+#' @param formula a formula object describing the model to be estimated.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
 #' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and the time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. Default is \code{Null}.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
 #' @param d the polynomial degree of the B-splines. Default is 3.
-#' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}})} is used. Note that \eqn{M} includes the boudnary knots.
+#' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}})} is used. Note that \eqn{M} does not include the boundary knots.
 #' @param const_coef a character vector containing the variable names of explanatory variables that are estimated with time-constant coefficients. All of concerning regressors must be named variables in \code{data}.
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
-#' @param kappa the weight placed on the adaptive penalty weights. Default is 2.
-#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 8000.
+#' @param kappa the a non-negative weight placed on the adaptive penalty weights. Default is 2.
+#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 20,000.
 #' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-10}}.
 #' @param tol_group the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.01.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
 #' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation \emph{PSE}, the \eqn{\varrho} value is trivial. We recommend the default 1.
-#' @param verbose logical. If \code{TRUE}, a progress bar is printed when iterating over candidate \eqn{\lambda} values and helpful warning messages are shown. Default is \code{TRUE}.
+#' @param verbose logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.
+#' @param parallel logical. If \code{TRUE}, certain operations are parallelized across multiple cores.
 #' @param ... ellipsis
 #'
 #' @details
@@ -85,8 +86,8 @@
 #' An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 #' @export
 tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
-                     const_coef = NULL, kappa = 2, max_iter = 10e3, tol_convergence = 1e-10, tol_group = 1e-2,
-                     rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, ...) {
+                     const_coef = NULL, kappa = 2, max_iter = 20e3, tol_convergence = 1e-10, tol_group = 1e-2,
+                     rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
@@ -180,7 +181,7 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
   lambdaList <- tv_pagfl_routine(
     y = y, X = X, X_const = X_const, d = d, M = M - 2, i_index = i_index, t_index = t_index, N = N, p_const = p_const, lambda_vec = lambda, kappa = kappa,
     min_group_frac = min_group_frac, max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group,
-    varrho = varrho, rho = rho, verbose
+    varrho = varrho, rho = rho, parallel = parallel
   )
   # Estimate fixed effects
   fe_vec <- getFE(y = y, i_index = i_index, N = N, method = "PLS")
