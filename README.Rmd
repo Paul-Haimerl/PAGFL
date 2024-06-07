@@ -50,8 +50,7 @@ The `PAGFL` packages includes a function that automatically simulates a panel da
 # Simulate a simple panel with three distinct groups and two exogenous explanatory variables
 set.seed(1)
 sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
-y <- sim$y
-X <- sim$X
+data <- sim$data
 ```
 
 $$y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$ where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$ vector of explanatory variables, and $\eta_i$ reflects a fixed effect. The slope coefficients are subject to the group structure
@@ -65,7 +64,7 @@ $$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$ with $\cu
 To execute the PAGFL procedure, simply pass the dependent and independent variables, the number of time periods, and a penalization parameter $\lambda$.
 
 ```{r}
-estim <- pagfl(y ~ X, n_periods = 150, lambda = 20)
+estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
 summary(estim)
 ```
 
@@ -92,8 +91,7 @@ Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like 
 Furthermore, it is also possible to supply a `data.frame` with named variables and choose a specific formula that selects the variables in that `data.frame`. If the explanatory variables in `X` are named, these names also appear in the output.
 
 ```{r}
-colnames(X) <- c("a", "b")
-data <- cbind(y = c(y), X)
+colnames(data)[-1] <- c("a", "b")
 
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
 estim_set <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = lambda_set)
@@ -110,12 +108,11 @@ Specify a slightly more elaborate endogenous and dynamic panel data set and appl
 # innovations, an AR lag of the dependent variable, and specific group sizes
 sim_endo <- sim_DGP(N = 25, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
 error_spec = 'GARCH', q = 2, dynamic = TRUE)
-y_endo <- sim_endo$y
-X_endo <- sim_endo$X
+data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 ```
 
@@ -131,9 +128,9 @@ The development version of the package also includes the functions `sim_tv_DGP()
 N <- 20
 n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
-y <- tv_sim$y
+tv_data <- tv_sim$data
 
-tv_estim <- tv_pagfl(y ~ 1, n_periods = n_periods, lambda = 5)
+tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5)
 summary(tv_estim)
 ```
 
@@ -159,13 +156,12 @@ Lets delete 30% of observations, add indicator variables, and run `tv_pagfl()` a
 # Draw some observations to be omitted
 delete_index <- as.logical(rbinom(n = N * n_periods, prob = 0.7, size = 1))
 # Construct cross-sectional and time indicator variables
-i_index <- rep(1:N, each = n_periods)
-t_index <- rep(1:n_periods, N)
-data <- cbind(y = c(y), i_index = i_index, t_index = t_index)
-# Delete some observations and create a named data.frame
-data <- data[delete_index,]
+tv_data$i_index <- rep(1:N, each = n_periods)
+tv_data$t_index <- rep(1:n_periods, N)
+# Delete some observations
+tv_data <- tv_data[delete_index,]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 10)
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5)
 summary(tv_estim_unbalanced)
 ```
 

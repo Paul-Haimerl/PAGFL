@@ -52,8 +52,7 @@ panel data set with a group structure in the slope coefficients:
 # Simulate a simple panel with three distinct groups and two exogenous explanatory variables
 set.seed(1)
 sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
-y <- sim$y
-X <- sim$X
+data <- sim$data
 ```
 
 $$y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
@@ -81,10 +80,10 @@ independent variables, the number of time periods, and a penalization
 parameter $\lambda$.
 
 ``` r
-estim <- pagfl(y ~ X, n_periods = 150, lambda = 20)
+estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
 summary(estim)
 #> Call:
-#> pagfl(formula = y ~ X, n_periods = 150, lambda = 20)
+#> pagfl(formula = y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
 #> 
 #> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
@@ -159,8 +158,7 @@ that `data.frame`. If the explanatory variables in `X` are named, these
 names also appear in the output.
 
 ``` r
-colnames(X) <- c("a", "b")
-data <- cbind(y = c(y), X)
+colnames(data)[-1] <- c("a", "b")
 
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
 estim_set <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = lambda_set)
@@ -215,15 +213,14 @@ Jochmans ([2015](https://doi.org/10.1093/restud/rdv007)).
 # innovations, an AR lag of the dependent variable, and specific group sizes
 sim_endo <- sim_DGP(N = 25, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
 error_spec = 'GARCH', q = 2, dynamic = TRUE)
-y_endo <- sim_endo$y
-X_endo <- sim_endo$X
+data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y_endo ~ X_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 #> Call:
-#> pagfl(formula = y_endo ~ X_endo, n_periods = 200, lambda = 15, 
+#> pagfl(formula = y ~ ., data = data_endo, n_periods = 200, lambda = 15, 
 #>     method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 20000)
 #> 
 #> Balanced panel: N = 25, T = 200, obs = 4975
@@ -251,7 +248,7 @@ summary(estim_endo)
 #> 
 #> Residual standard error: 7.51953 on 4948 degrees of freedom
 #> Mean squared error 56.23651
-#> Multiple R-squared: -8.37322, Adjusted R-squared: -8.42247
+#> Multiple R-squared: -1.88888, Adjusted R-squared: -1.90406
 ```
 
 Furthermore, `pagfl` lets you select a minimum group size, adjust the
@@ -277,33 +274,34 @@ functions employing a penalized sieve estimation (*PSE*).
 N <- 20
 n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
-y <- tv_sim$y
+tv_data <- tv_sim$data
 
-tv_estim <- tv_pagfl(y ~ 1, n_periods = n_periods, lambda = 5)
+tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5)
 summary(tv_estim)
 #> Call:
-#> tv_pagfl(formula = y ~ 1, n_periods = n_periods, lambda = 5)
+#> tv_pagfl(formula = y ~ 1, data = tv_data, n_periods = n_periods, 
+#>     lambda = 5)
 #> 
 #> Balanced panel: N = 20, T = 100, obs = 2000
 #> 
 #> Convergence reached:
-#> TRUE (207 iterations)
+#> TRUE (139 iterations)
 #> 
 #> Information criterion:
 #>      IC  lambda 
-#> 1.18412 5.00000 
+#> 1.21839 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -3.83243 -0.68348  0.02244  0.65131  2.94155 
+#> -3.79401 -0.67692  0.01779  0.64793  2.87300 
 #> 
 #> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
 #>  1  1  2  3  3  2  1  3  1  1  2  3  2  1  2  1  3  3  2  3 
 #> 
-#> Residual standard error: 1.00966 on 1973 degrees of freedom
-#> Mean squared error 1.00566
-#> Multiple R-squared: 0.73854, Adjusted R-squared: 0.73509
+#> Residual standard error: 1.00869 on 1974 degrees of freedom
+#> Mean squared error 1.00424
+#> Multiple R-squared: 0.73891, Adjusted R-squared: 0.7356
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
@@ -348,38 +346,37 @@ Lets delete 30% of observations, add indicator variables, and run
 # Draw some observations to be omitted
 delete_index <- as.logical(rbinom(n = N * n_periods, prob = 0.7, size = 1))
 # Construct cross-sectional and time indicator variables
-i_index <- rep(1:N, each = n_periods)
-t_index <- rep(1:n_periods, N)
-data <- cbind(y = c(y), i_index = i_index, t_index = t_index)
-# Delete some observations and create a named data.frame
-data <- data[delete_index,]
+tv_data$i_index <- rep(1:N, each = n_periods)
+tv_data$t_index <- rep(1:n_periods, N)
+# Delete some observations
+tv_data <- tv_data[delete_index,]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 10)
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5)
 summary(tv_estim_unbalanced)
 #> Call:
-#> tv_pagfl(formula = y ~ 1, data = data, index = c("i_index", "t_index"), 
-#>     lambda = 10)
+#> tv_pagfl(formula = y ~ 1, data = tv_data, index = c("i_index", 
+#>     "t_index"), lambda = 5)
 #> 
 #> Unbalanced panel: N = 20, T = 62-78, obs = 1376
 #> 
 #> Convergence reached:
-#> TRUE (133 iterations)
+#> TRUE (164 iterations)
 #> 
 #> Information criterion:
-#>       IC   lambda 
-#>  1.16034 10.00000 
+#>     IC lambda 
+#> 1.1954 5.0000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -3.62126 -0.66947  0.00878  0.63187  3.02198 
+#> -3.60335 -0.67652  0.01618  0.62322  2.96063 
 #> 
 #> 3 groups:
 #>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
 #>  1  1  2  3  3  2  1  3  1  1  2  3  2  1  2  1  3  3  2  3 
 #> 
-#> Residual standard error: 1.00077 on 1349 degrees of freedom
-#> Mean squared error 0.98188
-#> Multiple R-squared: 0.74348, Adjusted R-squared: 0.73854
+#> Residual standard error: 1.00007 on 1350 degrees of freedom
+#> Mean squared error 0.98125
+#> Multiple R-squared: 0.74365, Adjusted R-squared: 0.7389
 ```
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
