@@ -3,7 +3,8 @@ test_that("S3 pagfl", {
   y <- sim$y
   X <- sim$X
   colnames(X) <- c("a", "b")
-  estim <- pagfl(y ~ X, n_periods = 150, lambda = 5)
+  data = data.frame(y = y, X)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(20, 2))
@@ -23,7 +24,7 @@ test_that("S3 pagfl", {
   expect_type(formula_estim, "language")
   expect_equal(all.vars(formula_estim), c("y", colnames(X)))
   # df.residual
-  expect_equal(df.residual(estim), length(y) - length(y) / 150 - 2)
+  expect_equal(df.residual(estim), length(y) - length(y) / 150 - ncol(X) * estim$groups$n_groups)
 })
 
 
@@ -31,7 +32,8 @@ test_that("S3 tv_pagfl", {
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X
-  estim <- tv_pagfl(y ~ X, n_periods = 100, lambda = 7)
+  data <- data.frame(y = y, X1 = X)
+  estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 2, 10))
@@ -51,7 +53,7 @@ test_that("S3 tv_pagfl", {
   expect_type(formula_estim, "language")
   expect_equal(all.vars(formula_estim), c("y", "X1"))
   # df.residual
-  expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * 7)
+  expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * (estim$args$M + estim$args$d + 1) * estim$groups$n_groups)
 })
 
 
@@ -85,5 +87,5 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   expect_type(formula_estim, "language")
   expect_equal(all.vars(formula_estim), c("y", "X", "a"))
   # df.residual
-  expect_equal(df.residual(estim), nrow(df) - 10 - 2 * 7 - 1)
+  expect_equal(df.residual(estim), nrow(df) - max(df$i_index) - (1 + 2 * (estim$args$M + estim$args$d + 1)) * estim$groups$n_groups)
 })

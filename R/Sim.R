@@ -59,6 +59,7 @@
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
+#' \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 #' @export
 sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportions = NULL, error_spec = "iid", dynamic = FALSE, dyn_panel = lifecycle::deprecated(), q = NULL, alpha_0 = NULL) {
   #------------------------------#
@@ -164,7 +165,8 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
     X <- cbind(ARPanel[,"X"], X)
     rownames(X) <- NULL
   }
-  return(list(alpha = alpha_0, groups = groups, y = y, X = X, Z = Z))
+  data <- data.frame(y = c(y), X)
+  return(list(alpha = alpha_0, groups = groups, y = y, X = X, Z = Z, data = data))
 }
 
 simGARCH <- function(errorList) {
@@ -188,7 +190,7 @@ simAR <- function(errorList) {
     # Create an AR(1) process with with coefficients as in Mehrabani (2023, sec. 6)
     stats::filter(c(0, x), filter = .5, method = "recursive")[-1]
   })
-  u <- c(do.call(rbind, errorARList))
+  u <- c(t(do.call(rbind, errorARList)))
   return(u)
 }
 

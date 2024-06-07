@@ -14,7 +14,7 @@
 \usage{
 pagfl(
   formula,
-  data = NULL,
+  data,
   index = NULL,
   n_periods = NULL,
   lambda,
@@ -50,7 +50,7 @@ pagfl(
 \arguments{
 \item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.}
 
 \item{index}{a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
@@ -94,7 +94,7 @@ pagfl(
 }
 \value{
 An object of class \code{pagfl} holding
-\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices (if provided),}
+\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
 \item{\code{coefficients}}{a \eqn{K \times p} matrix of the post-Lasso group-specific parameter estimates,}
 \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 \item{\code{residuals}}{a vector of residuals of the demeaned model,}
@@ -138,18 +138,19 @@ We suggest identifying a suitable \eqn{\lambda} parameter by passing a logarithm
 sim <- sim_DGP(N = 50, n_periods = 80, p = 2, n_groups = 3)
 y <- sim$y
 X <- sim$X
+df <- cbind(y = c(y), X)
 
 # Run the PAGFL procedure for a set of candidate tuning parameter values
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-estim <- pagfl(y ~ X, n_periods = 80, lambda = lambda_set, method = "PLS")
+estim <- pagfl(y ~ ., data = df, n_periods = 80, lambda = lambda_set, method = "PLS")
 summary(estim)
 
 # Lets pass a panel data set with explicit cross-sectional and time indicators
 i_index <- rep(1:50, each = 80)
 t_index <- rep(1:80, 50)
-data <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
-estim <- pagfl(y ~ X1 + X2,
-  data = data, index = c("i_index", "t_index"),
+df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
+estim <- pagfl(
+  y ~ ., data = df, index = c("i_index", "t_index"),
   lambda = lambda_set, method = "PLS"
 )
 summary(estim)

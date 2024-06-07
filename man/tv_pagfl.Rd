@@ -13,18 +13,18 @@
 \usage{
 tv_pagfl(
   formula,
-  data = NULL,
+  data,
   index = NULL,
   n_periods = NULL,
   lambda,
   d = 3,
-  M = floor(NROW(y)^(1/7)),
+  M = floor(length(y)^(1/7) - log(p)),
   min_group_frac = 0.05,
   const_coef = NULL,
   kappa = 2,
   max_iter = 20000,
   tol_convergence = 1e-10,
-  tol_group = 0.01,
+  tol_group = 0.001,
   rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
   varrho = 1,
   verbose = TRUE,
@@ -49,7 +49,7 @@ tv_pagfl(
 \arguments{
 \item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.}
 
 \item{index}{a character vector holding two strings specifying the variable names that identify the cross-sectional unit and the time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. Default is \code{Null}.}
 
@@ -59,7 +59,7 @@ tv_pagfl(
 
 \item{d}{the polynomial degree of the B-splines. Default is 3.}
 
-\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}})} is used. Note that \eqn{M} does not include the boundary knots.}
+\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots.}
 
 \item{min_group_frac}{the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.}
 
@@ -71,7 +71,7 @@ tv_pagfl(
 
 \item{tol_convergence}{the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-10}}.}
 
-\item{tol_group}{the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.01.}
+\item{tol_group}{the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.}
 
 \item{rho}{the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
 
@@ -89,7 +89,7 @@ tv_pagfl(
 }
 \value{
 An object of class \code{tvpagfl} holding
-\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices (if provided),}
+\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices,}
 \item{\code{coefficients}}{a \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates. Let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters,}
 \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 \item{\code{residuals}}{a vector of residuals of the demeaned model,}
@@ -114,7 +114,7 @@ The coefficient vector \eqn{\beta_{i} (t/T)} is subject to the group pattern
 with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k \| \neq \| \alpha_j \|} for any \eqn{k \neq M}.
 \eqn{\beta_i (t/T)}, and \eqn{\alpha_k (t/T)} are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{\bold{B}(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
 Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{i}(t/T)} are approximated as \eqn{\beta_{i} (t/T) = \pi_i^\prime \bold{B}(t/T)} and \eqn{\alpha_{i}(t/T) = \xi_i^\prime \bold{B}(t/T)}, respectively. \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices which weigh the individual basis functions.
-The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
+The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)*p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
 \deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
 where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains the sieve approximation error. I refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
 
@@ -133,17 +133,17 @@ In case of an unbalanced panel data set, the earliest and latest available obser
 # Simulate a time-varying panel with a trend and a group pattern
 set.seed(1)
 sim <- sim_tv_DGP(N = 30, n_periods = 50, intercept = TRUE, p = 1)
-y <- sim$y
+df <- data.frame(y = c(sim$y))
 
 # Run the time-varying PAGFL with only an intercept
-estim <- tv_pagfl(y ~ 1, n_periods = 50, lambda = 12)
+estim <- tv_pagfl(y ~ 1, data = df, n_periods = 50, lambda = 8)
 summary(estim)
 
 # Lets pass a panel data set with explicit cross-sectional and time indicators
 i_index <- rep(1:30, each = 50)
 t_index <- rep(1:50, 30)
-data <- data.frame(y = c(y), i_index = i_index, t_index = t_index)
-estim <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 12)
+df <- data.frame(y = c(sim$y), i_index = i_index, t_index = t_index)
+estim <- tv_pagfl(y ~ 1, data = df, index = c("i_index", "t_index"), lambda = 8)
 summary(estim)
 }
 \references{

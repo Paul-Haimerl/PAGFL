@@ -3,7 +3,9 @@ Title: Joint Estimation of Latent Groups and Group-specific Coefficients in Pane
 Version: 1.1.0
 Authors@R: c(
     person("Paul", "Haimerl", email = "p.haimerl@student.maastrichtuniversity.nl", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
-    person("Ali", "Mehrabani", email = "ali.mehrabani@email.ucr.edu", role = "ctb", comment = c(ORCID = "0000-0002-1848-5582")))
+    person("Stephan", "Smeekes", email = "s.smeekes@maastrichtuniversity.nl", role = "ctb", comment = c(ORCID = "0000-0002-0157-639X")),
+    person("Ines", "Wilms", email = "i.wilms@maastrichtuniversity.nl", role = "ctb", comment = c(ORCID = "0000-0003-3269-4601")),
+    person("Ali", "Mehrabani", email = "ali.mehrabani@ku.edu", role = "ctb", comment = c(ORCID = "0000-0002-1848-5582")))
 Maintainer: Paul Haimerl <p.haimerl@student.maastrichtuniversity.nl>
 Description: 
     Unobservable group structures are a common challenge in panel data analysis. Disregarding group-level heterogeneity can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.

@@ -51,6 +51,7 @@ A list holding
 \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
+\item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 }
 \description{
 Construct a static or dynamic, exogenous or endogenous panel data set subject to a latent group structure with optional \eqn{AR(1)} or \eqn{GARCH(1,1)} innovations.

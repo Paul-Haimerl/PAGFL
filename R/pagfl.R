@@ -4,7 +4,7 @@
 #' It can handle static and dynamic panels, either with or without endogenous regressors.
 #'
 #' @param formula a formula object describing the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
 #' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
@@ -54,18 +54,19 @@
 #' sim <- sim_DGP(N = 50, n_periods = 80, p = 2, n_groups = 3)
 #' y <- sim$y
 #' X <- sim$X
+#' df <- cbind(y = c(y), X)
 #'
 #' # Run the PAGFL procedure for a set of candidate tuning parameter values
 #' lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-#' estim <- pagfl(y ~ X, n_periods = 80, lambda = lambda_set, method = "PLS")
+#' estim <- pagfl(y ~ ., data = df, n_periods = 80, lambda = lambda_set, method = "PLS")
 #' summary(estim)
 #'
 #' # Lets pass a panel data set with explicit cross-sectional and time indicators
 #' i_index <- rep(1:50, each = 80)
 #' t_index <- rep(1:80, 50)
-#' data <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
-#' estim <- pagfl(y ~ X1 + X2,
-#'   data = data, index = c("i_index", "t_index"),
+#' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
+#' estim <- pagfl(
+#'   y ~ ., data = df, index = c("i_index", "t_index"),
 #'   lambda = lambda_set, method = "PLS"
 #' )
 #' summary(estim)
@@ -79,7 +80,7 @@
 #' @aliases PAGFL
 #'
 #' @return An object of class \code{pagfl} holding
-#' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices (if provided),}
+#' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
 #' \item{\code{coefficients}}{a \eqn{K \times p} matrix of the post-Lasso group-specific parameter estimates,}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 #' \item{\code{residuals}}{a vector of residuals of the demeaned model,}
@@ -91,13 +92,14 @@
 #'
 #' A \code{pagfl} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 #' @export
-pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 5e3, tol_convergence = 1e-8,
+pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 5e3, tol_convergence = 1e-8,
                   tol_group = 1e-3, rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
                   varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
 
+  if (is.null(min_group_frac)) min_group_frac <- 0
   formula <- stats::as.formula(formula)
   method <- match.arg(method, c("PLS", "PGMM"))
   prelim_checks(formula, data, Z, index, n_periods, method,
@@ -105,29 +107,32 @@ pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, 
     tol_group = tol_group, tol_convergence = tol_convergence
   )
   # Construct a vector of the dependent variable and a regressor matrix
-  if (!is.null(data)) {
+  # If present, remove the intercept
+  data <- as.data.frame(data)
+  data <- stats::na.omit(data)
+  if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
+  if (all(all.vars(formula[[3]]) != ".")){
     # If present, remove the intercept
     formula <- stats::update(formula, . ~ . - 1)
-    data <- as.data.frame(data)
-    data <- stats::na.omit(data)
-    if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
     X <- stats::model.matrix(formula, data)
-    X <- as.matrix(X)
-    y <- as.matrix(data[[all.vars(formula[[2]])]])
   } else {
-    y <- eval(formula[[2]], envir = parent.frame())
-    X <- eval(formula[[3]], envir = parent.frame())
-    if (is.null(colnames(X))) colnames(X) <- paste0("X", 1:ncol(X))
-    if (is.null(colnames(Z)) & method == "PGMM") colnames(Z) <- paste0("Z", 1:ncol(Z))
-    if (NROW(y) != NROW(X)) stop("The dependent and independent variables must be of equal dimensions\n")
-    data <- as.data.frame(cbind(c(y), X))
-    colnames(data)[1] <- all.vars(formula[[2]])
-    formula <- stats::as.formula(paste(colnames(data)[1], " ~ 1 + ", paste(colnames(data)[-1], collapse = " + ")))
-    X <- stats::model.matrix(formula, data)
-    # Remove the intercept
-    X <- as.matrix(X[, -1])
+    # Remove the index variables if present
+    if (is.null(index)){
+      data_temp <- data
+    } else {
+      data_temp <- data[,!(colnames(data) %in% index)]
+    }
+    X <- stats::model.matrix(formula, data_temp)
+    # If present, remove the intercept
+    X <- X[,apply(X, 2, stats::sd) != 0]
+    rm(data_temp)
   }
+  X <- as.matrix(X)
+  y <- as.matrix(data[[all.vars(formula[[2]])]])
   regressor_names <- colnames(X)
+  # Build the final data set
+  model_data <- as.data.frame(cbind(c(y), X))
+  colnames(model_data)[1] <- all.vars(formula[[2]])
 
   # Extract or produce index variables
   if (!is.null(index)) {
@@ -137,10 +142,14 @@ pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, 
     t_index <- as.integer(factor(t_index_labs))
     n_periods <- length(unique(t_index))
     N <- length(unique(i_index))
+    model_data <- cbind(model_data, data[, index[1]], data[, index[2]])
+    colnames(model_data)[(ncol(model_data) - 1):ncol(model_data)] <- index
   } else {
     N <- NROW(y) / n_periods
     t_index <- t_index_labs <- rep(1:n_periods, N)
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
+    model_data$i_index <- i_index
+    model_data$t_index <- t_index
   }
   coef_rownames <- as.character(unique(t_index_labs)[order(unique(t_index))])
   p <- ncol(X)

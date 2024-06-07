@@ -67,9 +67,9 @@ arma::mat bspline_system(arma::vec &x, const unsigned int &d, const arma::vec &k
 }
 
 // Project the regressors on the spline bases
-arma::mat buildZ(const arma::mat &X, const arma::mat &B, const arma::uvec &t_index, const unsigned int &J, const unsigned int &d, const unsigned int &p)
+arma::mat buildZ(const arma::mat &X, const arma::mat &B, const arma::uvec &t_index, const unsigned int &p)
 {
-    arma::mat Z(X.n_rows, (J + d + 1) * p, arma::fill::zeros);
+    arma::mat Z(X.n_rows, B.n_cols * p, arma::fill::zeros);
     unsigned int t;
     for (unsigned int i = 0; i < t_index.n_elem; ++i)
     {
@@ -1298,7 +1298,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
 
 
 // Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, arma::vec &pi, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int &d, const unsigned int &J, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
+Rcpp::List tv_pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, arma::vec &pi, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int &d, arma::uvec &i_index, unsigned int &n_periods, const unsigned int &N, const unsigned int &n, const unsigned int &p_star, const double &lambda, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
 {
 
     float lambda_star = n_periods * lambda / (2 * N);
@@ -1385,7 +1385,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     arma::vec support = arma::regspace<arma::vec>(1, n_periods);
     arma::mat B = bspline_system(support, d, knots, TRUE);
     arma::mat Z;
-    Z = buildZ(X, B, t_index, M, d, X.n_cols);
+    Z = buildZ(X, B, t_index, X.n_cols);
     if (p_const > 0)
     {
         Z = join_rows(Z, X_const);
@@ -1430,7 +1430,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = tv_pagfl_algo(y, y_tilde, Z_tilde, invZcovY, invZcov, pi, VarLambdat, Lambda, B, d, M, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
+        estimOutput = tv_pagfl_algo(y, y_tilde, Z_tilde, invZcovY, invZcov, pi, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, Z_tilde, rho, N, i_index);
         output = Rcpp::List::create(

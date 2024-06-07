@@ -1,4 +1,4 @@
-# PAGFL 1.1.0 (development version)
+# PAGFL 1.1.0
 
 * Introduction of the time-varying *PAGFL* `tv_pagfl`
 * Introduction of s3 methods (`summary()`, `coef()`, `fitted()`, `resid()`) for the output of `pagfl` and `tv_pagfl`

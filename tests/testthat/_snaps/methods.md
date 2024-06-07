@@ -1,7 +1,7 @@
 # S3 pagfl
 
     Call:
-    pagfl(formula = y ~ X, n_periods = 150, lambda = 5)
+    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
     
     Balanced panel: N = 20, T = 150, obs = 3000
     
@@ -38,7 +38,7 @@
       Groups: 3 
       
       Call:
-      pagfl(formula = y ~ X, n_periods = 150, lambda = 5)
+      pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
       
       Coefficients:
                      a        b
@@ -49,7 +49,7 @@
 # S3 tv_pagfl
 
     Call:
-    tv_pagfl(formula = y ~ X, n_periods = 100, lambda = 7)
+    tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
     
     Balanced panel: N = 10, T = 100, obs = 1000
     
@@ -68,9 +68,9 @@
      1  2  3  4  5  6  7  8  9 10 
      1  1  2  3  4  5  5  3  5  3 
     
-    Residual standard error: 1.02573 on 976 degrees of freedom
+    Residual standard error: 1.02363 on 980 degrees of freedom
     Mean squared error 1.02686
-    Multiple R-squared: 0.81416, Adjusted R-squared: 0.80978 
+    Multiple R-squared: 0.81416, Adjusted R-squared: 0.81055 
 
 ---
 
@@ -80,7 +80,7 @@
       Groups: 5 
       
       Call:
-      tv_pagfl(formula = y ~ X, n_periods = 100, lambda = 7)
+      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
 
 # S3 tv_pagfl const coef unbalanced
 
@@ -110,9 +110,9 @@
     Group 1 0.01486
     Group 2 0.01400
     
-    Residual standard error: 1.09058 on 673 degrees of freedom
+    Residual standard error: 1.08735 on 677 degrees of freedom
     Mean squared error 1.14676
-    Multiple R-squared: 0.7833, Adjusted R-squared: 0.77557 
+    Multiple R-squared: 0.7833, Adjusted R-squared: 0.7769 
 
 ---
 

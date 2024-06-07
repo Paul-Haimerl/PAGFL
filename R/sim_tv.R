@@ -10,6 +10,12 @@
 #' @param d the polynomial degree used to construct the time-varying coefficients.
 #' @param dynamic Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as a regressor. Default is \code{FALSE}.
 #' @param group_proportions a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
+#' @param error_spec options include
+#' \describe{
+#' \item{\code{"iid"}}{for \eqn{iid} errors.}
+#' \item{\code{"AR"}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
+#' }
+#' Default is \code{"iid"}.
 #' @param locations a \eqn{p \times K} matrix of location parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
 #' @param scales a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
 #' @param polynomial_coef a \eqn{p \times d \times K} array of coefficients for a the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
@@ -57,12 +63,14 @@
 #' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+#' \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 #' @export
-sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups = 3, d = 3, dynamic = FALSE, group_proportions = NULL, locations = NULL, scales = NULL, polynomial_coef = NULL, sd_error = 1, DGP = lifecycle::deprecated()) {
+sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups = 3, d = 3, dynamic = FALSE, group_proportions = NULL, error_spec = "iid", locations = NULL, scales = NULL, polynomial_coef = NULL, sd_error = 1, DGP = lifecycle::deprecated()) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
 
+  error_spec <- match.arg(error_spec, c("iid", "AR"))
   if (lifecycle::is_present(DGP)) {
     lifecycle::deprecate_warn("1.1.0", "sim_tv_DGP(DGP)", "sim_tv_DGP(p)")
     intercept <- TRUE
@@ -129,6 +137,10 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
 
   # Draw the cross-sectional errors
   u <- stats::rnorm(N * n_periods, sd = sd_error)
+  if (error_spec == "AR"){
+    uList <- split(u, rep(1:((N * n_periods) %/% n_periods), each = n_periods, length.out = N * n_periods))
+    u <- simAR(errorList = uList)
+  }
   # Draw the fixed-effects
   gamma <- rep(stats::rnorm(N), each = n_periods)
   # Generate the regressors
@@ -163,7 +175,8 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
     }
     y <- y + gamma
   }
-  return(list(alpha = alpha_array, beta = beta_array, groups = groups, y = y, X = X))
+  data <- data.frame(y = c(y), X)
+  return(list(alpha = alpha_array, beta = beta_array, groups = groups, y = y, X = X, data = data))
 }
 
 # Logarithmic CDF as a time trend

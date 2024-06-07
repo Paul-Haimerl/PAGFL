@@ -29,7 +29,10 @@ formula.tvpagfl <- function(x, ...) {
 #' @export
 df.residual.tvpagfl <- function(object, ...) {
   M <- object$args$M + object$args$d + 1
-  length(object$args$labs$t) - length(unique(object$args$labs$i)) - max(ncol(object$coefficients$tv), 0) * M - max(ncol(object$coefficients$const), 0)
+  df_fe <- length(unique(object$args$labs$i))
+  p <- max(ncol(object$coefficients$tv), 0)
+  p_const <- max(ncol(object$coefficients$const), 0)
+  length(object$args$labs$t) - df_fe - (p * M + p_const) * object$groups$n_groups
 }
 
 #' @name tv_pagfl

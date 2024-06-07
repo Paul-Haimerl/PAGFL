@@ -7,12 +7,6 @@ test_that("pagfl PLS output", {
   X <- sim$X
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-
-  # With formula
-  estim <- pagfl(y ~ X, n_periods = 150, lambda = 5)
-  expect_s3_class(estim, "pagfl")
-  check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_pagfl_output(estim = estim, X = X)
   # With data
   estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
@@ -38,12 +32,6 @@ test_that("pagfl PGMM output", {
   Z <- sim$Z
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-
-  # With formula
-  estim <- pagfl(y ~ X, n_periods = 150, method = "PGMM", Z = Z, lambda = 2)
-  expect_s3_class(estim, "pagfl")
-  check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_pagfl_output(estim = estim, X = X)
   # With data
   estim <- pagfl(y ~ a + b, data = data, n_periods = 150,  method = "PGMM", Z = Z, lambda = 2)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
@@ -64,11 +52,7 @@ test_that("tv_pagfl results", {
   y <- sim$y
   X <- sim$X
   colnames(X) <- "a"
-  # With formula
-  estim <- tv_pagfl(y ~ 1 + X, n_periods = 100, lambda = 15)
-  expect_s3_class(estim, "tvpagfl")
-  check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_tv_pagfl_output(estim = estim, X = X)
+  p <- 2
   # With data
   data <- as.data.frame(cbind(y = c(y), X))
   estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 15)
@@ -110,7 +94,7 @@ test_that("tv_pagfl const_coef", {
   X <- sim$X
   colnames(X) <- "a"
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 15, const_coef = "a")
+  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 20, const_coef = "a")
 
   expect_equal(dim(estim$coefficients$const), c(3, 1))
   expect_equal(colnames(estim$coefficients$const), "a")

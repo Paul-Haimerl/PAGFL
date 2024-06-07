@@ -1,6 +1,7 @@
 prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL, verbose, min_group_frac, max_iter, kappa, tol_group, tol_convergence) {
-  const_vec <- c(min_group_frac, max_iter, kappa, tol_group, tol_convergence)
-  if (any(const_vec <= 0)) stop(paste(c("`min_group_frac`", "`max_iter`", "`kappa`", "`tol_group`", "`tol_convergence`")[const_vec <= 0], collapse = ", "), " must be bigger than zero.\n")
+  const_vec <- c(max_iter, kappa, tol_group, tol_convergence)
+  if (any(const_vec <= 0)) stop(paste(c("`max_iter`", "`kappa`", "`tol_group`", "`tol_convergence`")[const_vec <= 0], collapse = ", "), " must be bigger than zero.\n")
+  if (any(min_group_frac < 0)) stop("`min_group_frac` must be non-zero.\n")
   if (!(method %in% c("PLS", "PGMM"))) stop("The estimation method must be either `PLS` or `PGMM`. Use `PLS` in case of (weakly) exogenous regressors and `PGMM` for endogenous regressors.\n")
   if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods `n_periods`\n")
   if (!is.null(n_periods) & !is.null(index) & verbose) warning("Both index variables and `n_periods` are supplied. `n_periods` is ignored\n")
@@ -17,10 +18,6 @@ prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NUL
   }
   if (!is.null(data)) {
     if (!(all.vars(formula[[2]]) %in% colnames(data))) stop(paste(all.vars(formula[[2]]), "not present in", deparse(substitute(data))), "\n")
-    if (!all(all.vars(formula[[3]]) %in% colnames(data))) {
-      coef_names <- all.vars(formula[[3]])[!all.vars(formula[[3]]) %in% colnames(data)]
-      stop(paste(paste(coef_names, collapse = ", "), "not present in", deparse(substitute(data))), "\n")
-    }
   } else {
     if (all.vars(formula[[2]]) %in% colnames(data)[-1]) stop("The dependent variable ", all.vars(formula[[2]]), " is part of ", all.vars(formula[[3]]), "\n")
   }
@@ -53,6 +50,10 @@ second_checks <- function(N, index, n_periods, y, X, method = NULL, Z = NULL, p,
   } else {
     checksStat(X, method, Z, p, verbose)
   }
+  # if (!all(all.vars(formula[[3]]) %in% colnames(data))) {
+  #   coef_names <- all.vars(formula[[3]])[!all.vars(formula[[3]]) %in% colnames(data)]
+  #   stop(paste(paste(coef_names, collapse = ", "), "not present in", deparse(substitute(data))), "\n")
+  # }
 }
 
 # Checks for the static PAGFL

@@ -1,9 +1,20 @@
-Patch to fix freak bug in the M1mac build that occurs when running an example of sim_DGP()
+# PAGFL v. 1.1.0
 
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes
 
-## R-devel wi.builder check
+## Github CI tests passed:
 
-0 errors | 0 warnings | 0 notes
+  - windows-latest (devel)
+  - windows-latest (oldrel)
+  - windows-latest (release)
+  - macOS-14 (devel)
+  - macOS-latest (release)
+  - macOS-latest (oldrel)
+  - ubuntu-latest (devel)
+  - ubuntu-latest (oldrel-1)
+  - ubuntu-latest (release)
+  
+## Unit-test coverage
+88%

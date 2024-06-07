@@ -13,6 +13,7 @@ sim_tv_DGP(
   d = 3,
   dynamic = FALSE,
   group_proportions = NULL,
+  error_spec = "iid",
   locations = NULL,
   scales = NULL,
   polynomial_coef = NULL,
@@ -37,6 +38,13 @@ sim_tv_DGP(
 
 \item{group_proportions}{a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.}
 
+\item{error_spec}{options include
+\describe{
+\item{\code{"iid"}}{for \eqn{iid} errors.}
+\item{\code{"AR"}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
+}
+Default is \code{"iid"}.}
+
 \item{locations}{a \eqn{p \times K} matrix of location parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
 
 \item{scales}{a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
@@ -59,6 +67,7 @@ A list holding
 \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+\item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 }
 \description{
 Construct a time-varying panel data set subject to a latent group structure.

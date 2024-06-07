@@ -4,18 +4,18 @@
 #' The time-varying coefficients are modeled as polynomial B-splines.
 #'
 #' @param formula a formula object describing the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation. If no \code{data} is passed, the dependent and independent variables must be placed directly in the formula. Default is \code{NULL}.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
 #' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and the time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. Default is \code{Null}.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
 #' @param d the polynomial degree of the B-splines. Default is 3.
-#' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}})} is used. Note that \eqn{M} does not include the boundary knots.
+#' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots.
 #' @param const_coef a character vector containing the variable names of explanatory variables that are estimated with time-constant coefficients. All of concerning regressors must be named variables in \code{data}.
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
 #' @param kappa the a non-negative weight placed on the adaptive penalty weights. Default is 2.
 #' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 20,000.
 #' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-10}}.
-#' @param tol_group the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.01.
+#' @param tol_group the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
 #' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation \emph{PSE}, the \eqn{\varrho} value is trivial. We recommend the default 1.
 #' @param verbose logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.
@@ -32,7 +32,7 @@
 
 #' \eqn{\beta_i (t/T)}, and \eqn{\alpha_k (t/T)} are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{\bold{B}(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
 #' Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{i}(t/T)} are approximated as \eqn{\beta_{i} (t/T) = \pi_i^\prime \bold{B}(t/T)} and \eqn{\alpha_{i}(t/T) = \xi_i^\prime \bold{B}(t/T)}, respectively. \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices which weigh the individual basis functions.
-#' The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
+#' The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)*p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
 #' \deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
 #' where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains the sieve approximation error. I refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
 #'
@@ -51,17 +51,17 @@
 #' # Simulate a time-varying panel with a trend and a group pattern
 #' set.seed(1)
 #' sim <- sim_tv_DGP(N = 30, n_periods = 50, intercept = TRUE, p = 1)
-#' y <- sim$y
+#' df <- data.frame(y = c(sim$y))
 #'
 #' # Run the time-varying PAGFL with only an intercept
-#' estim <- tv_pagfl(y ~ 1, n_periods = 50, lambda = 12)
+#' estim <- tv_pagfl(y ~ 1, data = df, n_periods = 50, lambda = 8)
 #' summary(estim)
 #'
 #' # Lets pass a panel data set with explicit cross-sectional and time indicators
 #' i_index <- rep(1:30, each = 50)
 #' t_index <- rep(1:50, 30)
-#' data <- data.frame(y = c(y), i_index = i_index, t_index = t_index)
-#' estim <- tv_pagfl(y ~ 1, data = data, index = c("i_index", "t_index"), lambda = 12)
+#' df <- data.frame(y = c(sim$y), i_index = i_index, t_index = t_index)
+#' estim <- tv_pagfl(y ~ 1, data = df, index = c("i_index", "t_index"), lambda = 8)
 #' summary(estim)
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
@@ -73,7 +73,7 @@
 #' @author Paul Haimerl
 #'
 #' @return An object of class \code{tvpagfl} holding
-#' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices (if provided),}
+#' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices,}
 #' \item{\code{coefficients}}{a \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates. Let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters,}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 #' \item{\code{residuals}}{a vector of residuals of the demeaned model,}
@@ -85,54 +85,50 @@
 #'
 #' An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 #' @export
-tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(NROW(y)^(1 / 7)), min_group_frac = .05,
-                     const_coef = NULL, kappa = 2, max_iter = 20e3, tol_convergence = 1e-10, tol_group = 1e-2,
+tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
+                     const_coef = NULL, kappa = 2, max_iter = 20e3, tol_convergence = 1e-10, tol_group = 1e-3,
                      rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
 
+  if (is.null(min_group_frac)) min_group_frac <- 0
   formula <- stats::as.formula(formula)
   prelim_checks(formula, data,
     index = index, n_periods = n_periods, const_coef = const_coef, verbose = verbose, min_group_frac = min_group_frac,
     max_iter = max_iter, kappa = kappa, tol_group = tol_group, tol_convergence = tol_convergence
   )
-
   # Construct a vector of the dependent variable and a regressor matrix
-  if (!is.null(data)) {
-    data <- as.data.frame(data)
-    data <- stats::na.omit(data)
-    if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
-    X <- stats::model.matrix(formula, data)
-    intercept_indicator <- ifelse(attr(stats::terms(formula), "intercept") == 1, TRUE, FALSE)
-    # Remove second intercepts if present
-    sd_vec <- apply(as.matrix(X[, !(colnames(X) %in% "(Intercept)")]), 2, stats::sd)
-    sd_vec_ind <- sd_vec != 0
-    if (intercept_indicator) sd_vec_ind <- c(TRUE, sd_vec_ind)
-    regressor_names <- colnames(X)[sd_vec_ind]
-    X <- as.matrix(X[, sd_vec_ind])
-    colnames(X) <- regressor_names
-    y <- as.matrix(data[[all.vars(formula[[2]])]])
-  } else {
-    X <- eval(formula[[3]], envir = parent.frame())
-    y <- eval(formula[[2]], envir = parent.frame())
-    if (length(X) > 1) {
-      if (is.null(colnames(X))) colnames(X) <- paste0("X", 1:ncol(X))
-      if (NROW(y) != NROW(X)) stop("The dependent and independent variables must be of equal dimensions\n")
+  data <- as.data.frame(data)
+  data <- stats::na.omit(data)
+  if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
+  if (any(all.vars(formula[[3]]) == ".")){
+    if (!is.null(index)){
+      data_temp <- data[,!(colnames(data) %in% index)]
+    } else {
+      data_temp <- data
     }
-    data <- as.data.frame(cbind(c(y), X))
-    colnames(data)[1] <- all.vars(formula[[2]])
-    intercept_indicator <- ifelse(attr(stats::terms(formula), "intercept") == 1, "1", "-1")
-    formula <- stats::as.formula(paste(colnames(data)[1], " ~ ", intercept_indicator, " + ", paste(colnames(data)[-1], collapse = " + ")))
+    X <- stats::model.matrix(formula, data_temp)
+    rm(data_temp)
+    intercept_indicator <- "1"
+  } else {
     X <- stats::model.matrix(formula, data)
-    # Remove a second intercepts if present
-    sd_vec <- apply(as.matrix(X[, !(colnames(X) %in% "(Intercept)")]), 2, stats::sd)
-    sd_vec_ind <- sd_vec != 0
-    if (intercept_indicator == "1") sd_vec_ind <- c(TRUE, sd_vec_ind)
-    regressor_names <- colnames(X)[sd_vec_ind]
-    X <- as.matrix(X[, sd_vec_ind])
-    colnames(X) <- regressor_names
+    intercept_indicator <- ifelse(attr(stats::terms(formula), "intercept") == 1, "1", "-1")
   }
+  # Remove second intercepts if present
+  sd_vec <- apply(as.matrix(X[, !(colnames(X) %in% "(Intercept)")]), 2, stats::sd)
+  sd_vec_ind <- sd_vec != 0
+  if (intercept_indicator == "1") sd_vec_ind <- c(TRUE, sd_vec_ind)
+  regressor_names <- colnames(X)[sd_vec_ind]
+  # Pull the regressors
+  X <- as.matrix(X[, sd_vec_ind])
+  colnames(X) <- regressor_names
+  # Pull the outcome
+  y <- as.matrix(data[[all.vars(formula[[2]])]])
+  # Build the final data set
+  model_data <- as.data.frame(cbind(c(y), X))
+  colnames(model_data)[1] <- all.vars(formula[[2]])
+  # Check constant coefficients
   if (!all(const_coef %in% regressor_names)) {
     stop(paste(const_coef[!const_coef %in% regressor_names], collapse = ", "), " not part of the formula\n")
   }
@@ -146,10 +142,14 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
     t_index <- as.integer(factor(t_index_labs))
     n_periods <- length(unique(t_index))
     N <- length(unique(i_index))
+    model_data <- cbind(model_data, data[, index[1]], data[, index[2]])
+    colnames(model_data)[(ncol(model_data) - 1):ncol(model_data)] <- index
   } else {
     N <- NROW(y) / n_periods
     t_index <- t_index_labs <- rep(1:n_periods, N)
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
+    model_data$i_index <- i_index
+    model_data$t_index <- t_index
   }
   coef_t_index <- unique(t_index_labs)[order(unique(t_index))]
   coef_rownames <- as.character(coef_t_index)
@@ -165,7 +165,7 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
     p_const <- 0
   }
   p <- ncol(X)
-  M <- floor(max(M, 3))
+  M <- floor(max(M, 1))
   d <- floor(d)
 
   second_checks(
@@ -179,7 +179,7 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
 
   # Run the algorithm
   lambdaList <- tv_pagfl_routine(
-    y = y, X = X, X_const = X_const, d = d, M = M - 2, i_index = i_index, t_index = t_index, N = N, p_const = p_const, lambda_vec = lambda, kappa = kappa,
+    y = y, X = X, X_const = X_const, d = d, M = M, i_index = i_index, t_index = t_index, N = N, p_const = p_const, lambda_vec = lambda, kappa = kappa,
     min_group_frac = min_group_frac, max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group,
     varrho = varrho, rho = rho, parallel = parallel
   )
@@ -213,7 +213,7 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
     alpha_hat <- coef_raw
     alpha_const <- NULL
   }
-  B <- bspline_system(1:n_periods, d, seq(1, n_periods, length.out = M), TRUE)
+  B <- bspline_system(1:n_periods, d, seq(1, n_periods, length.out = M + 2), TRUE)
 
   # Transform the spline coefficients to time-varying functional coefficients
   alpha_mat <- getTVAlpha(xi = alpha_hat, K_hat = out$estimOutput$K_hat, p = p, n_periods = n_periods, B = B)
@@ -247,7 +247,7 @@ tv_pagfl <- function(formula, data = NULL, index = NULL, n_periods = NULL, lambd
 
   # Output
   out <- list(
-    model = as.data.frame(data), coefficients = list(tv = alpha_mat, const = alpha_const), groups = list(n_groups = out$estimOutput$K_hat, groups = out$estimOutput$groups_hat), residuals = c(out$IC$resid), fitted = fitted,
+    model = as.data.frame(model_data), coefficients = list(tv = alpha_mat, const = alpha_const), groups = list(n_groups = out$estimOutput$K_hat, groups = out$estimOutput$groups_hat), residuals = c(out$IC$resid), fitted = fitted,
     args = args, IC = list(IC = out$IC$IC, lambda = lambda[indx], msr = out$IC$msr), convergence = list(convergence = out$estimOutput$convergence, iter = out$estimOutput$iter), call = match.call()
   )
   class(out) <- "tvpagfl"

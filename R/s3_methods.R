@@ -23,7 +23,7 @@ formula.pagfl <- function(x, ...) {
 #' @method df.residual pagfl
 #' @export
 df.residual.pagfl <- function(object, ...) {
-  length(object$args$labs$t) - length(unique(object$args$labs$i)) - ncol(object$coefficients)
+  length(object$args$labs$t) - length(unique(object$args$labs$i)) - ncol(object$coefficients) * object$groups$n_groups
 }
 
 #' @name pagfl
