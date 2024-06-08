@@ -1,4 +1,5 @@
 test_that("S3 pagfl", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
@@ -29,6 +30,7 @@ test_that("S3 pagfl", {
 
 
 test_that("S3 tv_pagfl", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X
@@ -58,6 +60,7 @@ test_that("S3 tv_pagfl", {
 
 
 test_that("S3 tv_pagfl const coef unbalanced", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X

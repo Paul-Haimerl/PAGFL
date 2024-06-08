@@ -50,19 +50,13 @@
 #' @examples
 #' # Simulate a time-varying panel with a trend and a group pattern
 #' set.seed(1)
-#' sim <- sim_tv_DGP(N = 30, n_periods = 50, intercept = TRUE, p = 1)
+#' sim <- sim_tv_DGP(N = 5, n_periods = 20, intercept = TRUE, p = 1)
 #' df <- data.frame(y = c(sim$y))
 #'
 #' # Run the time-varying PAGFL with only an intercept
-#' estim <- tv_pagfl(y ~ 1, data = df, n_periods = 50, lambda = 8)
+#' estim <- tv_pagfl(y ~ 1, data = df, n_periods = 20, lambda = 13, max_iter = 100, parallel = FALSE)
 #' summary(estim)
 #'
-#' # Lets pass a panel data set with explicit cross-sectional and time indicators
-#' i_index <- rep(1:30, each = 50)
-#' t_index <- rep(1:50, 30)
-#' df <- data.frame(y = c(sim$y), i_index = i_index, t_index = t_index)
-#' estim <- tv_pagfl(y ~ 1, data = df, index = c("i_index", "t_index"), lambda = 8)
-#' summary(estim)
 #' @references
 #' Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
 #'

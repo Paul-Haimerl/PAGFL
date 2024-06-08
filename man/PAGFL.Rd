@@ -135,23 +135,22 @@ We suggest identifying a suitable \eqn{\lambda} parameter by passing a logarithm
 }
 \examples{
 # Simulate a panel with a group structure
-sim <- sim_DGP(N = 50, n_periods = 80, p = 2, n_groups = 3)
+sim <- sim_DGP(N = 20, n_periods = 80, p = 2, n_groups = 3)
 y <- sim$y
 X <- sim$X
 df <- cbind(y = c(y), X)
 
-# Run the PAGFL procedure for a set of candidate tuning parameter values
-lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-estim <- pagfl(y ~ ., data = df, n_periods = 80, lambda = lambda_set, method = "PLS")
+# Run the PAGFL procedure
+estim <- pagfl(y ~ ., data = df, n_periods = 80, lambda = 0.5, method = "PLS")
 summary(estim)
 
 # Lets pass a panel data set with explicit cross-sectional and time indicators
-i_index <- rep(1:50, each = 80)
-t_index <- rep(1:80, 50)
+i_index <- rep(1:20, each = 80)
+t_index <- rep(1:80, 20)
 df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
 estim <- pagfl(
   y ~ ., data = df, index = c("i_index", "t_index"),
-  lambda = lambda_set, method = "PLS"
+  lambda = 0.5, method = "PLS"
 )
 summary(estim)
 }

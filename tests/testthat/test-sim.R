@@ -1,4 +1,5 @@
 test_that("pagfl sim", {
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2
@@ -17,6 +18,7 @@ test_that("pagfl sim", {
 })
 
 test_that("pagfl sim input", {
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2
@@ -35,6 +37,7 @@ test_that("pagfl sim input", {
 })
 
 test_that("tv_pagfl sim", {
+  skip_on_cran()
   N <- 10
   n_periods <- 15
   p <- 2
@@ -53,6 +56,7 @@ test_that("tv_pagfl sim", {
 })
 
 test_that("tv_pagfl sim input", {
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2

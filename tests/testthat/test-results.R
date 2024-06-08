@@ -1,4 +1,5 @@
 test_that("pagfl PLS output", {
+  skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   groups_0 <- sim$groups
@@ -23,6 +24,7 @@ test_that("pagfl PLS output", {
 })
 
 test_that("pagfl PGMM output", {
+  skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pgmm_sim.rds"))
   groups_0 <- sim$groups
@@ -45,6 +47,7 @@ test_that("pagfl PGMM output", {
 })
 
 test_that("tv_pagfl results", {
+  skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   groups_0 <- sim$groups
@@ -68,6 +71,7 @@ test_that("tv_pagfl results", {
 
 
 test_that("tv_pagfl Unbalanced panel output", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))
@@ -89,6 +93,7 @@ test_that("tv_pagfl Unbalanced panel output", {
 })
 
 test_that("tv_pagfl const_coef", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X

@@ -1,4 +1,5 @@
 test_that("pagfl inputs", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
@@ -35,6 +36,7 @@ test_that("pagfl inputs", {
 })
 
 test_that("Unbalanced panel pagfl", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
@@ -50,6 +52,7 @@ test_that("Unbalanced panel pagfl", {
 
 
 test_that("tv_pagfl inputs", {
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))
