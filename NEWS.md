@@ -1,3 +1,8 @@
+# PAGFL 1.1.1 (development version)
+
+* Remove warm-starts when iterating across different tuning parameters
+* Small efficiency upgrades
+
 # PAGFL 1.1.0
 
 * Introduction of the time-varying *PAGFL* `tv_pagfl`

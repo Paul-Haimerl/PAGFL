@@ -1,6 +1,6 @@
 Package: PAGFL
 Title: Joint Estimation of Latent Groups and Group-Specific Coefficients in Panel Data Models
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(
     person("Paul", "Haimerl", email = "p.haimerl@student.maastrichtuniversity.nl", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
     person("Stephan", "Smeekes", email = "s.smeekes@maastrichtuniversity.nl", role = "ctb", comment = c(ORCID = "0000-0002-0157-639X")),

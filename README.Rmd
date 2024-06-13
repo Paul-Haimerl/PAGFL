@@ -31,8 +31,8 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 You can install the development version of `PAGFL` (1.1.0) from [GitHub](https://github.com/) with:
 
 ```{r message=FALSE, warning=FALSE}
-# install.packages('devtools')
-devtools::install_github('Paul-Haimerl/PAGFL')
+# install.packages("devtools")
+devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
@@ -112,7 +112,7 @@ data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 ```
 

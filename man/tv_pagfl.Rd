@@ -25,7 +25,7 @@ tv_pagfl(
   max_iter = 20000,
   tol_convergence = 1e-10,
   tol_group = 0.001,
-  rho = 0.07 * log(N * n_periods)/sqrt(N * n_periods),
+  rho = 0.04 * log(N * n_periods)/sqrt(N * n_periods),
   varrho = 1,
   verbose = TRUE,
   parallel = TRUE,

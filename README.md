@@ -34,8 +34,34 @@ You can install the development version of `PAGFL` (1.1.0) from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages('devtools')
-devtools::install_github('Paul-Haimerl/PAGFL')
+# install.packages("devtools")
+devtools::install_github("Paul-Haimerl/PAGFL")
+#> rlang (1.1.3 -> 1.1.4) [CRAN]
+#> package 'rlang' successfully unpacked and MD5 sums checked
+#> 
+#> The downloaded binary packages are in
+#>  C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\downloaded_packages
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' (853ms)
+#>   ─  preparing 'PAGFL': (476ms)
+#> ✔  checking DESCRIPTION meta-information (536ms)
+#> ─  cleaning src (625ms)
+#>       ─  checking for LF line-endings in source and make files and shell scripts (1.4s)
+#>   ─  checking for empty or unneeded directories (685ms)
+#>      NB: this package now depends on R (>= 3.5.0)
+#>      WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+#>      serialize/load version 3 cannot be read in older versions of R.
+#>      File(s) containing such objects:
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
+#> ─  building 'PAGFL_1.1.0.tar.gz'
+#>    
+#> 
 library(PAGFL)
 ```
 
@@ -217,7 +243,7 @@ data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = 'PGMM', Z = Z, bias_correc = TRUE, max_iter = 20e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 20e3)
 summary(estim_endo)
 #> Call:
 #> pagfl(formula = y ~ ., data = data_endo, n_periods = 200, lambda = 15, 

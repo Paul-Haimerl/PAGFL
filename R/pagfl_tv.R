@@ -81,7 +81,7 @@
 #' @export
 tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
                      const_coef = NULL, kappa = 2, max_iter = 20e3, tol_convergence = 1e-10, tol_group = 1e-3,
-                     rho = .07 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
+                     rho = .04 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
