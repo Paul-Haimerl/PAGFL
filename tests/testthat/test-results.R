@@ -1,5 +1,5 @@
 test_that("pagfl PLS output", {
-  skip_on_cran()
+  # skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   groups_0 <- sim$groups
@@ -21,10 +21,13 @@ test_that("pagfl PLS output", {
   # with bias correction
   estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, bias_correc = TRUE)
   check_pagfl_output(estim = estim, X = X)
+  # With un-parallel
+  estim_single <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, parallel = FALSE)
+  check_pagfl_pls(estim = estim_single, groups_0 = groups_0, alpha_0 = alpha_0)
 })
 
 test_that("pagfl PGMM output", {
-  skip_on_cran()
+  # skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pgmm_sim.rds"))
   groups_0 <- sim$groups
@@ -35,19 +38,19 @@ test_that("pagfl PGMM output", {
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
   # With data
-  estim <- pagfl(y ~ a + b, data = data, n_periods = 150,  method = "PGMM", Z = Z, lambda = 2)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, method = "PGMM", Z = Z, lambda = 2)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X)
   # With index
   data$i <- as.character(rep(101:120, each = 150))
   data$t <- rep(1:150, 20)
-  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"),  method = "PGMM", Z = Z, lambda = 2)
+  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", Z = Z, lambda = 2)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t)
 })
 
 test_that("tv_pagfl results", {
-  skip_on_cran()
+  # skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   groups_0 <- sim$groups
@@ -71,7 +74,7 @@ test_that("tv_pagfl results", {
 
 
 test_that("tv_pagfl Unbalanced panel output", {
-  skip_on_cran()
+  # skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))

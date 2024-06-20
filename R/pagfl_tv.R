@@ -96,9 +96,9 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
   data <- as.data.frame(data)
   data <- stats::na.omit(data)
   if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
-  if (any(all.vars(formula[[3]]) == ".")){
-    if (!is.null(index)){
-      data_temp <- data[,!(colnames(data) %in% index)]
+  if (any(all.vars(formula[[3]]) == ".")) {
+    if (!is.null(index)) {
+      data_temp <- data[, !(colnames(data) %in% index)]
     } else {
       data_temp <- data
     }

@@ -65,7 +65,8 @@
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
 #' estim <- pagfl(
-#'   y ~ ., data = df, index = c("i_index", "t_index"),
+#'   y ~ .,
+#'   data = df, index = c("i_index", "t_index"),
 #'   lambda = 0.5, method = "PLS"
 #' )
 #' summary(estim)
@@ -98,6 +99,13 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   #### Preliminaries          ####
   #------------------------------#
 
+  # In case of penalized Least Squares, specify an empty instrument matrix Z
+  if (method == "PLS") {
+    Z <- matrix()
+  } else {
+    Z <- as.matrix(Z)
+  }
+
   if (is.null(min_group_frac)) min_group_frac <- 0
   formula <- stats::as.formula(formula)
   method <- match.arg(method, c("PLS", "PGMM"))
@@ -110,20 +118,20 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   data <- as.data.frame(data)
   data <- stats::na.omit(data)
   if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
-  if (all(all.vars(formula[[3]]) != ".")){
+  if (all(all.vars(formula[[3]]) != ".")) {
     # If present, remove the intercept
     formula <- stats::update(formula, . ~ . - 1)
     X <- stats::model.matrix(formula, data)
   } else {
     # Remove the index variables if present
-    if (is.null(index)){
+    if (is.null(index)) {
       data_temp <- data
     } else {
-      data_temp <- data[,!(colnames(data) %in% index)]
+      data_temp <- data[, !(colnames(data) %in% index)]
     }
     X <- stats::model.matrix(formula, data_temp)
     # If present, remove the intercept
-    X <- X[,apply(X, 2, stats::sd) != 0]
+    X <- X[, apply(X, 2, stats::sd) != 0]
     rm(data_temp)
   }
   X <- as.matrix(X)
@@ -154,13 +162,6 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   p <- ncol(X)
 
   second_checks(N, index, n_periods, y, X, method, Z, p, min_group_frac, verbose, dyn = FALSE, rho = rho, varrho = varrho)
-
-  # In case of penalized Least Squares, specify an empty instrument matrix Z
-  if (method == "PLS") {
-    Z <- matrix()
-  } else {
-    Z <- as.matrix(Z)
-  }
 
   #------------------------------#
   #### Iterate over lambda    ####

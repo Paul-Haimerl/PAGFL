@@ -66,7 +66,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   #### Checks                 ####
   #------------------------------#
 
-  if (lifecycle::is_present(dyn_panel)){
+  if (lifecycle::is_present(dyn_panel)) {
     lifecycle::deprecate_warn("1.1.0", "sim_DGP(dyn_panel)", "sim_DGP(dynamic)")
     dynamic <- dyn_panel
   }
@@ -160,9 +160,9 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
     # Adjust the individual FE in case of a dynamic panel
     y <- y + (1 - beta_ar_vec) * gamma
     ARPanel <- generateARpanel(y = y, N = N, beta = beta_ar_vec)
-    y <- ARPanel[,"y"]
+    y <- ARPanel[, "y"]
     names(y) <- NULL
-    X <- cbind(ARPanel[,"X"], X)
+    X <- cbind(ARPanel[, "X"], X)
     rownames(X) <- NULL
   }
   data <- data.frame(y = c(y), X)

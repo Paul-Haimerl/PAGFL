@@ -101,6 +101,6 @@ check_tv_pagfl_sim <- function(sim, N, n_periods, p, K) {
   expect_equal(dim(sim$X), c(N * n_periods, p))
   expect_equal(max(sim$groups), K)
   expect_length(sim$groups, N)
-  expect_equal(dim(sim$alpha), c(15, 2, 3))
-  expect_equal(dim(sim$beta), c(15, 2, 10))
+  expect_equal(dim(sim$alpha), c(n_periods, p, K))
+  expect_equal(dim(sim$beta), c(n_periods, p, N))
 }

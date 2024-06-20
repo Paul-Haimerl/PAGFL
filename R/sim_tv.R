@@ -73,12 +73,14 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
   error_spec <- match.arg(error_spec, c("iid", "AR"))
   if (lifecycle::is_present(DGP)) {
     lifecycle::deprecate_warn("1.1.0", "sim_tv_DGP(DGP)", "sim_tv_DGP(p)")
-    intercept <- TRUE
     if (DGP == 1) {
-      p <- 0
-    } else if (DGP == 2) {
+      intercept <- TRUE
       p <- 1
+    } else if (DGP == 2) {
+      intercept <- TRUE
+      p <- 2
     } else {
+      intercept <- FALSE
       p <- 1
       dynamic <- TRUE
     }
@@ -90,6 +92,11 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
   } else {
     p_star <- p
   }
+  if (dynamic) {
+    p_star <- p_star
+    p <- p - 1
+  }
+  p <- max(p, 0)
 
   simChecks(
     dyn = TRUE, N = N, n_groups = n_groups, group_proportions = group_proportions, p = p_star, locations = locations,
@@ -137,14 +144,13 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
 
   # Draw the cross-sectional errors
   u <- stats::rnorm(N * n_periods, sd = sd_error)
-  if (error_spec == "AR"){
+  if (error_spec == "AR") {
     uList <- split(u, rep(1:((N * n_periods) %/% n_periods), each = n_periods, length.out = N * n_periods))
     u <- simAR(errorList = uList)
   }
   # Draw the fixed-effects
   gamma <- rep(stats::rnorm(N), each = n_periods)
   # Generate the regressors
-  if (dynamic & p > 0) p <- p - 1
   X <- matrix(stats::rnorm(N * p * n_periods), ncol = p)
   if (intercept & p > 0) {
     X <- cbind(rep(1, N * n_periods), X)
@@ -157,8 +163,9 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
   } else {
     y <- rep(0, n_periods * N)
     X_ar <- as.matrix(rep(0, n_periods * N))
-    if (p_star == 0) {
+    if (p == 0) {
       X <- X_ar
+      if (intercept) X <- cbind(rep(1, N * n_periods), X)
     } else {
       X <- cbind(X_ar, X)
     }
