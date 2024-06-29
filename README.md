@@ -30,26 +30,28 @@ that, we extend the `PAGFL` to time-varying functional coefficients.
 
 ## Installation
 
-You can install the development version of `PAGFL` (1.1.0) from
+You can install the development version of `PAGFL` (1.1.1) from
 [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("Paul-Haimerl/PAGFL")
 #> rlang (1.1.3 -> 1.1.4) [CRAN]
+#> cli   (3.6.2 -> 3.6.3) [CRAN]
 #> package 'rlang' successfully unpacked and MD5 sums checked
+#> package 'cli' successfully unpacked and MD5 sums checked
 #> 
 #> The downloaded binary packages are in
-#>  C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\downloaded_packages
+#>  C:\Users\phaim\AppData\Local\Temp\RtmpWSeWUK\downloaded_packages
 #> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpeMmSt8\remotes162ef8fb1560f\Paul-Haimerl-PAGFL-15b60f0/DESCRIPTION' (853ms)
-#>   ─  preparing 'PAGFL': (476ms)
-#> ✔  checking DESCRIPTION meta-information (536ms)
-#> ─  cleaning src (625ms)
-#>       ─  checking for LF line-endings in source and make files and shell scripts (1.4s)
-#>   ─  checking for empty or unneeded directories (685ms)
-#>      NB: this package now depends on R (>= 3.5.0)
-#>      WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+#>          checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpWSeWUK\remotes1a23c84375634e\Paul-Haimerl-PAGFL-496fc71/DESCRIPTION' ...     checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpWSeWUK\remotes1a23c84375634e\Paul-Haimerl-PAGFL-496fc71/DESCRIPTION' ...   ✔  checking for file 'C:\Users\phaim\AppData\Local\Temp\RtmpWSeWUK\remotes1a23c84375634e\Paul-Haimerl-PAGFL-496fc71/DESCRIPTION' (779ms)
+#>       ─  preparing 'PAGFL':
+#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#> ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts (943ms)
+#>       ─  checking for empty or unneeded directories
+#>      NB: this package now depends on R (>=        NB: this package now depends on R (>= 3.5.0)
+#>        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
 #>      serialize/load version 3 cannot be read in older versions of R.
 #>      File(s) containing such objects:
 #>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
@@ -58,14 +60,14 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 #>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
 #>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
 #>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
-#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
-#> ─  building 'PAGFL_1.1.0.tar.gz'
-#>    
+#>      'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'         'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
+#> ─  building 'PAGFL_1.1.1.tar.gz'
+#>      
 #> 
 library(PAGFL)
 ```
 
-The stable version (1.0.1) is available on CRAN:
+The stable version (1.1.0) is available on CRAN:
 
     install.packages("PAGFL")
 
@@ -195,7 +197,7 @@ summary(estim_set)
 #> Balanced panel: N = 20, T = 150, obs = 3000
 #> 
 #> Convergence reached:
-#> TRUE (50 iterations)
+#> TRUE (51 iterations)
 #> 
 #> Information criterion:
 #>        IC    lambda 
@@ -315,7 +317,7 @@ summary(tv_estim)
 #> 
 #> Information criterion:
 #>      IC  lambda 
-#> 1.21839 5.00000 
+#> 1.12661 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
@@ -389,8 +391,8 @@ summary(tv_estim_unbalanced)
 #> TRUE (164 iterations)
 #> 
 #> Information criterion:
-#>     IC lambda 
-#> 1.1954 5.0000 
+#>      IC  lambda 
+#> 1.10362 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 

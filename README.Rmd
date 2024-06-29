@@ -28,7 +28,7 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 
 ## Installation
 
-You can install the development version of `PAGFL` (1.1.0) from [GitHub](https://github.com/) with:
+You can install the development version of `PAGFL` (1.1.1) from [GitHub](https://github.com/) with:
 
 ```{r message=FALSE, warning=FALSE}
 # install.packages("devtools")
@@ -36,7 +36,7 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
-The stable version (1.0.1) is available on CRAN:
+The stable version (1.1.0) is available on CRAN:
 
 ```         
 install.packages("PAGFL")

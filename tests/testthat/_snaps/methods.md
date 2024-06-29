@@ -1,5 +1,18 @@
 # S3 pagfl
 
+    Groups: 3 
+    
+    Call:
+    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
+    
+    Coefficients:
+                   a        b
+    Group 1 -0.98847  1.54126
+    Group 2 -5.05014 -1.02301
+    Group 3  0.22479  1.54219
+
+---
+
     Call:
     pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
     
@@ -30,23 +43,17 @@
     Mean squared error 0.9838
     Multiple R-squared: 0.91956, Adjusted R-squared: 0.91899 
 
----
+# S3 tv_pagfl
 
     Code
       estim
     Output
-      Groups: 3 
+      Groups: 5 
       
       Call:
-      pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
-      
-      Coefficients:
-                     a        b
-      Group 1 -0.98847  1.54126
-      Group 2 -5.05014 -1.02301
-      Group 3  0.22479  1.54219
+      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
 
-# S3 tv_pagfl
+---
 
     Call:
     tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
@@ -72,47 +79,37 @@
     Mean squared error 1.02686
     Multiple R-squared: 0.81416, Adjusted R-squared: 0.81055 
 
----
-
-    Code
-      estim
-    Output
-      Groups: 5 
-      
-      Call:
-      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
-
 # S3 tv_pagfl const coef unbalanced
 
     Call:
     tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
         "t_index"), lambda = 25, const_coef = "a")
     
-    Unbalanced panel: N = 10, T = 60-77, obs = 698
+    Unbalanced panel: N = 10, T = 61-79, obs = 709
     
     Convergence reached:
-    TRUE (5497 iterations)
+    TRUE (719 iterations)
     
     Information criterion:
           IC   lambda 
-     1.33899 25.00000 
+     1.35615 25.00000 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
-    -3.57228 -0.66901  0.04044  0.67613  3.03945 
+    -3.48946 -0.70887  0.04507  0.68938  2.95082 
     
     2 groups:
      1  2  3  4  5  6  7  8  9 10 
      1  1  2  1  1  2  2  1  2  1 
     
     Constant coefficients:
-                   a
-    Group 1 0.01486
-    Group 2 0.01400
+                    a
+    Group 1  0.01894
+    Group 2 -0.06558
     
-    Residual standard error: 1.08735 on 677 degrees of freedom
-    Mean squared error 1.14676
-    Multiple R-squared: 0.7833, Adjusted R-squared: 0.7769 
+    Residual standard error: 1.09519 on 688 degrees of freedom
+    Mean squared error 1.16392
+    Multiple R-squared: 0.79777, Adjusted R-squared: 0.79189 
 
 ---
 

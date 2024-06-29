@@ -763,21 +763,6 @@ arma::mat deleteObsMat(const arma::mat &X, const unsigned int &N, arma::uvec &i_
     return X_red;
 }
 
-// Drops the last observed time period of a NT vector per individual
-arma::vec deleteLastObsVec(const arma::vec &X, const unsigned int &N, arma::uvec i_index)
-{
-    arma::vec x_red, X_red;
-    arma::uvec ind_seq;
-    for (unsigned int i = 0; i < N; i++)
-    {
-        ind_seq = arma::find(i_index == i + 1);
-        ind_seq.shed_row(ind_seq.n_elem - 1);
-        x_red = X.elem(ind_seq);
-        X_red = arma::join_cols(X_red, x_red);
-    }
-    return X_red;
-}
-
 // Net out fixed effects
 std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &method, const unsigned int &N, arma::uvec &i_index)
 {
@@ -1460,7 +1445,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
         // Estimate
-        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel); 
+        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
         // Compute the Information Criterion
         IC_list = IC(estimOutput, y_tilde, Z_tilde, rho, N, i_index);
         output = Rcpp::List::create(

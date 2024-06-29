@@ -1,11 +1,13 @@
 test_that("S3 pagfl", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
   colnames(X) <- c("a", "b")
   data = data.frame(y = y, X)
   estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
+  # print
+  expect_snapshot_output(estim, cran = FALSE)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(20, 2))
@@ -19,7 +21,6 @@ test_that("S3 pagfl", {
   # summary
   summary_estim <- summary(estim)
   expect_snapshot_output(summary_estim, cran = FALSE)
-  expect_snapshot(estim,  cran = FALSE)
   # formula
   formula_estim <- formula(estim)
   expect_type(formula_estim, "language")
@@ -30,16 +31,21 @@ test_that("S3 pagfl", {
 
 
 test_that("S3 tv_pagfl", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   data <- data.frame(y = y, X1 = X)
+  data$a <- stats::rnorm(length(y))
   estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7)
+  estim_const <- tv_pagfl(y ~ X1 + a, data = data, n_periods = 100, lambda = 7, const_coef = "a")
+  # print
+  expect_snapshot(estim,  cran = FALSE)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 2, 10))
   expect_equal(colnames(coef_res)[-1], "X1")
+  coef_res_const <- coef(estim_const)
   # resid
   resid_res <- resid(estim)
   expect_equal(dim(resid_res), c(length(y), 3))
@@ -49,7 +55,6 @@ test_that("S3 tv_pagfl", {
   # summary
   summary_estim <- summary(estim)
   expect_snapshot_output(summary_estim, cran = FALSE)
-  expect_snapshot(estim,  cran = FALSE)
   # formula
   formula_estim <- formula(estim)
   expect_type(formula_estim, "language")
@@ -60,7 +65,7 @@ test_that("S3 tv_pagfl", {
 
 
 test_that("S3 tv_pagfl const coef unbalanced", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
   X <- sim$X

@@ -1,5 +1,5 @@
 test_that("pagfl sim", {
-  # skip_on_cran()
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2
@@ -18,7 +18,7 @@ test_that("pagfl sim", {
 })
 
 test_that("pagfl sim input", {
-  # skip_on_cran()
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2
@@ -31,9 +31,14 @@ test_that("pagfl sim input", {
   expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, n_groups = 2, group_proportions = c(.6, .2, .2)))
   # Incorrect error spec
   expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, error_spec = "a"))
+  # p = 0
+  expect_error(sim_DGP(N = N, n_periods = n_periods, p = 0))
   # wrong alpha
   alpha_0 <- matrix(rnorm(4), nc = 2)
   expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, n_groups = 3, alpha_0 = alpha_0))
+  alpha_0 <- matrix(c(.1, .5, .8), nc = 1)
+  expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, n_groups = 3, alpha_0 = alpha_0))
+  expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, n_groups = 3, alpha_0 = alpha_0, dynamic = T))
   # Wrong q
   expect_error(sim_DGP(N = N, n_periods = n_periods, p = p, q = p - 1))
   # To much AC
@@ -43,7 +48,7 @@ test_that("pagfl sim input", {
 })
 
 test_that("tv_pagfl sim", {
-  # skip_on_cran()
+  skip_on_cran()
   N <- 10
   n_periods <- 15
   p <- 2
@@ -81,7 +86,7 @@ test_that("tv_pagfl sim", {
 })
 
 test_that("tv_pagfl sim input", {
-  # skip_on_cran()
+  skip_on_cran()
   N <- 10
   n_periods <- 10
   p <- 2

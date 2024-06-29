@@ -100,6 +100,9 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   #------------------------------#
 
   # In case of penalized Least Squares, specify an empty instrument matrix Z
+  if (method == "PGMM") {
+    if (is.null(Z)) stop("PGMM requires a matrix of exogenous instruments `Z`\n")
+  }
   if (method == "PLS") {
     Z <- matrix()
   } else {
@@ -153,6 +156,7 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
     colnames(model_data)[(ncol(model_data) - 1):ncol(model_data)] <- index
   } else {
     N <- NROW(y) / n_periods
+    if (round(N) != N) stop("n_periods does not match the number of time periods present in the dataset or the dataset is unblananced.\n  In case of an unbalanced dataset, specify index variables\n")
     t_index <- t_index_labs <- rep(1:n_periods, N)
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
     model_data$i_index <- i_index

@@ -1,7 +1,6 @@
 prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL, verbose, min_group_frac, max_iter, kappa, tol_group, tol_convergence) {
   const_vec <- c(max_iter, kappa, tol_group, tol_convergence)
   if (any(const_vec <= 0)) stop(paste(c("`max_iter`", "`kappa`", "`tol_group`", "`tol_convergence`")[const_vec <= 0], collapse = ", "), " must be bigger than zero.\n")
-  if (!(method %in% c("PLS", "PGMM"))) stop("The estimation method must be either `PLS` or `PGMM`. Use `PLS` in case of (weakly) exogenous regressors and `PGMM` for endogenous regressors.\n")
   if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods `n_periods`\n")
   if (!is.null(n_periods) & !is.null(index) & verbose) warning("Both index variables and `n_periods` are supplied. `n_periods` is ignored\n")
   if (is.null(n_periods)) {
@@ -14,9 +13,6 @@ prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NUL
   }
   if (!(all.vars(formula[[2]]) %in% colnames(data))) stop(paste(all.vars(formula[[2]]), "not present in", deparse(substitute(data))), "\n")
   if (all.vars(formula[[2]]) %in% all.vars(formula[[3]])) stop("The dependent variable is also passed as a regressor\n")
-  if (method == "PGMM") {
-    if (is.null(Z)) stop("PGMM requires a matrix of exogenous instruments `Z`\n")
-  }
   if (is.null(min_group_frac)) min_group_frac <- 0
   if (min_group_frac > 1 | min_group_frac < 0) stop("Provide a min_group_frac between 0 and 1\n")
   if (min_group_frac >= .4 & verbose) warning("Large min_group_frac values may lead to all groups falling below the group cardinality threshold, in which case the hierarchical clustering algorithm cannot be employed\n")
@@ -27,9 +23,6 @@ second_checks <- function(N, index, n_periods, y, X, method = NULL, Z = NULL, p,
   const_vec <- c(rho, varrho)
   if (any(const_vec <= 0)) stop(paste(c("`rho`", "`varrho`")[const_vec <= 0], collapse = ", "), " must be greater than zero\n")
   if (is.character(y)) stop("Pass a numerical dependent variable\n")
-  if (is.null(index)) {
-    if (round(N) != N) stop("n_periods does not match the number of time periods present in the dataset or the dataset is unblananced.\n  In case of an unbalanced dataset, specify index variables\n")
-  }
   if (p == 0) stop("No explanatory variable is supplied\n")
   if (dyn) {
     checksDyn(d = d, p = p)

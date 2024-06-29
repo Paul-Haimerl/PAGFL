@@ -1,5 +1,5 @@
 test_that("pagfl inputs", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
@@ -28,7 +28,7 @@ test_that("pagfl inputs", {
   # PGMM but no instruments
   expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, verbose = F))
   # To few instruments
-  expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", Z = as.matric(X[, -1]), lambda = 1, verbose = F))
+  expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", Z = as.matrix(X[, -1]), lambda = 1, verbose = F))
   # Plain PGMM
   expect_no_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, Z = X, verbose = F))
   # Plain PGMM and bias correction
@@ -37,6 +37,7 @@ test_that("pagfl inputs", {
   expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "A", lambda = 1, verbose = F))
   # Incorrect argument
   expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), kappa = -1, lambda = 1, verbose = F))
+  expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), rho = -1, lambda = 1, verbose = F))
   # No index or n_periods
   expect_error(pagfl(y ~ ., data = data, lambda = 1, verbose = F))
   # Both index and n_periods
@@ -45,16 +46,23 @@ test_that("pagfl inputs", {
   expect_error(pagfl(~., data = data, index = c("i", "t"), lambda = 1, verbose = F))
   # Large min_group_frac
   expect_warning(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = .5))
-  # No ming_group_frac
-  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = 0))
+  # 0 ming_group_frac
+  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = NULL))
+  # Negative ming_group_frac
+  expect_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = -.5))
+  # Force some trivial groups
+  sim_smallNk <- readRDS(test_path("fixtures", "pagfl_pls_sim_smallNk.rds"))
+  expect_no_error(pagfl(y ~ ., data = sim_smallNk$data, n_periods = 75, lambda = 2, min_group_frac = .3))
   # Intercept
   data_star_2 <- data
   data_star_2$c <- 1
   expect_error(pagfl(y ~ c, data = data_star_2, index = c("i", "t"), lambda = 1, verbose = T))
+  # Force only one group
+  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1e4))
 })
 
 test_that("Unbalanced panel pagfl", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
   X <- sim$X
@@ -70,7 +78,7 @@ test_that("Unbalanced panel pagfl", {
 
 
 test_that("tv_pagfl inputs", {
-  # skip_on_cran()
+  skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))
@@ -82,8 +90,6 @@ test_that("tv_pagfl inputs", {
   data_star <- data.frame(y = as.character(c(y)))
   expect_error(tv_pagfl(y ~ 1, data = data_star, n_periods = 100, lambda = 1, verbose = F))
   # Wrong index variables
-  data$i <- as.character(rep(1:20, each = 100))
-  data$t <- rep(1:100, 20)
   data$a <- stats::rnorm(length(y))
   expect_error(tv_pagfl(y ~ 1 + a, data = data, index = c("a", "t"), lambda = 1, verbose = F))
   expect_error(tv_pagfl(y ~ 1, data = data, index = c("c", "t"), lambda = 1, verbose = F))
@@ -93,4 +99,6 @@ test_that("tv_pagfl inputs", {
   expect_error(tv_pagfl(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, d = -1))
   # Const_coef not in data
   expect_error(tv_pagfl(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, const_coef = "a"))
+  # Force only one group with const coef
+  expect_no_error(tv_pagfl(y ~ 1 + a, data = data, index = c("i", "t"), lambda = 1e4, verbose = F, const_coef = "a"))
 })
