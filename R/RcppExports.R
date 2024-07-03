@@ -29,8 +29,8 @@ delete_missing_t <- function(i_index, t_index, K_hat, groups_hat, alpha_hat) {
     .Call(`_PAGFL_delete_missing_t`, i_index, t_index, K_hat, groups_hat, alpha_hat)
 }
 
-fitMeasures <- function(N, k, residuals, y, i_index, method) {
-    .Call(`_PAGFL_fitMeasures`, N, k, residuals, y, i_index, method)
+fitMeasures <- function(N, k, y, i_index, method, msr) {
+    .Call(`_PAGFL_fitMeasures`, N, k, y, i_index, method, msr)
 }
 
 getFE <- function(y, i_index, N, method) {

@@ -138,18 +138,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // fitMeasures
-arma::vec fitMeasures(unsigned int& N, const unsigned int& k, const arma::vec& residuals, arma::vec& y, arma::uvec& i_index, const std::string& method);
-RcppExport SEXP _PAGFL_fitMeasures(SEXP NSEXP, SEXP kSEXP, SEXP residualsSEXP, SEXP ySEXP, SEXP i_indexSEXP, SEXP methodSEXP) {
+arma::vec fitMeasures(unsigned int& N, const unsigned int& k, arma::vec& y, arma::uvec& i_index, const std::string& method, const double& msr);
+RcppExport SEXP _PAGFL_fitMeasures(SEXP NSEXP, SEXP kSEXP, SEXP ySEXP, SEXP i_indexSEXP, SEXP methodSEXP, SEXP msrSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< unsigned int& >::type N(NSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type k(kSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type residuals(residualsSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(fitMeasures(N, k, residuals, y, i_index, method));
+    Rcpp::traits::input_parameter< const double& >::type msr(msrSEXP);
+    rcpp_result_gen = Rcpp::wrap(fitMeasures(N, k, y, i_index, method, msr));
     return rcpp_result_gen;
 END_RCPP
 }

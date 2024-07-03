@@ -1503,12 +1503,8 @@ arma::cube delete_missing_t(const arma::uvec &i_index, const arma::uvec &t_index
 }
 
 // [[Rcpp::export]]
-arma::vec fitMeasures(unsigned int &N, const unsigned int &k, const arma::vec &residuals, arma::vec &y, arma::uvec &i_index, const std::string &method)
+arma::vec fitMeasures(unsigned int &N, const unsigned int &k, arma::vec &y, arma::uvec &i_index, const std::string &method, const double &msr)
 {
-    unsigned int n = residuals.n_elem;
-    double r_df = n - N - k;
-    arma::vec ssr_vec = sum(arma::pow(residuals, 2));
-    double ssr = ssr_vec(0, 0);
     arma::vec y_tilde;
     if (method == "PLS")
     {
@@ -1519,6 +1515,9 @@ arma::vec fitMeasures(unsigned int &N, const unsigned int &k, const arma::vec &r
         y_tilde = fdIndVec(y, N, i_index);
     }
     arma::vec ssq = sum(arma::pow(y_tilde, 2));
+    unsigned int n = y_tilde.n_elem;
+    double r_df = n - N - k;
+    double ssr = msr * n;
     float r_se = sqrt(ssr / r_df);
     float r_sq = 1 - ssr / ssq(0, 0);
     float adj_r_sq = 1 - (1 - r_sq) * (n - 1) / r_df;
