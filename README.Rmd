@@ -106,13 +106,13 @@ Specify a slightly more elaborate endogenous and dynamic panel data set and appl
 # Generate a panel where the predictors X correlate with the cross-sectional innovation, 
 # but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
 # innovations, an AR lag of the dependent variable, and specific group sizes
-sim_endo <- sim_DGP(N = 25, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
-error_spec = 'GARCH', q = 2, dynamic = TRUE)
+sim_endo <- sim_DGP(N = 20, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
+error_spec = 'GARCH', q = 2, dynamic = FALSE)
 data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z needs to be passed
-estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 15, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 20e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3)
 summary(estim_endo)
 ```
 
