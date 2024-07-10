@@ -4,7 +4,7 @@ test_that("S3 pagfl", {
   y <- sim$y
   X <- sim$X
   colnames(X) <- c("a", "b")
-  data = data.frame(y = y, X)
+  data <- data.frame(y = y, X)
   estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
   # print
   expect_snapshot_output(estim, cran = FALSE)
@@ -29,6 +29,37 @@ test_that("S3 pagfl", {
   expect_equal(df.residual(estim), length(y) - length(y) / 150 - ncol(X) * estim$groups$n_groups)
 })
 
+test_that("S3 pagfl_oracle", {
+  skip_on_cran()
+  sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
+  y <- sim$y
+  X <- sim$X
+  groups_0 <- sim$groups
+  colnames(X) <- c("a", "b")
+  data <- data.frame(y = y, X)
+  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150)
+  # print
+  expect_snapshot_output(estim, cran = FALSE)
+  # coef
+  coef_res <- coef(estim)
+  expect_equal(dim(coef_res), c(20, 2))
+  expect_equal(colnames(coef_res), colnames(X))
+  # resid
+  resid_res <- resid(estim)
+  expect_equal(dim(resid_res), c(length(y), 3))
+  # fitted
+  fitted_res <- fitted(estim)
+  expect_equal(dim(fitted_res), c(length(y), 3))
+  # summary
+  summary_estim <- summary(estim)
+  expect_snapshot_output(summary_estim, cran = FALSE)
+  # formula
+  formula_estim <- formula(estim)
+  expect_type(formula_estim, "language")
+  expect_equal(all.vars(formula_estim), c("y", colnames(X)))
+  # df.residual
+  expect_equal(df.residual(estim), length(y) - length(y) / 150 - ncol(X) * estim$groups$n_groups)
+})
 
 test_that("S3 tv_pagfl", {
   skip_on_cran()
@@ -63,6 +94,39 @@ test_that("S3 tv_pagfl", {
   expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * (estim$args$M + estim$args$d + 1) * estim$groups$n_groups)
 })
 
+test_that("S3 tv_pagfl_oracle", {
+  skip_on_cran()
+  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  y <- sim$y
+  X <- sim$X
+  groups_0 <- sim$groups
+  data <- data.frame(y = y, X1 = X)
+  data$a <- stats::rnorm(length(y))
+  estim <- tv_pagfl_oracle(y ~ X1, data = data, groups = groups_0, n_periods = 100)
+  estim_const <- tv_pagfl_oracle(y ~ X1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
+  # print
+  expect_snapshot(estim,  cran = FALSE)
+  # coef
+  coef_res <- coef(estim)
+  expect_equal(dim(coef_res), c(100, 2, 10))
+  expect_equal(colnames(coef_res)[-1], "X1")
+  coef_res_const <- coef(estim_const)
+  # resid
+  resid_res <- resid(estim)
+  expect_equal(dim(resid_res), c(length(y), 3))
+  # fitted
+  fitted_res <- fitted(estim)
+  expect_equal(dim(fitted_res), c(length(y), 3))
+  # summary
+  summary_estim <- summary(estim)
+  expect_snapshot_output(summary_estim, cran = FALSE)
+  # formula
+  formula_estim <- formula(estim)
+  expect_type(formula_estim, "language")
+  expect_equal(all.vars(formula_estim), c("y", "X1"))
+  # df.residual
+  expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * (estim$args$M + estim$args$d + 1) * estim$groups$n_groups)
+})
 
 test_that("S3 tv_pagfl const coef unbalanced", {
   skip_on_cran()
@@ -70,6 +134,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   y <- sim$y
   X <- sim$X
   df <- data.frame(y = y, X)
+  set.seed(1)
   df$a <- rnorm(length(y))
   df$i_index <- rep(1:(length(y) / 100), each = 100)
   df$t_index <- rep(1:100, length(y) / 100)

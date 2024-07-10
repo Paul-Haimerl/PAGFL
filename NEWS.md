@@ -1,7 +1,10 @@
 # PAGFL 1.1.1 (development version)
 
+* Introduction of `pagfl_oracle` and `tv_pagfl_oracle` to estimate grouped (time-varying) panel data models given an exogenous group structure
 * Remove warm-starts when iterating across different tuning parameters
 * Small efficiency upgrades
+* More extensive unit testing
+* Improved documentation
 
 # PAGFL 1.1.0
 

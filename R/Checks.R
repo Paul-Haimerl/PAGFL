@@ -1,4 +1,4 @@
-prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL, verbose, min_group_frac, max_iter, kappa, tol_group, tol_convergence) {
+prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NULL, method = "PLS", const_coef = NULL, verbose, min_group_frac = NULL, max_iter = NULL, kappa = NULL, tol_group = NULL, tol_convergence = NULL) {
   const_vec <- c(max_iter, kappa, tol_group, tol_convergence)
   if (any(const_vec <= 0)) stop(paste(c("`max_iter`", "`kappa`", "`tol_group`", "`tol_convergence`")[const_vec <= 0], collapse = ", "), " must be bigger than zero.\n")
   if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods `n_periods`\n")
@@ -19,7 +19,7 @@ prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NUL
 }
 
 
-second_checks <- function(N, index, n_periods, y, X, method = NULL, Z = NULL, p, min_group_frac, verbose, dyn, d = NULL, M = NULL, rho, varrho) {
+second_checks <- function(y, X, method = NULL, Z = NULL, p, min_group_frac = NULL, verbose, dyn, d = NULL, M = NULL, rho, varrho = NULL) {
   const_vec <- c(rho, varrho)
   if (any(const_vec <= 0)) stop(paste(c("`rho`", "`varrho`")[const_vec <= 0], collapse = ", "), " must be greater than zero\n")
   if (is.character(y)) stop("Pass a numerical dependent variable\n")

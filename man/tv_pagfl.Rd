@@ -102,7 +102,7 @@ An object of class \code{tvpagfl} holding
 An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 }
 \description{
-The time-varying pairwise adaptive group fused lasso (time-varying \emph{PAGFL}) jointly estimates the latent group structure and group-specific time-varying functional coefficients in a panel data model.
+Estimate a time-varying panel data model with a latent group structure using the pairwise adaptive group fused lasso (\emph{time-varying PAGFL}). The \emph{time-varying PAGFL} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
 The time-varying coefficients are modeled as polynomial B-splines.
 }
 \details{
@@ -112,18 +112,18 @@ where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an indivi
 The coefficient vector \eqn{\beta_{i} (t/T)} is subject to the group pattern
 \deqn{\beta_i \left(\frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
 with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k \| \neq \| \alpha_j \|} for any \eqn{k \neq M}.
-\eqn{\beta_i (t/T)}, and \eqn{\alpha_k (t/T)} are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{\bold{B}(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
+The time-varying coefficient functions are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{\bold{B}(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
 Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{i}(t/T)} are approximated as \eqn{\beta_{i} (t/T) = \pi_i^\prime \bold{B}(t/T)} and \eqn{\alpha_{i}(t/T) = \xi_i^\prime \bold{B}(t/T)}, respectively. \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices which weigh the individual basis functions.
 The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)*p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
 \deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
-where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains the sieve approximation error. I refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
+where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains the sieve approximation error. We refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
 
-Inspired by Su et al. (2019) and Mehrabani (2023), the time-varying PAGFL estimates the functional coefficients and the group structure by minimizing the criterion:
-\deqn{\frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \tilde{z}_{it}^\prime \text{vec}(\pi_{i}))^2 + \frac{\lambda}{N} \sum_{1 \leq i} \sum_{i<j \leq N} \dot{w}_{ij} \| \text{vec}( \pi_i - \pi_j) \|,}
-where \eqn{\tilde{y}_{it}} is the demeaned dependent variable, and \eqn{\tilde{z}_{it}} is likewise demeaned to concentrate out the individual fixed effects \eqn{\gamma_i}. \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation. \eqn{\| \cdot \|} represents the Frobenius norm.
-The solution \eqn{\hat{\bold{\beta}}} is computed via the iterative alternating direction method of multipliers (\emph{ADMM}) algorithm proposed in Mehrabani (2023, sec. 5.1), adapted to accommodate the B-spline coefficient functions.
+Inspired by Su et al. (2019) and Mehrabani (2023), the time-varying PAGFL estimates the functional coefficients and the group structure by minimizing the criterion
+\deqn{Q_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \tilde{z}_{it}^\prime \text{vec}(\pi_{i}))^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j > i}^N \dot{\omega}_{ij} \| \pi_i - \pi_j \|}
+with respect to \eqn{\bold{\pi}}. \eqn{\tilde{y}_{it} = y_{it} - T^{-1} \sum^{T}_{t=1} y_{it}} is the demeaned dependent variable and \eqn{\tilde{z}_{it}, \eqn{\tilde{u}_{it}}} is constructed in the same fashion to concentrate out the individual fixed effects \eqn{\gamma_i}. \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation. \eqn{\| \cdot \|} represents the Frobenius norm.
+The solution \eqn{\hat{\bold{\pi}}} is computed by minimizing the objective function via the iterative alternating direction method of multipliers (\emph{ADMM}) algorithm proposed by Mehrabani (2023, sec. 5.1).
 
-Two individuals are assigned to the same group if \eqn{\| \text{vec} (\hat{\pi}_i - \hat{\pi}_j) \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is given by \code{tol_group}. Subsequently, the number of groups follows as the number of distinct elements in \eqn{\hat{\bold{\beta}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates using least squares.
+Two individuals are assigned to the same group if \eqn{\| \text{vec} (\hat{\pi}_i - \hat{\pi}_j) \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is given by \code{tol_group}. Subsequently, the number of groups follows as the number of distinct elements in \eqn{\hat{\bold{\pi}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates \eqn{\hat{\bold{\xi}}} using group-wise least squares.
 
 We suggest identifying a suitable \eqn{\lambda} parameter by passing a logarithmically spaced grid of candidate values with a lower limit of 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then selects the best fitting \eqn{\lambda} value.
 
@@ -132,17 +132,15 @@ In case of an unbalanced panel data set, the earliest and latest available obser
 \examples{
 # Simulate a time-varying panel with a trend and a group pattern
 set.seed(1)
-sim <- sim_tv_DGP(N = 5, n_periods = 20, intercept = TRUE, p = 1)
+sim <- sim_tv_DGP(N = 10, n_periods = 50, intercept = TRUE, p = 1)
 df <- data.frame(y = c(sim$y))
 
 # Run the time-varying PAGFL with only an intercept
-estim <- tv_pagfl(y ~ 1, data = df, n_periods = 20, lambda = 13, max_iter = 100, parallel = FALSE)
+estim <- tv_pagfl(y ~ 1, data = df, n_periods = 50, lambda = 10, parallel = FALSE)
 summary(estim)
 
 }
 \references{
-Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. \emph{The Review of Economic Studies}, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
-
 Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. \emph{Journal of Econometrics}, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.
 
 Su, L., Wang, X., & Jin, S. (2019). Sieve estimation of time-varying panel data models with latent structures. \emph{Journal of Business & Economic Statistics}, 37(2), 334-349. \doi{10.1080/07350015.2017.1340299}.

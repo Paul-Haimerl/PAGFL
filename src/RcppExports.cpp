@@ -167,6 +167,49 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// tv_pagfl_oracle_routine
+Rcpp::List tv_pagfl_oracle_routine(arma::vec& y, arma::mat& X, arma::mat& X_const, const unsigned int& d, const arma::uvec& groups, const unsigned int& M, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const unsigned int& p_const, const double& rho, const bool& parallel);
+RcppExport SEXP _PAGFL_tv_pagfl_oracle_routine(SEXP ySEXP, SEXP XSEXP, SEXP X_constSEXP, SEXP dSEXP, SEXP groupsSEXP, SEXP MSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP p_constSEXP, SEXP rhoSEXP, SEXP parallelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X_const(X_constSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type M(MSEXP);
+    Rcpp::traits::input_parameter< arma::uvec& >::type i_index(i_indexSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type p_const(p_constSEXP);
+    Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type parallel(parallelSEXP);
+    rcpp_result_gen = Rcpp::wrap(tv_pagfl_oracle_routine(y, X, X_const, d, groups, M, i_index, t_index, N, p_const, rho, parallel));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pagfl_oracle_routine
+Rcpp::List pagfl_oracle_routine(arma::vec& y, arma::mat& X, const arma::uvec& groups, const std::string& method, arma::mat& Z, arma::uvec i_index, const arma::uvec& t_index, const unsigned int& N, const bool& bias_correc, const double& rho, const bool& parallel);
+RcppExport SEXP _PAGFL_pagfl_oracle_routine(SEXP ySEXP, SEXP XSEXP, SEXP groupsSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP bias_correcSEXP, SEXP rhoSEXP, SEXP parallelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type i_index(i_indexSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type t_index(t_indexSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type N(NSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type bias_correc(bias_correcSEXP);
+    Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type parallel(parallelSEXP);
+    rcpp_result_gen = Rcpp::wrap(pagfl_oracle_routine(y, X, groups, method, Z, i_index, t_index, N, bias_correc, rho, parallel));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_bspline_system", (DL_FUNC) &_PAGFL_bspline_system, 4},
@@ -178,6 +221,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_delete_missing_t", (DL_FUNC) &_PAGFL_delete_missing_t, 5},
     {"_PAGFL_fitMeasures", (DL_FUNC) &_PAGFL_fitMeasures, 6},
     {"_PAGFL_getFE", (DL_FUNC) &_PAGFL_getFE, 4},
+    {"_PAGFL_tv_pagfl_oracle_routine", (DL_FUNC) &_PAGFL_tv_pagfl_oracle_routine, 12},
+    {"_PAGFL_pagfl_oracle_routine", (DL_FUNC) &_PAGFL_pagfl_oracle_routine, 11},
     {NULL, NULL, 0}
 };
 

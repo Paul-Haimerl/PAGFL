@@ -76,6 +76,18 @@ test_that("Unbalanced panel pagfl", {
   expect_error(pagfl(y ~ V2 + V3, data = data, n_periods = 150, lambda = 1, verbose = F))
 })
 
+test_that("pagfl_oracle inputs", {
+  skip_on_cran()
+  sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
+  y <- sim$y
+  data <- as.data.frame(cbind(y = c(y)))
+  groups_0 <- sim$groups
+  # Wrong number of time periods
+  expect_error(pagfl_oracle(y ~ 1, data = data, groups = groups_0, n_periods = 151, verbose = F))
+  # Wrong group vector
+  groups_0_star <- c(groups_0, 1)
+  expect_error(pagfl_oracle(y ~ 1, data = data, groups = groups_0_star, n_periods = 150, verbose = F))
+})
 
 test_that("tv_pagfl inputs", {
   skip_on_cran()
@@ -101,4 +113,17 @@ test_that("tv_pagfl inputs", {
   expect_error(tv_pagfl(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, const_coef = "a"))
   # Force only one group with const coef
   expect_no_error(tv_pagfl(y ~ 1 + a, data = data, index = c("i", "t"), lambda = 1e4, verbose = F, const_coef = "a"))
+})
+
+test_that("tv_pagfl_oracle inputs", {
+  skip_on_cran()
+  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
+  y <- sim$y
+  data <- as.data.frame(cbind(y = c(y)))
+  groups_0 <- sim$groups
+  # Wrong number of time periods
+  expect_error(tv_pagfl_oracle(y ~ 1, data = data, groups = groups_0, n_periods = 101, verbose = F))
+  # Wrong group vector
+  groups_0_star <- c(groups_0, 1)
+  expect_error(tv_pagfl_oracle(y ~ 1, data = data, groups = groups_0_star, n_periods = 100, verbose = F))
 })
