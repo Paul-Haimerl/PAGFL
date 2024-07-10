@@ -50,6 +50,24 @@ test_that("pagfl_oracle PGMM output", {
   estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
+  # With index and "."
+  estim <- pagfl_oracle(y ~ ., data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
+  check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
+  check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
+})
+
+test_that("pagfl_oracle input", {
+  skip_on_cran()
+  source(test_path("fixtures", "test_helper.R"))
+  sim <- readRDS(test_path("fixtures", "pagfl_pgmm_sim.rds"))
+  groups_0 <- sim$groups
+  alpha_0 <- sim$alpha
+  y <- sim$y
+  X <- sim$X
+  Z <- sim$Z
+  colnames(X) <- c("a", "b")
+  data <- as.data.frame(cbind(y = c(y), X))
+  expect_error(pagfl_oracle(y ~ ., data = data, groups = groups_0, n_periods = 150, method = "PGMM"))
 })
 
 

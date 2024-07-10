@@ -203,3 +203,45 @@
       tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
           "t_index"), lambda = 25, const_coef = "a")
 
+# S3 tv_pagfl_oracle const coef unbalanced summary
+
+    Call:
+    tv_pagfl_oracle(formula = y ~ X + a, data = df, groups = groups_0, 
+        index = c("i_index", "t_index"), const_coef = "a")
+    
+    Unbalanced panel: N = 10, T = 66-77, obs = 710
+    
+    
+    Information criterion:
+         IC 
+    1.28854 
+    
+    Residuals:
+         Min       1Q   Median       3Q      Max 
+    -2.85704 -0.63292  0.01668  0.64120  2.77544 
+    
+    3 groups:
+     1  2  3  4  5  6  7  8  9 10 
+     1  1  2  3  1  2  2  3  2  3 
+    
+    Constant coefficients:
+                    a
+    Group 1 -0.02146
+    Group 2 -0.06506
+    Group 3  0.12088
+    
+    Residual standard error: 1.01522 on 689 degrees of freedom
+    Mean squared error 1.00019
+    Multiple R-squared: 0.81393, Adjusted R-squared: 0.80853 
+
+---
+
+    Code
+      estim
+    Output
+      Groups: 3 
+      
+      Call:
+      tv_pagfl_oracle(formula = y ~ X + a, data = df, groups = groups_0, 
+          index = c("i_index", "t_index"), const_coef = "a")
+

@@ -27,6 +27,12 @@ test_that("S3 pagfl", {
   expect_equal(all.vars(formula_estim), c("y", colnames(X)))
   # df.residual
   expect_equal(df.residual(estim), length(y) - length(y) / 150 - ncol(X) * estim$groups$n_groups)
+  # summary with only one group and unbalanced data
+  data$i_index <- rep(1:(length(y) / 150), each = 150)
+  data$t_index <- rep(1:150, length(y) / 150)
+  data <- data[-c(1, 200), ]
+  estim <- pagfl(y ~ a + b, data = data, lambda = 1e3, index = c("i_index", "t_index"))
+  expect_no_error(summary(estim))
 })
 
 test_that("S3 pagfl_oracle", {
@@ -59,6 +65,12 @@ test_that("S3 pagfl_oracle", {
   expect_equal(all.vars(formula_estim), c("y", colnames(X)))
   # df.residual
   expect_equal(df.residual(estim), length(y) - length(y) / 150 - ncol(X) * estim$groups$n_groups)
+  # summary with only one group and unbalanced data
+  data$i_index <- rep(1:(length(y) / 150), each = 150)
+  data$t_index <- rep(1:150, length(y) / 150)
+  data <- data[-c(1, 200), ]
+  estim <- pagfl_oracle(y ~ a + b, data = data, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
+  expect_no_error(summary(estim))
 })
 
 test_that("S3 tv_pagfl", {
@@ -161,4 +173,28 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   expect_equal(all.vars(formula_estim), c("y", "X", "a"))
   # df.residual
   expect_equal(df.residual(estim), nrow(df) - max(df$i_index) - (1 + 2 * (estim$args$M + estim$args$d + 1)) * estim$groups$n_groups)
+})
+
+test_that("S3 tv_pagfl_oracle const coef unbalanced summary", {
+  skip_on_cran()
+  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  y <- sim$y
+  X <- sim$X
+  groups_0 <- sim$groups
+  df <- data.frame(y = y, X)
+  set.seed(1)
+  df$a <- rnorm(length(y))
+  df$i_index <- rep(1:(length(y) / 100), each = 100)
+  df$t_index <- rep(1:100, length(y) / 100)
+  rm_index <- as.logical(rbinom(n = length(y), prob = 0.7, size = 1))
+  df <- df[rm_index, ]
+  # vanilla
+  estim <- tv_pagfl_oracle(y ~ X + a, const_coef = "a", data = df, groups = groups_0, index = c("i_index", "t_index"))
+  summary_estim <- summary(estim)
+  expect_snapshot_output(summary_estim, cran = FALSE)
+  expect_snapshot(estim,  cran = FALSE)
+  # only one group
+  estim <- tv_pagfl_oracle(y ~ ., data = df, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
+  expect_no_error(summary(estim))
+  expect_no_error(coef(estim))
 })

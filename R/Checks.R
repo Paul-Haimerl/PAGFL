@@ -4,7 +4,7 @@ prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NUL
   if (is.null(n_periods) & is.null(index)) stop("Either supply cross-sectional and time index variables or in case of a balanced and ordered panel data set, the number of time periods `n_periods`\n")
   if (!is.null(n_periods) & !is.null(index) & verbose) warning("Both index variables and `n_periods` are supplied. `n_periods` is ignored\n")
   if (is.null(n_periods)) {
-    if (!all(index %in% colnames(data))) stop(paste(index[!(index %in% colnames(data))], "is not part of `data`"))
+    if (!all(index %in% colnames(data))) stop(paste(index[!(index %in% colnames(data))], "is not part of `data`\n"))
     if (length(index) != 2 | !is.character(index)) stop("Please supply a character vector holding two strings as `index`\n")
     if (any(index %in% all.vars(formula[[2]]))) stop("Index variables are used as the dependent variable\n")
     if (any(index %in% all.vars(formula[[3]]))) stop("Index variables are used as the explanatory variables\n")
