@@ -1679,6 +1679,4 @@ Rcpp::List pagfl_oracle_routine(arma::vec &y, arma::mat &X, const arma::uvec &gr
         Rcpp::Named("alpha_hat") = alpha_mat,
         Rcpp::Named("IC") = IC_list);
     return output;
-
-    return output;
 }
