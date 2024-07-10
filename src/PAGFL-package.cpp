@@ -1601,12 +1601,13 @@ Rcpp::List tv_pagfl_oracle_routine(arma::vec &y, arma::mat &X, arma::mat &X_cons
 
     arma::mat xi_mat_vec = getGroupwiseOLS(y_tilde, Z_tilde, N, i_index, groups, p_star, TRUE, parallel);
 
+    bool convergence = TRUE;
     Rcpp::List estimOutput = Rcpp::List::create(
         Rcpp::Named("alpha_hat") = xi_mat_vec,
         Rcpp::Named("K_hat") = n_groups,
         Rcpp::Named("groups_hat") = groups.t(),
         Rcpp::Named("iter") = 0,
-        Rcpp::Named("convergence") = TRUE);
+        Rcpp::Named("convergence") = convergence);
 
     //------------------------------//
     // Compute the IC               //
