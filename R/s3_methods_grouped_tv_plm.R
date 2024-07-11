@@ -1,8 +1,8 @@
-#' @name tv_pagfl_oracle
-#' @param object of class \code{tvpagfl_oracle}.
-#' @method summary tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param object of class \code{tv_gplm}.
+#' @method summary tv_gplm
 #' @export
-summary.tvpagfl_oracle <- function(object, ...) {
+summary.tv_gplm <- function(object, ...) {
   tmp <- object[c("call", "residuals", "coefficients", "groups", "IC", "args", "model")]
   k_tv <- ncol(tmp$coefficients$tv) * (tmp$args$d + tmp$args$M + 1)
   k_const <- ifelse(is.null(ncol(tmp$coefficients$const)), 0, ncol(tmp$coefficients$const))
@@ -11,23 +11,23 @@ summary.tvpagfl_oracle <- function(object, ...) {
   i_index <- as.numeric(factor(object$args$labs$i))
   measures_vec <- fitMeasures(N = N, k = k, y = object$model[[1]], i_index = i_index, method = "PLS", msr = tmp$IC$msr)
   out <- c(tmp, r.df = round(measures_vec[1]), r.squared = measures_vec[2], adj.r.squared = measures_vec[3], r.se = measures_vec[4], msr = tmp$IC$msr)
-  class(out) <- "summary.tvpagfl_oracle"
+  class(out) <- "summary.tv_gplm"
   return(out)
 }
 
-#' @name tv_pagfl_oracle
-#' @param x of class \code{tvpagfl_oracle}.
-#' @method formula tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param x of class \code{tv_gplm}.
+#' @method formula tv_gplm
 #' @export
-formula.tvpagfl_oracle <- function(x, ...) {
+formula.tv_gplm <- function(x, ...) {
   x$args$formula
 }
 
-#' @name tv_pagfl_oracle
-#' @param object of class \code{tvpagfl_oracle}.
-#' @method df.residual tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param object of class \code{tv_gplm}.
+#' @method df.residual tv_gplm
 #' @export
-df.residual.tvpagfl_oracle <- function(object, ...) {
+df.residual.tv_gplm <- function(object, ...) {
   M <- object$args$M + object$args$d + 1
   df_fe <- length(unique(object$args$labs$i))
   p <- max(ncol(object$coefficients$tv), 0)
@@ -35,18 +35,18 @@ df.residual.tvpagfl_oracle <- function(object, ...) {
   length(object$args$labs$t) - df_fe - (p * M + p_const) * object$groups$n_groups
 }
 
-#' @name tv_pagfl_oracle
-#' @param x of class \code{tvpagfl_oracle}.
-#' @method print tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param x of class \code{tv_gplm}.
+#' @method print tv_gplm
 #' @export
-print.tvpagfl_oracle <- function(x, ...) {
+print.tv_gplm <- function(x, ...) {
   cat(paste("Groups:", x$groups$n_groups), "\n")
   cat("\nCall:\n")
   print(x$call)
 }
 
 #' @export
-print.summary.tvpagfl_oracle <- function(x, ...) {
+print.summary.tv_gplm <- function(x, ...) {
   cat("Call:\n")
   print(x$call)
   unique_i <- unique(x$args$labs$i)
@@ -99,11 +99,11 @@ print.summary.tvpagfl_oracle <- function(x, ...) {
   print(coef_plot)
 }
 
-#' @name tv_pagfl_oracle
-#' @param object of class \code{tvpagfl_oracle}.
-#' @method coef tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param object of class \code{tv_gplm}.
+#' @method coef tv_gplm
 #' @export
-coef.tvpagfl_oracle <- function(object, ...) {
+coef.tv_gplm <- function(object, ...) {
   tv <- object$coefficients$tv
   if (!is.null(object$coefficients$const)) {
     const <- object$coefficients$const
@@ -122,11 +122,11 @@ coef.tvpagfl_oracle <- function(object, ...) {
 }
 
 
-#' @name tv_pagfl_oracle
-#' @param object of class \code{tvpagfl_oracle}.
-#' @method residuals tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param object of class \code{tv_gplm}.
+#' @method residuals tv_gplm
 #' @export
-residuals.tvpagfl_oracle <- function(object, ...) {
+residuals.tv_gplm <- function(object, ...) {
   resid_vec <- object$residuals
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t
@@ -139,11 +139,11 @@ residuals.tvpagfl_oracle <- function(object, ...) {
 }
 
 
-#' @name tv_pagfl_oracle
-#' @param object of class \code{tvpagfl_oracle}.
-#' @method fitted tvpagfl_oracle
+#' @name grouped_tv_plm
+#' @param object of class \code{tv_gplm}.
+#' @method fitted tv_gplm
 #' @export
-fitted.tvpagfl_oracle <- function(object, ...) {
+fitted.tv_gplm <- function(object, ...) {
   fitted_vec <- object$fitted
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t

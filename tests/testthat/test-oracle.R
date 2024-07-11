@@ -1,4 +1,4 @@
-test_that("pagfl_oracle", {
+test_that("grouped_plm", {
   skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
@@ -8,29 +8,29 @@ test_that("pagfl_oracle", {
   X <- sim$X
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150)
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, n_periods = 150)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With . formula
-  estim <- pagfl_oracle(y ~ ., data = data, groups = groups_0, n_periods = 150)
+  estim <- grouped_plm(y ~ ., data = data, groups = groups_0, n_periods = 150)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With index
   data$i <- as.character(rep(101:120, each = 150))
   data$t <- rep(1:150, 20)
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, index = c("i", "t"))
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, index = c("i", "t"))
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
   # with bias correction
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150, bias_correc = TRUE)
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, n_periods = 150, bias_correc = TRUE)
   check_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With un-parallel
-  estim_single <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150, parallel = FALSE)
+  estim_single <- grouped_plm(y ~ a + b, data = data, groups = groups_0, n_periods = 150, parallel = FALSE)
   check_pagfl_pls(estim = estim_single, groups_0 = groups_0, alpha_0 = alpha_0)
 })
 
 
-test_that("pagfl_oracle PGMM output", {
+test_that("grouped_plm PGMM output", {
   skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pgmm_sim.rds"))
@@ -41,22 +41,22 @@ test_that("pagfl_oracle PGMM output", {
   Z <- sim$Z
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150, method = "PGMM", Z = Z)
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, n_periods = 150, method = "PGMM", Z = Z)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With index
   data$i <- as.character(rep(101:120, each = 150))
   data$t <- rep(1:150, 20)
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
   # With index and "."
-  estim <- pagfl_oracle(y ~ ., data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
+  estim <- grouped_plm(y ~ ., data = data, groups = groups_0, index = c("i", "t"), method = "PGMM", Z = Z)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
 })
 
-test_that("pagfl_oracle input", {
+test_that("grouped_plm input", {
   skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "pagfl_pgmm_sim.rds"))
@@ -67,11 +67,11 @@ test_that("pagfl_oracle input", {
   Z <- sim$Z
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-  expect_error(pagfl_oracle(y ~ ., data = data, groups = groups_0, n_periods = 150, method = "PGMM"))
+  expect_error(grouped_plm(y ~ ., data = data, groups = groups_0, n_periods = 150, method = "PGMM"))
 })
 
 
-test_that("tv_pagfl_oracle results", {
+test_that("grouped_tv_plm results", {
   skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
@@ -82,23 +82,23 @@ test_that("tv_pagfl_oracle results", {
   colnames(X) <- "a"
   p <- 2
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- tv_pagfl_oracle(y ~ 1 + a, data = data, groups = groups_0, n_periods = 100)
+  estim <- grouped_tv_plm(y ~ 1 + a, data = data, groups = groups_0, n_periods = 100)
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With . formula
-  estim <- tv_pagfl_oracle(y ~ ., data = data, groups = groups_0, n_periods = 100)
+  estim <- grouped_tv_plm(y ~ ., data = data, groups = groups_0, n_periods = 100)
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X, oracle = TRUE)
   # With index
   data$i <- rep(1:10, each = 100)
   data$t <- rep(1:100, 10)
-  estim <- tv_pagfl_oracle(y ~ ., data = data, groups = groups_0, index = c("i", "t"))
+  estim <- grouped_tv_plm(y ~ ., data = data, groups = groups_0, index = c("i", "t"))
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
 })
 
 
-test_that("tv_pagfl_oracle Unbalanced panel output", {
+test_that("grouped_tv_plm Unbalanced panel output", {
   skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
   y <- sim$y
@@ -114,7 +114,7 @@ test_that("tv_pagfl_oracle Unbalanced panel output", {
   data[data$t %in% c(1, 100), "y"] <- NA
   # Ensure that the second period for all but one group is omitted
   data[data$t == 2 & data$i != 1, ] <- NA
-  estim <- tv_pagfl_oracle(y ~ 1, data = data, groups = groups_0, index = c("i", "t"), verbose = F)
+  estim <- grouped_tv_plm(y ~ 1, data = data, groups = groups_0, index = c("i", "t"), verbose = F)
   # Time periods without support at the beginning or end are omitted from the output
   expect_equal(nrow(estim$coefficients$tv), 98)
   # Time periods without support at the beginning or end for some groups are given NA
@@ -122,7 +122,7 @@ test_that("tv_pagfl_oracle Unbalanced panel output", {
 })
 
 
-test_that("tv_pagfl_oracle const_coef", {
+test_that("grouped_tv_plm const_coef", {
   skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
@@ -130,7 +130,7 @@ test_that("tv_pagfl_oracle const_coef", {
   groups_0 <- sim$groups
   colnames(X) <- "a"
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- tv_pagfl_oracle(y ~ 1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
+  estim <- grouped_tv_plm(y ~ 1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
 
   expect_equal(dim(estim$coefficients$const), c(3, 1))
   expect_equal(colnames(estim$coefficients$const), "a")

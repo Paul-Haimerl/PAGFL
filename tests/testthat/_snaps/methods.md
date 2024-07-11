@@ -43,12 +43,44 @@
     Mean squared error 0.9838
     Multiple R-squared: 0.91956, Adjusted R-squared: 0.91899 
 
-# S3 pagfl_oracle
+---
+
+    Code
+      summary(estim)
+    Output
+      Call:
+      pagfl(formula = y ~ a + b, data = data, index = c("i_index", 
+          "t_index"), lambda = 1000)
+      
+      Unbalanced panel: N = 20, T = 149-150, obs = 2998
+      
+      Convergence reached:
+      TRUE (25 iterations)
+      
+      Information criterion:
+               IC      lambda 
+         7.537249 1000.000000 
+      
+      Residuals:
+            Min        1Q    Median        3Q       Max 
+      -10.62978  -1.66933   0.04107   1.65432  12.33992 
+      
+      1 group
+      
+      Coefficients:
+                      a       b
+      Group 1 -2.08433 0.67843
+      
+      Residual standard error: 2.75179 on 2976 degrees of freedom
+      Mean squared error 7.51678
+      Multiple R-squared: 0.38579, Adjusted R-squared: 0.38146 
+
+# S3 grouped_plm
 
     Groups: 3 
     
     Call:
-    pagfl_oracle(formula = y ~ a + b, data = data, groups = groups_0, 
+    grouped_plm(formula = y ~ a + b, data = data, groups = groups_0, 
         n_periods = 150)
     
     Coefficients:
@@ -60,7 +92,7 @@
 ---
 
     Call:
-    pagfl_oracle(formula = y ~ a + b, data = data, groups = groups_0, 
+    grouped_plm(formula = y ~ a + b, data = data, groups = groups_0, 
         n_periods = 150)
     
     Balanced panel: N = 20, T = 150, obs = 3000
@@ -87,6 +119,36 @@
     Residual standard error: 0.99552 on 2978 degrees of freedom
     Mean squared error 0.9838
     Multiple R-squared: 0.91956, Adjusted R-squared: 0.91899 
+
+---
+
+    Code
+      summary(estim)
+    Output
+      Call:
+      grouped_plm(formula = y ~ a + b, data = data, groups = rep(1, 
+          length(groups_0)), index = c("i_index", "t_index"))
+      
+      Unbalanced panel: N = 20, T = 149-150, obs = 2998
+      
+      
+      Information criterion:
+            IC 
+      7.537249 
+      
+      Residuals:
+            Min        1Q    Median        3Q       Max 
+      -10.62978  -1.66933   0.04107   1.65432  12.33992 
+      
+      1 group
+      
+      Coefficients:
+                      a       b
+      Group 1 -2.08433 0.67843
+      
+      Residual standard error: 2.75179 on 2976 degrees of freedom
+      Mean squared error 7.51678
+      Multiple R-squared: 0.38579, Adjusted R-squared: 0.38146 
 
 # S3 tv_pagfl
 
@@ -124,7 +186,7 @@
     Mean squared error 1.02686
     Multiple R-squared: 0.81416, Adjusted R-squared: 0.81055 
 
-# S3 tv_pagfl_oracle
+# S3 grouped_tv_plm
 
     Code
       estim
@@ -132,13 +194,13 @@
       Groups: 3 
       
       Call:
-      tv_pagfl_oracle(formula = y ~ X1, data = data, groups = groups_0, 
+      grouped_tv_plm(formula = y ~ X1, data = data, groups = groups_0, 
           n_periods = 100)
 
 ---
 
     Call:
-    tv_pagfl_oracle(formula = y ~ X1, data = data, groups = groups_0, 
+    grouped_tv_plm(formula = y ~ X1, data = data, groups = groups_0, 
         n_periods = 100)
     
     Balanced panel: N = 10, T = 100, obs = 1000
@@ -203,10 +265,10 @@
       tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
           "t_index"), lambda = 25, const_coef = "a")
 
-# S3 tv_pagfl_oracle const coef unbalanced summary
+# S3 grouped_tv_plm const coef unbalanced summary
 
     Call:
-    tv_pagfl_oracle(formula = y ~ X + a, data = df, groups = groups_0, 
+    grouped_tv_plm(formula = y ~ X + a, data = df, groups = groups_0, 
         index = c("i_index", "t_index"), const_coef = "a")
     
     Unbalanced panel: N = 10, T = 66-77, obs = 710
@@ -242,6 +304,6 @@
       Groups: 3 
       
       Call:
-      tv_pagfl_oracle(formula = y ~ X + a, data = df, groups = groups_0, 
+      grouped_tv_plm(formula = y ~ X + a, data = df, groups = groups_0, 
           index = c("i_index", "t_index"), const_coef = "a")
 

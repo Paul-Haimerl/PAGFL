@@ -40,7 +40,7 @@
 #' groups <- sim$groups
 #'
 #' # Estimate the time-varying grouped panel data model
-#' estim <- tv_pagfl_oracle(y ~ 1, data = df, n_periods = 20, groups = groups)
+#' estim <- grouped_tv_plm(y ~ 1, data = df, n_periods = 20, groups = groups)
 #' summary(estim)
 #'
 #' @references
@@ -48,7 +48,7 @@
 #'
 #' @author Paul Haimerl
 #'
-#' @return An object of class \code{tvpagfl_oracle} holding
+#' @return An object of class \code{tv_gplm} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices,}
 #' \item{\code{coefficients}}{a \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates. Let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters,}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is part of group \eqn{k},}
@@ -58,9 +58,9 @@
 #' \item{\code{IC}}{a \code{list} containing (i) the value of the IC, and (ii) the mean squared error,}
 #' \item{\code{call}}{the function call.}
 #'
-#' An object of class \code{tvpagfl_oracle} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
+#' An object of class \code{tv_gplm} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 #' @export
-tv_pagfl_oracle <- function(formula, data, groups, index = NULL, n_periods = NULL, d = 3, M = floor(length(y)^(1 / 7) - log(p)),
+grouped_tv_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, d = 3, M = floor(length(y)^(1 / 7) - log(p)),
                             const_coef = NULL, rho = .04 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
@@ -174,6 +174,6 @@ tv_pagfl_oracle <- function(formula, data, groups, index = NULL, n_periods = NUL
     formula = formula, labs = list(i = i_index_labs, t = t_index_labs), d = d, M = M, rho = rho
   )
   out$call <- match.call()
-  class(out) <- "tvpagfl_oracle"
+  class(out) <- "tv_gplm"
   return(out)
 }

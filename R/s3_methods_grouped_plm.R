@@ -1,8 +1,8 @@
-#' @name pagfl_oracle
-#' @param x of class \code{pagfl_oracle}.
-#' @method print pagfl_oracle
+#' @name grouped_plm
+#' @param x of class \code{gplm}.
+#' @method print gplm
 #' @export
-print.pagfl_oracle <- function(x, ...) {
+print.gplm <- function(x, ...) {
   cat(paste("Groups:", x$groups$n_groups), "\n")
   cat("\nCall:\n")
   print(x$call)
@@ -10,27 +10,27 @@ print.pagfl_oracle <- function(x, ...) {
   print(round(x$coefficients, 5))
 }
 
-#' @name pagfl_oracle
-#' @param x of class \code{pagfl_oracle}.
-#' @method formula pagfl_oracle
+#' @name grouped_plm
+#' @param x of class \code{gplm}.
+#' @method formula gplm
 #' @export
-formula.pagfl_oracle <- function(x, ...) {
+formula.gplm <- function(x, ...) {
   x$args$formula
 }
 
-#' @name pagfl_oracle
-#' @param object of class \code{pagfl_oracle}.
-#' @method df.residual pagfl_oracle
+#' @name grouped_plm
+#' @param object of class \code{gplm}.
+#' @method df.residual gplm
 #' @export
-df.residual.pagfl_oracle <- function(object, ...) {
+df.residual.gplm <- function(object, ...) {
   length(object$args$labs$t) - length(unique(object$args$labs$i)) - ncol(object$coefficients) * object$groups$n_groups
 }
 
-#' @name pagfl_oracle
-#' @param object of class \code{pagfl_oracle}.
-#' @method summary pagfl_oracle
+#' @name grouped_plm
+#' @param object of class \code{gplm}.
+#' @method summary gplm
 #' @export
-summary.pagfl_oracle <- function(object, ...) {
+summary.gplm <- function(object, ...) {
   tmp <- object[c("call", "residuals", "coefficients", "groups", "IC", "convergence", "args", "model")]
   k <- ncol(tmp$coefficients)
   N <- length(unique(object$args$labs$i))
@@ -40,12 +40,12 @@ summary.pagfl_oracle <- function(object, ...) {
     method = object$args$method, msr = tmp$IC$msr
   )
   out <- c(tmp, r.df = round(measures_vec[1]), r.squared = measures_vec[2], adj.r.squared = measures_vec[3], r.se = measures_vec[4], msr = tmp$IC$msr)
-  class(out) <- "summary.pagfl_oracle"
+  class(out) <- "summary.gplm"
   return(out)
 }
 
 #' @export
-print.summary.pagfl_oracle <- function(x, ...) {
+print.summary.gplm <- function(x, ...) {
   cat("Call:\n")
   print(x$call)
   unique_i <- unique(x$args$labs$i)
@@ -81,11 +81,11 @@ print.summary.pagfl_oracle <- function(x, ...) {
   cat("\nMultiple R-squared:", paste0(round(x$r.squared, 5), ","), "Adjusted R-squared:", round(x$adj.r.squared, 5), "\n")
 }
 
-#' @name pagfl_oracle
-#' @param object of class \code{pagfl_oracle}.
-#' @method coef pagfl_oracle
+#' @name grouped_plm
+#' @param object of class \code{gplm}.
+#' @method coef gplm
 #' @export
-coef.pagfl_oracle <- function(object, ...) {
+coef.gplm <- function(object, ...) {
   coef_mat <- object$coefficients
   groups_hat <- object$groups$groups
   beta_mat <- coef_mat[groups_hat, ]
@@ -94,11 +94,11 @@ coef.pagfl_oracle <- function(object, ...) {
 }
 
 
-#' @name pagfl_oracle
-#' @param object An object of class \code{pagfl_oracle}.
-#' @method residuals pagfl_oracle
+#' @name grouped_plm
+#' @param object An object of class \code{gplm}.
+#' @method residuals gplm
 #' @export
-residuals.pagfl_oracle <- function(object, ...) {
+residuals.gplm <- function(object, ...) {
   resid_vec <- object$residuals
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t
@@ -111,11 +111,11 @@ residuals.pagfl_oracle <- function(object, ...) {
 }
 
 
-#' @name pagfl_oracle
-#' @param object of class \code{pagfl_oracle}.
-#' @method fitted pagfl_oracle
+#' @name grouped_plm
+#' @param object of class \code{gplm}.
+#' @method fitted gplm
 #' @export
-fitted.pagfl_oracle <- function(object, ...) {
+fitted.gplm <- function(object, ...) {
   fitted_vec <- object$fitted
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t

@@ -52,14 +52,14 @@
 #' df <- cbind(y = c(y), X)
 #'
 #' # Estimate the grouped panel data model procedure
-#' estim <- pagfl_oracle(y ~ ., data = df, groups = groups, n_periods = 80, method = "PLS")
+#' estim <- grouped_plm(y ~ ., data = df, groups = groups, n_periods = 80, method = "PLS")
 #' summary(estim)
 #'
 #' # Lets pass a panel data set with explicit cross-sectional and time indicators
 #' i_index <- rep(1:20, each = 80)
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
-#' estim <- pagfl_oracle(
+#' estim <- grouped_plm(
 #'   y ~ .,
 #'   data = df, index = c("i_index", "t_index"), groups = groups, method = "PLS"
 #' )
@@ -72,7 +72,7 @@
 #' @author Paul Haimerl
 #'
 #'
-#' @return An object of class \code{pagfl_oracle} holding
+#' @return An object of class \code{gplm} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
 #' \item{\code{coefficients}}{a \eqn{K \times p} matrix of the post-Lasso group-specific parameter estimates,}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
@@ -82,9 +82,9 @@
 #' \item{\code{IC}}{a \code{list} containing (i) the value of the IC, and (ii) the mean squared error,}
 #' \item{\code{call}}{the function call.}
 #'
-#' A \code{pagfl_oracle} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
+#' A \code{gplm} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 #' @export
-pagfl_oracle <- function(formula, data, groups, index = NULL, n_periods = NULL, method = "PLS", Z = NULL, bias_correc = FALSE,
+grouped_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, method = "PLS", Z = NULL, bias_correc = FALSE,
                          rho = .07 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
@@ -190,6 +190,6 @@ pagfl_oracle <- function(formula, data, groups, index = NULL, n_periods = NULL, 
     model = as.data.frame(model_data), coefficients = out$alpha_hat, groups = list(n_groups = n_groups, groups = groups), residuals = c(out$IC$resid), fitted = fitted,
     args = args, IC = list(IC = out$IC$IC, msr = out$IC$msr), call = match.call()
   )
-  class(out) <- "pagfl_oracle"
+  class(out) <- "gplm"
   return(out)
 }

@@ -32,10 +32,10 @@ test_that("S3 pagfl", {
   data$t_index <- rep(1:150, length(y) / 150)
   data <- data[-c(1, 200), ]
   estim <- pagfl(y ~ a + b, data = data, lambda = 1e3, index = c("i_index", "t_index"))
-  expect_no_error(summary(estim))
+  expect_snapshot(summary(estim))
 })
 
-test_that("S3 pagfl_oracle", {
+test_that("S3 grouped_plm", {
   skip_on_cran()
   sim <- readRDS(test_path("fixtures", "pagfl_pls_sim.rds"))
   y <- sim$y
@@ -43,7 +43,7 @@ test_that("S3 pagfl_oracle", {
   groups_0 <- sim$groups
   colnames(X) <- c("a", "b")
   data <- data.frame(y = y, X)
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = groups_0, n_periods = 150)
+  estim <- grouped_plm(y ~ a + b, data = data, groups = groups_0, n_periods = 150)
   # print
   expect_snapshot_output(estim, cran = FALSE)
   # coef
@@ -69,8 +69,8 @@ test_that("S3 pagfl_oracle", {
   data$i_index <- rep(1:(length(y) / 150), each = 150)
   data$t_index <- rep(1:150, length(y) / 150)
   data <- data[-c(1, 200), ]
-  estim <- pagfl_oracle(y ~ a + b, data = data, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
-  expect_no_error(summary(estim))
+  estim <- grouped_plm(y ~ a + b, data = data, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
+  expect_snapshot(summary(estim))
 })
 
 test_that("S3 tv_pagfl", {
@@ -106,7 +106,7 @@ test_that("S3 tv_pagfl", {
   expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * (estim$args$M + estim$args$d + 1) * estim$groups$n_groups)
 })
 
-test_that("S3 tv_pagfl_oracle", {
+test_that("S3 grouped_tv_plm", {
   skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
@@ -114,8 +114,8 @@ test_that("S3 tv_pagfl_oracle", {
   groups_0 <- sim$groups
   data <- data.frame(y = y, X1 = X)
   data$a <- stats::rnorm(length(y))
-  estim <- tv_pagfl_oracle(y ~ X1, data = data, groups = groups_0, n_periods = 100)
-  estim_const <- tv_pagfl_oracle(y ~ X1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
+  estim <- grouped_tv_plm(y ~ X1, data = data, groups = groups_0, n_periods = 100)
+  estim_const <- grouped_tv_plm(y ~ X1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
   # print
   expect_snapshot(estim,  cran = FALSE)
   # coef
@@ -175,7 +175,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   expect_equal(df.residual(estim), nrow(df) - max(df$i_index) - (1 + 2 * (estim$args$M + estim$args$d + 1)) * estim$groups$n_groups)
 })
 
-test_that("S3 tv_pagfl_oracle const coef unbalanced summary", {
+test_that("S3 grouped_tv_plm const coef unbalanced summary", {
   skip_on_cran()
   sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
   y <- sim$y
@@ -189,12 +189,12 @@ test_that("S3 tv_pagfl_oracle const coef unbalanced summary", {
   rm_index <- as.logical(rbinom(n = length(y), prob = 0.7, size = 1))
   df <- df[rm_index, ]
   # vanilla
-  estim <- tv_pagfl_oracle(y ~ X + a, const_coef = "a", data = df, groups = groups_0, index = c("i_index", "t_index"))
+  estim <- grouped_tv_plm(y ~ X + a, const_coef = "a", data = df, groups = groups_0, index = c("i_index", "t_index"))
   summary_estim <- summary(estim)
   expect_snapshot_output(summary_estim, cran = FALSE)
   expect_snapshot(estim,  cran = FALSE)
   # only one group
-  estim <- tv_pagfl_oracle(y ~ ., data = df, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
+  estim <- grouped_tv_plm(y ~ ., data = df, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
   expect_no_error(summary(estim))
   expect_no_error(coef(estim))
 })
