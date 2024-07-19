@@ -28,7 +28,7 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 
 ## Installation
 
-You can install the development version of `PAGFL` (1.1.1) from [GitHub](https://github.com/) with:
+Always stay up-to-date with the development version of `PAGFL` (1.1.1) from [GitHub](https://github.com/):
 
 ```{r message=FALSE, warning=FALSE}
 # install.packages("devtools")

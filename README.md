@@ -30,8 +30,8 @@ that, we extend the `PAGFL` to time-varying functional coefficients.
 
 ## Installation
 
-You can install the development version of `PAGFL` (1.1.1) from
-[GitHub](https://github.com/) with:
+Always stay up-to-date with the development version of `PAGFL` (1.1.1)
+from [GitHub](https://github.com/):
 
 ``` r
 # install.packages("devtools")
