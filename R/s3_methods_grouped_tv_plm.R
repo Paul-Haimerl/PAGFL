@@ -135,6 +135,7 @@ residuals.tv_gplm <- function(object, ...) {
     i_index = i_index,
     t_index = t_index
   )
+  colnames(resid_df)[-1] <- object$args$labs$index
   return(resid_df)
 }
 
@@ -152,6 +153,7 @@ fitted.tv_gplm <- function(object, ...) {
     i_index = i_index,
     t_index = t_index
   )
+  colnames(fitted_df)[-1] <- object$args$labs$index
   plot_df <- fitted_df
   plot_df$i_index <- as.character(plot_df$i_index)
   plot_df$y <- object$model[[1]]

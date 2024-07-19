@@ -5,6 +5,7 @@
 * Small efficiency upgrades
 * More extensive unit testing
 * Improved documentation
+* Small updates to generic methods
 
 # PAGFL 1.1.0
 

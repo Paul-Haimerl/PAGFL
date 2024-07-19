@@ -1,19 +1,19 @@
 #' Pairwise Adaptive Group Fused Lasso
 #'
 #' @description Estimate panel data models with a latent group structure using the pairwise adaptive group fused Lasso (\emph{PAGFL}) by Mehrabani (2023). The \emph{PAGFL} jointly identifies the group structure and group-specific slope parameters.
-#' It is possible to pass static and dynamic panels, either with or without endogenous regressors.
+#' The function supports both static and dynamic panels, with or without endogenous regressors.
 #'
 #' @param formula a formula object describing the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
-#' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
+#' @param index a character vector holding two strings with the names of the variables that identify the cross-sectional unit and time period of each observation. The first string denotes the individual unit \eqn{i}, whereas the second string represents the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
 #' @param method the estimation method. Options are
 #' \describe{
 #' \item{\code{"PLS"}}{for using the penalized least squares (\emph{PLS}) algorithm. We recommend \emph{PLS} in case of (weakly) exogenous regressors (Mehrabani, 2023, sec. 2.2).}
-#' \item{\code{"PGMM"}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors, in which case A matrix \eqn{Z} containing the necessary exogenous instruments must be supplied (Mehrabani, 2023, sec. 2.3).}
+#' \item{\code{"PGMM"}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors, in which case a matrix \eqn{\bold{Z}} containing the necessary exogenous instruments must be supplied (Mehrabani, 2023, sec. 2.3).}
 #' } Default is \code{"PLS"}.
-#' @param Z a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \eqn{\bold{Z}} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, either pass \code{NULL} or \eqn{\bold{Z}} is disregarded. Default is \code{NULL}.
+#' @param Z a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \code{Z} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, either pass \code{NULL} or \code{Z} is disregarded. Default is \code{NULL}.
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
 #' @param bias_correc logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when facing a dynamic panel. Default is \code{FALSE}.
 #' @param kappa the a non-negative weight placed on the adaptive penalty weights. Default is 2.
@@ -32,7 +32,7 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect, \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 #' The coefficient vector \eqn{\beta_i} is subject to the latent group pattern
 #' \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k \| \neq \| \alpha_j \|} for any \eqn{k \neq M}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}.
 #'
 #' The \emph{PLS} method jointly estimates the latent group structure and group-specific coefficient by minimizing the following criterion
 #' \deqn{Q_{NT} (\bold{\beta}, \lambda) = \frac{1}{T} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \beta^\prime_i \tilde{x}_{it})^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j>i}^N \dot{\omega}_{ij} \| \beta_i - \beta_j \|}
@@ -161,6 +161,7 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
     model_data$i_index <- i_index
     model_data$t_index <- t_index
+    index <- c("i_index", "t_index")
   }
   coef_rownames <- as.character(unique(t_index_labs)[order(unique(t_index))])
   p <- ncol(X)
@@ -197,7 +198,7 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   colnames(out$estimOutput$alpha_hat) <- regressor_names
   # List with additional arguments
   args <- list(
-    formula = formula, labs = list(i = i_index_labs, t = t_index_labs), method = method, min_group_frac = min_group_frac,
+    formula = formula, labs = list(i = i_index_labs, t = t_index_labs, index = index), method = method, min_group_frac = min_group_frac,
     bias_correc = bias_correc, kappa = kappa, rho = rho, max_iter = max_iter, tol_group = tol_group, varrho = varrho
   )
   # Output

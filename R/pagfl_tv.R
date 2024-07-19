@@ -1,19 +1,19 @@
 #' Time-varying Pairwise Adaptive Group Fused Lasso
 #'
 #' @description Estimate a time-varying panel data model with a latent group structure using the pairwise adaptive group fused lasso (\emph{time-varying PAGFL}). The \emph{time-varying PAGFL} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
-#' The time-varying coefficients are modeled as polynomial B-splines.
+#' The time-varying coefficients are modeled as polynomial B-splines. The function supports both static and dynamic panel data models.
 #'
 #' @param formula a formula object describing the model to be estimated.
-#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} for each observation.
-#' @param index a character vector holding two strings specifying the variable names that identify the cross-sectional unit and the time period for each observation. The first string denotes the individual unit, while the second string represents the time period. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied. Default is \code{Null}.
+#' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
+#' @param index a character vector holding two strings with the names of the variables that identify the cross-sectional unit and time period of each observation. The first string denotes the individual unit \eqn{i}, whereas the second string represents the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.
 #' @param lambda the tuning parameter. \eqn{\lambda} governs the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting parameter value.
 #' @param d the polynomial degree of the B-splines. Default is 3.
 #' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots.
-#' @param const_coef a character vector containing the variable names of explanatory variables that are estimated with time-constant coefficients. All of concerning regressors must be named variables in \code{data}.
+#' @param const_coef a character vector containing the variable names of explanatory variables that enter with time-constant coefficients.
 #' @param min_group_frac the minimum group size as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, a hierarchical classifier allocates its members to the remaining groups. Default is 0.05.
 #' @param kappa the a non-negative weight placed on the adaptive penalty weights. Default is 2.
-#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is 20,000.
+#' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is \eqn{2 * 10^4}.
 #' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1 * 10^{-10}}.
 #' @param tol_group the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is 0.001.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
@@ -28,17 +28,17 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect, \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 #' The coefficient vector \eqn{\beta_{i} (t/T)} is subject to the group pattern
 #' \deqn{\beta_i \left(\frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k \| \neq \| \alpha_j \|} for any \eqn{k \neq M}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}.
 
-#' The time-varying coefficient functions are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{\bold{B}(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
-#' Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{i}(t/T)} are approximated as \eqn{\beta_{i} (t/T) = \pi_i^\prime \bold{B}(t/T)} and \eqn{\alpha_{i}(t/T) = \xi_i^\prime \bold{B}(t/T)}, respectively. \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices which weigh the individual basis functions.
-#' The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)*p \times 1} vector \eqn{z_{it} = x_{it} \otimes \bold{B}(v)}. Subsequently, the DGP can be reformulated as
+#' The time-varying coefficient functions are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{B(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
+#' Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{i}(t/T)} are approximated as \eqn{\beta_{i} (t/T) = \pi_i^\prime B(t/T)} and \eqn{\alpha_{i}(t/T) = \xi_i^\prime B(t/T)}, respectively. \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices which form \eqn{p} linear combinations of the basis functions.
+#' The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)p \times 1} vector \eqn{z_{it} = x_{it} \otimes B(v)}. Subsequently, the DGP can be reformulated as
 #' \deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
 #' where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains the sieve approximation error. We refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
 #'
 #' Inspired by Su et al. (2019) and Mehrabani (2023), the time-varying PAGFL estimates the functional coefficients and the group structure by minimizing the criterion
 #' \deqn{Q_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \tilde{z}_{it}^\prime \text{vec}(\pi_{i}))^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j > i}^N \dot{\omega}_{ij} \| \pi_i - \pi_j \|}
-#' with respect to \eqn{\bold{\pi}}. \eqn{\tilde{y}_{it} = y_{it} - T^{-1} \sum^{T}_{t=1} y_{it}} is the demeaned dependent variable and \eqn{\tilde{z}_{it}, \eqn{\tilde{u}_{it}}} is constructed in the same fashion to concentrate out the individual fixed effects \eqn{\gamma_i}. \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation. \eqn{\| \cdot \|} represents the Frobenius norm.
+#' with respect to \eqn{\bold{\pi}}. \eqn{\tilde{y}_{it} = y_{it} - T^{-1} \sum^{T}_{t=1} y_{it}} is the demeaned dependent variable and \eqn{\tilde{z}_{it}}, \eqn{\tilde{u}_{it}} is constructed in the same fashion to concentrate out the individual fixed effects \eqn{\gamma_i}. \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation. \eqn{\| \cdot \|} represents the Frobenius norm.
 #' The solution \eqn{\hat{\bold{\pi}}} is computed by minimizing the objective function via the iterative alternating direction method of multipliers (\emph{ADMM}) algorithm proposed by Mehrabani (2023, sec. 5.1).
 #'
 #' Two individuals are assigned to the same group if \eqn{\| \text{vec} (\hat{\pi}_i - \hat{\pi}_j) \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is given by \code{tol_group}. Subsequently, the number of groups follows as the number of distinct elements in \eqn{\hat{\bold{\pi}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates \eqn{\hat{\bold{\xi}}} using group-wise least squares.
@@ -66,7 +66,7 @@
 #'
 #' @return An object of class \code{tvpagfl} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices,}
-#' \item{\code{coefficients}}{a \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates. Let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters,}
+#' \item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates.}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 #' \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 #' \item{\code{fitted}}{a vector of fitted values of the demeaned model,}
@@ -143,6 +143,7 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
     i_index <- i_index_labs <- rep(1:N, each = n_periods)
     model_data$i_index <- i_index
     model_data$t_index <- t_index
+    index <- c("i_index", "t_index")
   }
   coef_t_index <- unique(t_index_labs)[order(unique(t_index))]
   coef_rownames <- as.character(coef_t_index)
@@ -193,7 +194,7 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
     t_index = t_index, model_data = model_data
   )
   out$args <- list(
-    formula = formula, labs = list(i = i_index_labs, t = t_index_labs), d = d, M = M, min_group_frac = min_group_frac,
+    formula = formula, labs = list(i = i_index_labs, t = t_index_labs, index = index), d = d, M = M, min_group_frac = min_group_frac,
     kappa = kappa, rho = rho, max_iter = max_iter, tol_group = tol_group, varrho = varrho
   )
   out$IC$lambda <- lambda[indx]

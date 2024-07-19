@@ -33,13 +33,7 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect and \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables. The errors \eqn{u_{it}} feature a \eqn{iid} standard normal distribution.
 #' The coefficient vector \eqn{\beta_i = \{\beta_{i1}^\prime, \dots, \beta_{iT}^\prime \}^\prime} is subject to the group pattern
 #' \deqn{\beta_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-#' with \eqn{K =}\code{n_groups}, \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k \| \neq \| \alpha_j \|} for any \eqn{k \neq j}.
-#'
-#' The scalar dependent variable \eqn{y_{it}} is generated according to the following grouped time-varying panel data model
-#' \deqn{y_{it} = \gamma_i + \beta_i^\prime (t/T) x_{it} + u_{it}, \quad i = \{1, \dots, N\}, \quad t = \{1, \dots, T\}.}
-#' \eqn{\gamma_i} represents individual fixed effects and \eqn{x_{it}} a \eqn{p \times 1} vector of regressors.
-#' The individual functional slope coefficient vectors \eqn{\beta_i (t/T)} are subject to a latent group structure \eqn{\beta_i (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \bold{1} \{i \in G_k\}}.
-#' As a consequence, the group-level coefficients \eqn{\bold{\alpha} (t/T) = (\alpha^\prime_1 (t/T), \dots, \alpha^\prime_K (t/T))^\prime} follow the partition \eqn{\bold{G}} of \eqn{N} cross-sectional units \eqn{\bold{G} = (G_1, \dots, G_K)} such that \eqn{\cup_{k=1}^K = \{1,\dots,N\}} and \eqn{G_k \cap G_l = \emptyset, \; \alpha_k \neq \alpha_l} for any two groups \eqn{k \neq l}.
+#' with \eqn{K =}\code{n_groups}, \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}.
 #'
 #' The predictors are simulated as:
 #' \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
