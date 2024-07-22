@@ -43,17 +43,17 @@ grouped_tv_plm(
 \arguments{
 \item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
 
-\item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership.}
+\item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership of each cross-sectional unit \eqn{i}.}
 
-\item{index}{a character vector holding two strings with the names of the variables that identify the cross-sectional unit and time period of each observation. The first string denotes the individual unit \eqn{i}, whereas the second string represents the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
+\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable that declares the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
 \item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.}
 
 \item{d}{the polynomial degree of the B-splines. Default is 3.}
 
-\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots.}
+\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots and the entire sequence of knots is of length \eqn{M + d + 1}.}
 
 \item{const_coef}{a character vector containing the variable names of explanatory variables that enter with time-constant coefficients.}
 
@@ -61,7 +61,7 @@ grouped_tv_plm(
 
 \item{verbose}{logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.}
 
-\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores.}
+\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores. Default is \code{TRUE}.}
 
 \item{...}{ellipsis}
 
@@ -71,19 +71,19 @@ grouped_tv_plm(
 }
 \value{
 An object of class \code{tv_gplm} holding
-\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as individual and time indices,}
-\item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant estimates.}
+\item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
+\item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying and \eqn{p^{(2)}} the number of time constant coefficients. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant estimates.}
 \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is part of group \eqn{k},}
 \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 \item{\code{fitted}}{a vector of fitted values of the demeaned model,}
 \item{\code{args}}{a \code{list} of additional arguments,}
-\item{\code{IC}}{a \code{list} containing (i) the value of the IC, and (ii) the mean squared error,}
+\item{\code{IC}}{a \code{list} containing (i) the value of the IC and (ii) the \emph{MSE},}
 \item{\code{call}}{the function call.}
 
 An object of class \code{tv_gplm} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 }
 \description{
-Estimate a time-varying panel data model given an exogenous group structure. Coefficient functions are homogeneous within groups but heterogeneous across groups.
+Estimate a grouped time-varying panel data model given an observed group structure. Coefficient functions are homogeneous within groups but heterogeneous across groups.
 The time-varying coefficients are modeled as polynomial B-splines. The function supports both static and dynamic panel data models.
 }
 \details{
@@ -94,27 +94,28 @@ The coefficient vector \eqn{\beta_{i} (t/T)} is subject to the observed group pa
 \deqn{\beta_i \left(\frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
 with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}.
 
-\eqn{\beta_i (t/T)}, and \eqn{\alpha_k (t/T)} are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{B(v)} denote a \eqn{M + d +1} vector of spline basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots of the final B-spline.
-Then, \eqn{\alpha_{k}(t/T)} is approximated as \eqn{\alpha_{k}(t/T) = \xi_k^\prime B(t/T)}, respectively. \eqn{\xi_k} is a \eqn{(M + d + 1) \times p} coefficient matrix that forms a linear combination of the basis functions.
+\eqn{\beta_i (t/T)}, and \eqn{\alpha_k (t/T)} are estimated as polynomial B-splines using penalized sieve-technique. Let \eqn{B(v)} denote a \eqn{M + d +1} vector of polynomial spline basis functions, where \eqn{d} represents the polynomial degree and \eqn{M} gives the number of interior knots of the B-spline.
+\eqn{\alpha_{k}(t/T)} is approximated by forming a linear combination of the basis functions \eqn{\alpha_{k}(t/T) \approx \xi_k^\prime B(t/T)}, where \eqn{\xi_k} is a \eqn{(M + d + 1) \times p} coefficient matrix.
+
 The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)p \times 1} vector \eqn{z_{it} = x_{it} \otimes B(v)}. Subsequently, the DGP can be reformulated as
 \deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
-where \eqn{\pi_i = \xi_k} if \eqn{i \in G_k}, \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} contains a sieve approximation error. We refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
+where \eqn{\pi_i = \xi_k} if \eqn{i \in G_k}, \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} reflects a sieve approximation error. We refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
 
-\eqn{\hat{\alpha}_{k}(t/T)} is derived as \eqn{\hat{\alpha}_{k}(t/T) = \hat{\xi}_k^\prime B(t/T)}, with
+Finally, \eqn{\hat{\alpha}_{k}(t/T)} is obtained as \eqn{\hat{\alpha}_{k}(t/T) = \hat{\xi}_k^\prime B(t/T)}, where the vector of control points \eqn{\xi_k} is estimated using \emph{OLS}
 \deqn{\hat{\xi}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{z}_{it} \tilde{z}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{z}_{it} \tilde{y}_{it},}
-where \eqn{\tilde{y}_{it} = y_{it} - T^{-1} \sum_{t = 1}^T y_{it}} to concentrate out the fixed effect \eqn{\gamma_i} and \eqn{\tilde{z}_{it}} is constructed in the same fashion.
+and \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum_{t = 1}^T a_{it}}, \eqn{a = \{y, z\}} to concentrate out the fixed effect \eqn{\gamma_i} (within-transformation).
 
-In case of an unbalanced panel data set, the earliest and latest available observations out of the entire panel are employed as the start and end-points of the interval on which the time-varying coefficients are defined.
+In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and end-points of the interval on which the group-specific time-varying coefficients are defined.
 }
 \examples{
 # Simulate a time-varying panel with a trend and a group pattern
 set.seed(1)
-sim <- sim_tv_DGP(N = 5, n_periods = 20, intercept = TRUE, p = 2)
+sim <- sim_tv_DGP(N = 10, n_periods = 50, intercept = TRUE, p = 2)
 df <- data.frame(y = c(sim$y))
 groups <- sim$groups
 
 # Estimate the time-varying grouped panel data model
-estim <- grouped_tv_plm(y ~ ., data = df, n_periods = 20, groups = groups)
+estim <- grouped_tv_plm(y ~ ., data = df, n_periods = 50, groups = groups)
 summary(estim)
 
 }

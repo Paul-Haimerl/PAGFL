@@ -671,11 +671,10 @@ arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const s
         }
         // Construct the regressors matrices
         groupX = buildDiagX_block(X, N, i_index, groups_hat);
-        groupXt = groupX.t();
         groupZ = buildDiagX_block(Z, N, i_index, groups_hat);
         // W = getW(groupX, groupZ, y_tilde, Z.n_cols);
         W = arma::eye<arma::mat>(groupZ.n_cols, groupZ.n_cols);
-        groupXt = groupXt * groupZ * W * groupZ.t();
+        groupXt = groupX.t() * groupZ * W * groupZ.t();
         // Compute the post-lasso estimates
         alpha = arma::inv(groupXt * groupX + .05 / sqrt(y.n_elem)) * groupXt * y_tilde;
         alpha_mat = arma::reshape(alpha, p, alpha.n_elem / p).t();

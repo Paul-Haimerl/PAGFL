@@ -43,29 +43,29 @@ grouped_plm(
 \arguments{
 \item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables, declaring the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
 
-\item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership.}
+\item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership of each cross-sectional unit \eqn{i}.}
 
-\item{index}{a character vector holding two strings with the names of the variables that identify the cross-sectional unit and time period of each observation. The first string denotes the individual unit \eqn{i}, whereas the second string represents the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
+\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable that declares the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
 \item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} is passed, this argument can be left empty.}
 
 \item{method}{the estimation method. Options are
 \describe{
 \item{\code{"PLS"}}{for using the penalized least squares (\emph{PLS}) algorithm. We recommend \emph{PLS} in case of (weakly) exogenous regressors (Mehrabani, 2023, sec. 2.2).}
-\item{\code{"PGMM"}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors, in which case a matrix \eqn{\bold{Z}} containing the necessary exogenous instruments must be supplied.}
+\item{\code{"PGMM"}}{for using the penalized Generalized Method of Moments (\emph{PGMM}). \emph{PGMM} is required when instrumenting endogenous regressors, in which case a matrix \eqn{\bold{Z}} containing the necessary exogenous instruments must be supplied (Mehrabani, 2023, sec. 2.3).}
 } Default is \code{"PLS"}.}
 
-\item{Z}{a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \code{Z} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, either pass \code{NULL} or \code{Z} is disregarded. Default is \code{NULL}.}
+\item{Z}{a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1, \dots, z_N)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \code{Z} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, the argument can be left empty or it is disregarded. Default is \code{NULL}.}
 
-\item{bias_correc}{logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when facing a dynamic panel. Default is \code{FALSE}.}
+\item{bias_correc}{logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when working with dynamic panels. Default is \code{FALSE}.}
 
 \item{rho}{a tuning parameter balancing the fitness and penalty terms in the IC. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
 
 \item{verbose}{logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.}
 
-\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores.}
+\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores. Default is \code{TRUE}.}
 
 \item{...}{ellipsis}
 
@@ -81,13 +81,13 @@ An object of class \code{gplm} holding
 \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 \item{\code{fitted}}{a vector of fitted values of the demeaned model,}
 \item{\code{args}}{a \code{list} of additional arguments,}
-\item{\code{IC}}{a \code{list} containing (i) the value of the IC, and (ii) the mean squared error,}
+\item{\code{IC}}{a \code{list} containing (i) the value of the IC and (ii) the \emph{MSE},}
 \item{\code{call}}{the function call.}
 
 A \code{gplm} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 }
 \description{
-Estimate a panel data model given an exogenous group structure. Slope parameters are homogeneous within groups but heterogeneous across groups.
+Estimate a grouped panel data model given an observed group structure. Slope parameters are homogeneous within groups but heterogeneous across groups.
 This function supports both static and dynamic panel data models, with or without endogenous regressors.
 }
 \details{
@@ -98,12 +98,18 @@ The coefficient vector \eqn{\beta_i} is subject to the observed group pattern
 \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k \},}
 with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j.}
 
-Using \emph{PLS}, the group-specific coefficients for group \eqn{k} are obtained using OLS
-\deqn{\hat{\alpha}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{x}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{y}_{it}}.
+Using \emph{PLS}, the group-specific coefficients for group \eqn{k} are obtained via \emph{OLS}
+\deqn{\hat{\alpha}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{x}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{y}_{it},}
+where \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum_{t=1}^T a_{it}}, \eqn{a = \{y, x\}} to concentrate out the individual fixed effects \eqn{\gamma_i} (within-transformation).
 
 In case of \emph{PGMM}, the slope coefficients are derived as
-\deqn{\hat{\alpha}_k = \left( \left[\sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right]^\prime W_k \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right] \right)^{-1} \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right]^\prime W_k \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta y_{it} \right],}
-where \eqn{W_k} is a \eqn{q \times q} p.d. symmetric weight matrix.
+\deqn{
+\hat{\alpha}_k = \left( \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right]^\prime W_k \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right] \right)^{-1}
+}
+\deqn{
+\quad \quad \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta x_{it} \right]^\prime W_k \left[ \sum_{i \in G_k} T^{-1} \sum_{t = 1}^T z_{it} \Delta y_{it} \right],
+}
+where \eqn{W_k} is a \eqn{q \times q} p.d. symmetric weight matrix and \eqn{\Delta} denotes the first difference operator \eqn{\Delta x_{it} = x_{it} - x_{it-1}} (first-difference transformation).
 }
 \examples{
 # Simulate a panel with a group structure
@@ -113,7 +119,7 @@ X <- sim$X
 groups <- sim$groups
 df <- cbind(y = c(y), X)
 
-# Estimate the grouped panel data model procedure
+# Estimate the grouped panel data model
 estim <- grouped_plm(y ~ ., data = df, groups = groups, n_periods = 80, method = "PLS")
 summary(estim)
 
@@ -128,7 +134,6 @@ summary(estim)
 }
 \references{
 Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. \emph{The Review of Economic Studies}, 82(3), 991-1030. \doi{10.1093/restud/rdv007}.
-
 Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. \emph{Journal of Econometrics}, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.
 }
 \author{

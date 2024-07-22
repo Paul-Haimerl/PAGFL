@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_tv.R
 \name{sim_tv_DGP}
 \alias{sim_tv_DGP}
-\title{Simulate a Time-varying Panel With a Latent Group Structure}
+\title{Simulate a Time-varying Panel With a Group Structure in the Slope Coefficients}
 \usage{
 sim_tv_DGP(
   N = 50,
@@ -30,13 +30,13 @@ sim_tv_DGP(
 
 \item{p}{the number of simulated explanatory variables}
 
-\item{n_groups}{the number of latent groups \eqn{K}. Default is 3.}
+\item{n_groups}{the number of groups \eqn{K}. Default is 3.}
 
 \item{d}{the polynomial degree used to construct the time-varying coefficients.}
 
 \item{dynamic}{Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as a regressor. Default is \code{FALSE}.}
 
-\item{group_proportions}{a numeric vector of length \code{n_groups} indicating the fraction of \eqn{N} each group will contain. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.}
+\item{group_proportions}{a numeric vector of length \code{n_groups} indicating size of each group as a fraction of \eqn{N}. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.}
 
 \item{error_spec}{options include
 \describe{
@@ -70,19 +70,21 @@ A list holding
 \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 }
 \description{
-Construct a time-varying panel data set subject to a latent group structure.
+Construct a time-varying panel data set subject to a group structure in the slope coefficients with optional \eqn{AR(1)} innovations.
 }
 \details{
-The scalar dependent variable \eqn{y_{it}} is driven by the following panel data model:
+The scalar dependent variable \eqn{y_{it}} is generated according to the following time-varying grouped panel data model
 \deqn{y_{it} = \gamma_i + \beta^\prime_{it} x_{it} + u_{it}, \quad i = 1, \dots, N, \; t = 1, \dots, T,}
-where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect and \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables. The errors \eqn{u_{it}} feature a \eqn{iid} standard normal distribution.
+where \eqn{\gamma_i} is an individual fixed effect and \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables.
 The coefficient vector \eqn{\beta_i = \{\beta_{i1}^\prime, \dots, \beta_{iT}^\prime \}^\prime} is subject to the group pattern
 \deqn{\beta_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-with \eqn{K =}\code{n_groups}, \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}.
+with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\sup_{v \in [0,1]} \left( \| \alpha_k(v) - \alpha_j(v) \| \right) \neq 0} for any \eqn{k \neq j}. The total number of groups \eqn{K} is determined by \code{n_groups}.
 
 The predictors are simulated as:
 \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
 where \eqn{e_{it,j}} denotes a series of innovations. \eqn{\gamma_i} and \eqn{e_i} are independent of each other.
+
+The errors \eqn{u_{it}} feature a \eqn{iid} standard normal distribution.
 
 In case \code{locations = NULL}, the location parameters are drawn from \eqn{\sim U[0.3, 0.9]}.
 In case \code{scales = NULL}, the scale parameters are drawn from \eqn{\sim U[0.01, 0.09]}.
@@ -90,7 +92,7 @@ In case \code{polynomial_coef = NULL}, the polynomial coefficients are drawn fro
 The final coefficient function follows as \eqn{\alpha_k (t/T) = 3 * F(t/T, location, scale) + \sum_{j=1}^d a_j (t/T)^j}, where \eqn{F(\cdot, location, scale)} denotes a cumulative logistic distribution function and \eqn{a_j} reflects a polynomial coefficient.
 }
 \examples{
-# Simulate a time-varying panel subject to a time trend and a latent group structure
+# Simulate a time-varying panel subject to a time trend and a group structure
 sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 1)
 y <- sim$y
 
