@@ -6,7 +6,7 @@
 #' @param formula a formula object describing the model to be estimated.
 #' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
 #' @param groups a numerical or character vector of length \eqn{N} that indicates the group membership of each cross-sectional unit \eqn{i}.
-#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable that declares the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
+#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable declaring the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} is passed, this argument can be left empty.
 #' @param method the estimation method. Options are
 #' \describe{
@@ -26,7 +26,7 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect, \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 #' The coefficient vector \eqn{\beta_i} is subject to the observed group pattern
 #' \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j.}
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}, \eqn{k = 1, \dots, K}.
 #'
 #' Using \emph{PLS}, the group-specific coefficients for group \eqn{k} are obtained via \emph{OLS}
 #' \deqn{\hat{\alpha}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{x}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{x}_{it} \tilde{y}_{it},}
@@ -70,7 +70,7 @@
 #' @return An object of class \code{gplm} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
 #' \item{\code{coefficients}}{a \eqn{K \times p} matrix of the group-specific parameter estimates,}
-#' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
+#' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{K} and (ii) a vector of group memberships \eqn{g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i} is assigned to group \eqn{k},}
 #' \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 #' \item{\code{fitted}}{a vector of fitted values of the demeaned model,}
 #' \item{\code{args}}{a \code{list} of additional arguments,}

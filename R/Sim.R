@@ -25,7 +25,7 @@
 #' \eqn{\gamma_i} represents individual fixed effects and \eqn{x_{it}} a \eqn{p \times 1} vector of regressors.
 #' The individual slope coefficient vectors \eqn{\beta_i} are subject to a group structure
 #' \deqn{\beta_i = \sum_{k = 1}^K \alpha_k \bold{1} \{i \in G_k\},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}. The total number of groups \eqn{K} is determined by \code{n_groups}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}, \eqn{k = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
 #'
 #' If a panel data set with exogenous regressors is generated (set \code{q = NULL}), the explanatory variables are simulated according to
 #' \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}

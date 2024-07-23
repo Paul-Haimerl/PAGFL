@@ -78,7 +78,7 @@ The scalar dependent variable \eqn{y_{it}} is generated according to the followi
 where \eqn{\gamma_i} is an individual fixed effect and \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables.
 The coefficient vector \eqn{\beta_i = \{\beta_{i1}^\prime, \dots, \beta_{iT}^\prime \}^\prime} is subject to the group pattern
 \deqn{\beta_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\sup_{v \in [0,1]} \left( \| \alpha_k(v) - \alpha_j(v) \| \right) \neq 0} for any \eqn{k \neq j}. The total number of groups \eqn{K} is determined by \code{n_groups}.
+with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\sup_{v \in [0,1]} \left( \| \alpha_k(v) - \alpha_j(v) \| \right) \neq 0} for any \eqn{k \neq j}, \eqn{k = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
 
 The predictors are simulated as:
 \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
