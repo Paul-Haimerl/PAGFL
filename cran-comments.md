@@ -1,4 +1,4 @@
-# PAGFL v. 1.1.0
+# PAGFL v. 1.1.1
 
 ## R CMD check results
 
@@ -18,4 +18,4 @@
 
 ## Unit-test coverage
 
-88%
+97%

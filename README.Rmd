@@ -16,8 +16,9 @@ knitr::opts_chunk$set(
 # PAGFL
 
 <!-- badges: start -->
-[![CRAN_Version_Badge](http://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL) [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
-[![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
+
+[![CRAN_Version_Badge](http://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL) [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml) [![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
+
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data analysis. Disregarding group-level heterogeneity can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
@@ -36,7 +37,7 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
-The stable version (1.1.0) is available on CRAN:
+The stable version (1.1.1) is available on CRAN:
 
 ```         
 install.packages("PAGFL")
@@ -44,7 +45,7 @@ install.packages("PAGFL")
 
 ## Data
 
-The `PAGFL` packages includes a function that automatically simulates a panel data set with a group structure in the slope coefficients:
+The `PAGFL` package includes a function that automatically simulates a panel data set with a group structure in the slope coefficients:
 
 ```{r}
 # Simulate a simple panel with three distinct groups and two exogenous explanatory variables
@@ -61,14 +62,14 @@ $$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$ with $\cu
 
 ## Applying PAGFL
 
-To execute the PAGFL procedure, simply pass the dependent and independent variables, the number of time periods, and a penalization parameter $\lambda$.
+To execute the PAGFL procedure, pass the dependent and independent variables, the number of time periods, and a penalization parameter $\lambda$.
 
 ```{r}
 estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
 summary(estim)
 ```
 
-`pagfl()` returns an object of type `pagfl` which holds
+`pagfl()` returns an object of type `pagfl`, which holds
 
 1.  `model`: A `data.frame` containing the dependent and explanatory variables as well as individual and time indices (if provided).
 2.  `coefficients`: A $K \times p$ matrix of the post-Lasso group-specific parameter estimates.
@@ -111,17 +112,16 @@ error_spec = 'GARCH', q = 2, dynamic = FALSE)
 data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
-# Note that the method PGMM and the instrument matrix Z needs to be passed
+# Note that the method PGMM and the instrument matrix Z need to be passed
 estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3)
 summary(estim_endo)
 ```
 
 Furthermore, `pagfl` lets you select a minimum group size, adjust the efficiency vs. accuracy trade-off of the iterative estimation algorithm, and modify a list of further settings. Visit the documentation `?pagfl()` for more information.
 
-
 ## The Time-varying PAGFL
 
-The development version of the package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate a grouped panel data models with the time-varying coefficients $\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$. Following Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
+The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with the time-varying coefficients $\beta_i (t/T)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$. Following Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
 
 ```{r}
 # Simulate a time-varying panel with a trend and a group pattern
@@ -134,7 +134,7 @@ tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5)
 summary(tv_estim)
 ```
 
-`tv_pagfl()` returns an object of class `tvpagfl` which contains
+`tv_pagfl()` returns an object of class `tvpagfl`, which contains
 
 1.  `model`: A `data.frame` containing the dependent and explanatory variables as well as individual and time indices (if provided).
 2.  `coefficients`: A list holding (i) a $T \times p^{(1)} \times \hat{K}$ array of the post-Lasso group-specific functional coefficients and (ii) a $K \times p^{(2)}$ matrix of time-constant parameter estimates (when running a mixed time-varying panel data model).
@@ -166,6 +166,18 @@ summary(tv_estim_unbalanced)
 ```
 
 Furthermore, `tv_pagfl` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polyomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
+
+## Future Outlook
+
+The package is still under active development. Future versions are planned to include
+
+-   Global coefficients
+
+-   Un-penalized individual coefficients
+
+-   Inference methods
+
+Please feel free to reach out if you have any further suggestions.
 
 ## References
 

@@ -10,6 +10,7 @@
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
+
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data
@@ -39,13 +40,13 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
-The stable version (1.1.0) is available on CRAN:
+The stable version (1.1.1) is available on CRAN:
 
     install.packages("PAGFL")
 
 ## Data
 
-The `PAGFL` packages includes a function that automatically simulates a
+The `PAGFL` package includes a function that automatically simulates a
 panel data set with a group structure in the slope coefficients:
 
 ``` r
@@ -75,9 +76,9 @@ details.
 
 ## Applying PAGFL
 
-To execute the PAGFL procedure, simply pass the dependent and
-independent variables, the number of time periods, and a penalization
-parameter $\lambda$.
+To execute the PAGFL procedure, pass the dependent and independent
+variables, the number of time periods, and a penalization parameter
+$\lambda$.
 
 ``` r
 estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
@@ -112,7 +113,7 @@ summary(estim)
 #> Multiple R-squared: 0.65845, Adjusted R-squared: 0.65605
 ```
 
-`pagfl()` returns an object of type `pagfl` which holds
+`pagfl()` returns an object of type `pagfl`, which holds
 
 1.  `model`: A `data.frame` containing the dependent and explanatory
     variables as well as individual and time indices (if provided).
@@ -216,7 +217,7 @@ error_spec = 'GARCH', q = 2, dynamic = FALSE)
 data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
-# Note that the method PGMM and the instrument matrix Z needs to be passed
+# Note that the method PGMM and the instrument matrix Z need to be passed
 estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3)
 summary(estim_endo)
 #> Call:
@@ -258,12 +259,11 @@ and modify a list of further settings. Visit the documentation
 
 ## The Time-varying PAGFL
 
-The development version of the package also includes the functions
-`sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate a grouped
-panel data models with the time-varying coefficients
-$\beta_{it} = \beta_i \left( \frac{t}{T} \right)$. Just like in the
-static case, the functional coefficients admit to a group structure
-$\beta_{it} = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) 1 \{i \in G_k \}$.
+The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
+which generate and estimate grouped panel data models with the
+time-varying coefficients $\beta_i (t/T)$. Just like in the static case,
+the functional coefficients admit to a group structure
+$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$.
 Following Su et
 al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the
 time-varying coefficients are estimated using polynomial B-spline
@@ -306,7 +306,7 @@ summary(tv_estim)
 
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
-`tv_pagfl()` returns an object of class `tvpagfl` which contains
+`tv_pagfl()` returns an object of class `tvpagfl`, which contains
 
 1.  `model`: A `data.frame` containing the dependent and explanatory
     variables as well as individual and time indices (if provided).
@@ -386,6 +386,19 @@ shown here. For example, it is possible to adjust the polyomial degree
 and the number of interior knots in the spline basis system, or estimate
 a panel data model with a mix of time-varying and time-constant
 coefficients. See `?tv_pagfl()` for details.
+
+## Future Outlook
+
+The package is still under active development. Future versions are
+planned to include
+
+- Global coefficients
+
+- Un-penalized individual coefficients
+
+- Inference methods
+
+Please feel free to reach out if you have any further suggestions.
 
 ## References
 
