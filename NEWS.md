@@ -1,4 +1,8 @@
-# PAGFL 1.1.1 (development version)
+# PAGFL 1.1.2 (development version)
+
+* Fixed backwards compatibility issue with the generic functions `fitted` and `resid`
+
+# PAGFL 1.1.1
 
 * Introduction of `grouped_plm` and `grouped_tv_plm` to estimate grouped (time-varying) panel data models given an exogenous group structure
 * Remove warm-starts when iterating across different tuning parameters

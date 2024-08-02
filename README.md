@@ -31,7 +31,7 @@ that, we extend the `PAGFL` to time-varying functional coefficients.
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL` (1.1.1)
+Always stay up-to-date with the development version of `PAGFL` (1.1.2)
 from [GitHub](https://github.com/):
 
 ``` r
@@ -393,10 +393,11 @@ The package is still under active development. Future versions are
 planned to include
 
 - Global coefficients
-
 - Un-penalized individual coefficients
-
 - Inference methods
+
+You are not a R-user? Worry not - An equivalent Python library is in the
+works.
 
 Please feel free to reach out if you have any further suggestions.
 

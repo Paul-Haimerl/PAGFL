@@ -153,16 +153,16 @@ fitted.tv_gplm <- function(object, ...) {
     i_index = i_index,
     t_index = t_index
   )
-  colnames(fitted_df)[-1] <- object$args$labs$index
   plot_df <- fitted_df
-  plot_df$i_index <- as.character(plot_df$i_index)
-  plot_df$y <- object$model[[1]]
-  plot_df <- plot_df[order(plot_df$i_index), ]
-  y_name <- colnames(object$model)[1]
-  col_map <- c("red", "black")
-  names(col_map) <- c("fit", y_name)
+  colnames(fitted_df)[-1] <- object$args$labs$index
   # Plot the fit if feasible
   if (length(unique(i_index)) <= 20) {
+    plot_df$i_index <- as.character(plot_df$i_index)
+    plot_df$y <- object$model[[1]]
+    plot_df <- plot_df[order(plot_df$i_index), ]
+    y_name <- colnames(object$model)[1]
+    col_map <- c("red", "black")
+    names(col_map) <- c("fit", y_name)
     fit_plot <- gen_fit_plot_tvpagfl(plot_df, y_name, col_map)
     print(fit_plot)
   }

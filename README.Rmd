@@ -29,7 +29,7 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL` (1.1.1) from [GitHub](https://github.com/):
+Always stay up-to-date with the development version of `PAGFL` (1.1.2) from [GitHub](https://github.com/):
 
 ```{r message=FALSE, warning=FALSE}
 # install.packages("devtools")
@@ -172,10 +172,10 @@ Furthermore, `tv_pagfl` lets you specify a lot more optionalities than shown her
 The package is still under active development. Future versions are planned to include
 
 -   Global coefficients
-
 -   Un-penalized individual coefficients
-
 -   Inference methods
+
+You are not a R-user? Worry not - An equivalent Python library is in the works.
 
 Please feel free to reach out if you have any further suggestions.
 
