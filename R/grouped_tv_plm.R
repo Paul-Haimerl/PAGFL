@@ -66,7 +66,7 @@
 #' An object of class \code{tv_gplm} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
 #' @export
 grouped_tv_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, d = 3, M = floor(length(y)^(1 / 7) - log(p)),
-                            const_coef = NULL, rho = .04 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
+                           const_coef = NULL, rho = .04 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
@@ -80,6 +80,10 @@ grouped_tv_plm <- function(formula, data, groups, index = NULL, n_periods = NULL
   if (any(all.vars(formula[[3]]) == ".")) {
     if (!is.null(index)) {
       data_temp <- data[, !(colnames(data) %in% index)]
+      if (NCOL(data) == 3) {
+        data_temp <- as.data.frame(data_temp)
+        colnames(data_temp) <- colnames(data)[!(colnames(data) %in% index)]
+      }
     } else {
       data_temp <- data
     }

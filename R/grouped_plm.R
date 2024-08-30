@@ -58,7 +58,8 @@
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
 #' estim <- grouped_plm(
-#'   y ~ ., data = df, index = c("i_index", "t_index"), groups = groups, method = "PLS"
+#'   y ~ .,
+#'   data = df, index = c("i_index", "t_index"), groups = groups, method = "PLS"
 #' )
 #' summary(estim)
 #' @references
@@ -80,7 +81,7 @@
 #' A \code{gplm} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 #' @export
 grouped_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, method = "PLS", Z = NULL, bias_correc = FALSE,
-                         rho = .07 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
+                        rho = .07 * log(N * n_periods) / sqrt(N * n_periods), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#

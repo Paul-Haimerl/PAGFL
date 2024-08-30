@@ -98,6 +98,10 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
   if (any(all.vars(formula[[3]]) == ".")) {
     if (!is.null(index)) {
       data_temp <- data[, !(colnames(data) %in% index)]
+      if (NCOL(data) == 3) {
+        data_temp <- as.data.frame(data_temp)
+        colnames(data_temp) <- colnames(data)[!(colnames(data) %in% index)]
+      }
     } else {
       data_temp <- data
     }

@@ -209,11 +209,13 @@ recommend using a Jackknife bias correction, as proposed by Dhaene and
 Jochmans ([2015](https://doi.org/10.1093/restud/rdv007)).
 
 ``` r
-# Generate a panel where the predictors X correlate with the cross-sectional innovation, 
-# but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1) 
+# Generate a panel where the predictors X correlate with the cross-sectional innovation,
+# but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1)
 # innovations, an AR lag of the dependent variable, and specific group sizes
-sim_endo <- sim_DGP(N = 20, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4), 
-error_spec = 'GARCH', q = 2, dynamic = FALSE)
+sim_endo <- sim_DGP(
+  N = 20, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4),
+  error_spec = "GARCH", q = 2, dynamic = FALSE
+)
 data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
@@ -349,7 +351,7 @@ delete_index <- as.logical(rbinom(n = N * n_periods, prob = 0.7, size = 1))
 tv_data$i_index <- rep(1:N, each = n_periods)
 tv_data$t_index <- rep(1:n_periods, N)
 # Delete some observations
-tv_data <- tv_data[delete_index,]
+tv_data <- tv_data[delete_index, ]
 # Apply the time-varying PAGFL to an unbalanced panel
 tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5)
 summary(tv_estim_unbalanced)

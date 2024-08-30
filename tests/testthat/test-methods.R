@@ -83,7 +83,7 @@ test_that("S3 tv_pagfl", {
   estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7)
   estim_const <- tv_pagfl(y ~ X1 + a, data = data, n_periods = 100, lambda = 7, const_coef = "a")
   # print
-  expect_snapshot(estim,  cran = FALSE)
+  expect_snapshot(estim, cran = FALSE)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 2, 10))
@@ -117,7 +117,7 @@ test_that("S3 grouped_tv_plm", {
   estim <- grouped_tv_plm(y ~ X1, data = data, groups = groups_0, n_periods = 100)
   estim_const <- grouped_tv_plm(y ~ X1 + a, data = data, groups = groups_0, n_periods = 100, const_coef = "a")
   # print
-  expect_snapshot(estim,  cran = FALSE)
+  expect_snapshot(estim, cran = FALSE)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 2, 10))
@@ -166,7 +166,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   # summary
   summary_estim <- summary(estim)
   expect_snapshot_output(summary_estim, cran = FALSE)
-  expect_snapshot(estim,  cran = FALSE)
+  expect_snapshot(estim, cran = FALSE)
   # formula
   formula_estim <- formula(estim)
   expect_type(formula_estim, "language")
@@ -192,7 +192,7 @@ test_that("S3 grouped_tv_plm const coef unbalanced summary", {
   estim <- grouped_tv_plm(y ~ X + a, const_coef = "a", data = df, groups = groups_0, index = c("i_index", "t_index"))
   summary_estim <- summary(estim)
   expect_snapshot_output(summary_estim, cran = FALSE)
-  expect_snapshot(estim,  cran = FALSE)
+  expect_snapshot(estim, cran = FALSE)
   # only one group
   estim <- grouped_tv_plm(y ~ ., data = df, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
   expect_no_error(summary(estim))
