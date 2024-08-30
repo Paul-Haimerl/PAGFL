@@ -1,6 +1,7 @@
 # PAGFL 1.1.2 (development version)
 
 * Fixed backwards compatibility issue with the generic functions `fitted` and `resid`
+* Bugfix when passing index variables and an empty formula `y ~ .` for `tv_pagfl` and `grouped_tv_plm`
 
 # PAGFL 1.1.1
 
