@@ -91,10 +91,13 @@ print.summary.tvpagfl <- function(x, ...) {
   if (is.null(var_names)) var_names <- paste0("X", 1:p)
   n_periods <- dim(x$coefficients$tv)[1]
   group_names <- factor(as.numeric(gsub("Group\\s+", "", unlist(dimnames(x$coefficients$tv)[3]))))
+  t_index <- rownames(x$coefficients$tv)
+  suppressWarnings(t_index <- as.numeric(t_index))
+  if (all(is.na(t_index))) t_index <- rep(1:n_periods, x$groups$n_groups * p)
   coef_df <- data.frame(
     coef = c(x$coefficients$tv),
     var_name = rep(rep(var_names, each = n_periods), x$groups$n_groups),
-    index = rep(1:n_periods, x$groups$n_groups * p),
+    index = t_index,
     Group = rep(group_names, each = p * n_periods)
   )
   legend_position <- ifelse(x$groups$n_groups <= 10, "bottom", "none")
@@ -184,6 +187,11 @@ fitted.tvpagfl <- function(object, ...) {
   colnames(fitted_df)[-1] <- object$args$labs$index
   # Plot the fit if feasible
   if (length(unique(i_index)) <= 20) {
+    if (!is.numeric(t_index)) {
+      suppressWarnings(t_index <- as.numeric(t_index))
+      if (all(is.na(t_index))) t_index <- as.integer(factor(object$args$labs$t))
+      plot_df$t_index <- t_index
+    }
     plot_df$i_index <- as.character(plot_df$i_index)
     plot_df$y <- object$model[[1]]
     plot_df <- plot_df[order(plot_df$i_index), ]

@@ -2,6 +2,9 @@
 
 * Fixed backwards compatibility issue with the generic functions `fitted` and `resid`
 * Bugfix when passing index variables and an empty formula `y ~ .` for `tv_pagfl` and `grouped_tv_plm`
+* Improved documentation
+* Changed x-axis label in the plot produced by calling `summary()` of a `tvpagfl` object
+* Bugfix in the plot produced by calling `fitted()` and passing a character time-index variable
 
 # PAGFL 1.1.1
 

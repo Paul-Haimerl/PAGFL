@@ -52,7 +52,7 @@ pagfl(
 
 \item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
 
-\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable declaring the time period \eqn{t}. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
+\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
 \item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty.}
 

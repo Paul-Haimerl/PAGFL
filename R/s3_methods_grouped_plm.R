@@ -130,6 +130,11 @@ fitted.gplm <- function(object, ...) {
   colnames(fitted_df)[-1] <- object$args$labs$index
   # Plot the fit, if feasible
   if (length(unique(i_index)) <= 20) {
+    if (!is.numeric(t_index)) {
+      suppressWarnings(t_index <- as.numeric(t_index))
+      if (all(is.na(t_index))) t_index <- as.integer(factor(object$args$labs$t))
+      plot_df$t_index <- t_index
+    }
     plot_df$i_index <- as.character(plot_df$i_index)
     plot_df$y <- object$model[[1]]
     plot_df <- plot_df[order(plot_df$i_index), ]
