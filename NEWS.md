@@ -5,6 +5,7 @@
 * Improved documentation
 * Changed x-axis label in the plot produced by calling `summary()` of a `tvpagfl` object
 * Bugfix in the plot produced by calling `fitted()` and passing a character time-index variable
+* Added the current algorithm iteration and tuning parameter as a progress counter to the console if option `verbose` is selected
 
 # PAGFL 1.1.1
 

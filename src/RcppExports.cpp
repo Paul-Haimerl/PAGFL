@@ -53,8 +53,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // pagfl_routine
-Rcpp::List pagfl_routine(arma::vec& y, arma::mat& X, const std::string& method, arma::mat& Z, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const bool& bias_correc, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho, const bool& parallel);
-RcppExport SEXP _PAGFL_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP bias_correcSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP, SEXP parallelSEXP) {
+Rcpp::List pagfl_routine(arma::vec& y, arma::mat& X, const std::string& method, arma::mat& Z, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const bool& bias_correc, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho, const bool& parallel, const bool& verbose);
+RcppExport SEXP _PAGFL_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP methodSEXP, SEXP ZSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP bias_correcSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP, SEXP parallelSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,13 +75,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type varrho(varrhoSEXP);
     Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< const bool& >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(pagfl_routine(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel));
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(pagfl_routine(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // tv_pagfl_routine
-Rcpp::List tv_pagfl_routine(arma::vec& y, arma::mat& X, arma::mat& X_const, const unsigned int& d, const unsigned int& M, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const unsigned int& p_const, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho, const bool& parallel);
-RcppExport SEXP _PAGFL_tv_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP X_constSEXP, SEXP dSEXP, SEXP MSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP p_constSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP, SEXP parallelSEXP) {
+Rcpp::List tv_pagfl_routine(arma::vec& y, arma::mat& X, arma::mat& X_const, const unsigned int& d, const unsigned int& M, arma::uvec& i_index, const arma::uvec& t_index, const unsigned int& N, const unsigned int& p_const, const arma::vec& lambda_vec, const double& kappa, const double& min_group_frac, const unsigned int& max_iter, const double& tol_convergence, const double& tol_group, const double& varrho, const double& rho, const bool& parallel, const bool& verbose);
+RcppExport SEXP _PAGFL_tv_pagfl_routine(SEXP ySEXP, SEXP XSEXP, SEXP X_constSEXP, SEXP dSEXP, SEXP MSEXP, SEXP i_indexSEXP, SEXP t_indexSEXP, SEXP NSEXP, SEXP p_constSEXP, SEXP lambda_vecSEXP, SEXP kappaSEXP, SEXP min_group_fracSEXP, SEXP max_iterSEXP, SEXP tol_convergenceSEXP, SEXP tol_groupSEXP, SEXP varrhoSEXP, SEXP rhoSEXP, SEXP parallelSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -103,7 +104,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type varrho(varrhoSEXP);
     Rcpp::traits::input_parameter< const double& >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< const bool& >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(tv_pagfl_routine(y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel));
+    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(tv_pagfl_routine(y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -215,8 +217,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_PAGFL_bspline_system", (DL_FUNC) &_PAGFL_bspline_system, 4},
     {"_PAGFL_demeanIndVec", (DL_FUNC) &_PAGFL_demeanIndVec, 3},
     {"_PAGFL_buildDiagX_block_dense", (DL_FUNC) &_PAGFL_buildDiagX_block_dense, 4},
-    {"_PAGFL_pagfl_routine", (DL_FUNC) &_PAGFL_pagfl_routine, 17},
-    {"_PAGFL_tv_pagfl_routine", (DL_FUNC) &_PAGFL_tv_pagfl_routine, 18},
+    {"_PAGFL_pagfl_routine", (DL_FUNC) &_PAGFL_pagfl_routine, 18},
+    {"_PAGFL_tv_pagfl_routine", (DL_FUNC) &_PAGFL_tv_pagfl_routine, 19},
     {"_PAGFL_getTVAlpha", (DL_FUNC) &_PAGFL_getTVAlpha, 5},
     {"_PAGFL_delete_missing_t", (DL_FUNC) &_PAGFL_delete_missing_t, 5},
     {"_PAGFL_fitMeasures", (DL_FUNC) &_PAGFL_fitMeasures, 6},

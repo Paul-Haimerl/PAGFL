@@ -179,7 +179,7 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
     y = y, X = X, method = method, Z = Z, bias_correc = bias_correc, i_index = i_index,
     t_index = t_index, N = N, lambda_vec = lambda, kappa = kappa, min_group_frac = min_group_frac,
     max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group, varrho = varrho,
-    rho = rho, parallel = parallel
+    rho = rho, parallel = parallel, verbose = verbose
   )
   # Estimate fixed effects
   fe_vec <- getFE(y = y, i_index = i_index, N = N, method = method)

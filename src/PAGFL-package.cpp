@@ -1084,7 +1084,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 }
 
 // PAGFL routine
-Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
+Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose, const unsigned int &lambda_num, const unsigned int &n_lambda)
 {
 
     //------------------------------//
@@ -1111,6 +1111,10 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     unsigned int iter = 0;
     for (unsigned int i = 0; i < max_iter; i++)
     {
+        if (verbose)
+        {
+          Rcout << "\r" << "Lambda: " << lambda << " (" << lambda_num << "/" << n_lambda << ")" << " - Iteration: " << i + 1 << "/" << max_iter << std::flush;
+        }
         // Update the ...
         // parameter estimates (sec. 5.1/ 5.2 step 2a)
         beta = getBeta(invXcovY, invXcov, VarLambdat, varrho, v_old, delta);
@@ -1162,7 +1166,9 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
         if (method == "PGMM")
         {
             i_index_tilde = addOneObsperI(i_index);
-        } else {
+        }
+        else
+        {
             i_index_tilde = i_index;
         }
         alpha_mat = spjCorrec(alpha_mat, X, y, Z, N, i_index_tilde, p, groups_hat, method, parallel);
@@ -1224,7 +1230,7 @@ Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uve
 
 // Combine the PAGFL algo and the IC
 // [[Rcpp::export]]
-Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, arma::mat &Z, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const bool &bias_correc, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel)
+Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, arma::mat &Z, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const bool &bias_correc, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1300,8 +1306,10 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
+      // Clear the line
+      if (verbose)  Rcout << "\r" << std::string(80, ' ') << "\r";
         // Estimate
-        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
+        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
         // Compute the Information criterion
         IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, X_tilde, rho, N, i_index);
         output = Rcpp::List::create(
@@ -1313,7 +1321,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
 }
 
 // Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel)
+Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose, const unsigned int &lambda_num, const unsigned int &n_lambda)
 {
 
     //------------------------------//
@@ -1332,6 +1340,10 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
     unsigned int iter = 0;
     for (unsigned int i = 0; i < max_iter; i++)
     {
+        if (verbose)
+        {
+            Rcout << "\r" << "Lambda: " << lambda << " (" << lambda_num << "/" << n_lambda << ")" << " - Iteration: " << i + 1 << "/" << max_iter << std::flush;
+        }
         // Update the ...
         // parameter estimates (step 2a)
         pi = getBeta(invZcovY, invZcov, VarLambdat, varrho, v_old, delta);
@@ -1393,7 +1405,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
 
 // Combine the time-varying PAGFL algo and the IC
 // [[Rcpp::export]]
-Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel)
+Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1460,8 +1472,10 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
+      // Clear the line
+      if (verbose)  Rcout << "\r" << std::string(80, ' ') << "\r";
         // Estimate
-        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel);
+        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
         // Compute the Information Criterion
         IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index);
         output = Rcpp::List::create(
@@ -1641,7 +1655,8 @@ Rcpp::List pagfl_oracle_routine(arma::vec &y, arma::mat &X, const arma::uvec &gr
     arma::mat Z_tilde;
     unsigned int p = X.n_cols;
 
-    if (method == "PGMM"){
+    if (method == "PGMM")
+    {
         Z_tilde = deleteObsMat(Z, N, i_index, TRUE);
         i_index = deleteOneObsperI(i_index);
         n_periods = n_periods - 1;
@@ -1659,7 +1674,9 @@ Rcpp::List pagfl_oracle_routine(arma::vec &y, arma::mat &X, const arma::uvec &gr
         if (method == "PGMM")
         {
             i_index_tilde = addOneObsperI(i_index);
-        } else {
+        }
+        else
+        {
             i_index_tilde = i_index;
         }
         alpha_mat = spjCorrec(alpha_mat, X, y, Z, N, i_index_tilde, p, groups, method, parallel);

@@ -13,12 +13,12 @@ buildDiagX_block_dense <- function(X, N, i_index, groups) {
     .Call(`_PAGFL_buildDiagX_block_dense`, X, N, i_index, groups)
 }
 
-pagfl_routine <- function(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel) {
-    .Call(`_PAGFL_pagfl_routine`, y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel)
+pagfl_routine <- function(y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose) {
+    .Call(`_PAGFL_pagfl_routine`, y, X, method, Z, i_index, t_index, N, bias_correc, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose)
 }
 
-tv_pagfl_routine <- function(y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel) {
-    .Call(`_PAGFL_tv_pagfl_routine`, y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel)
+tv_pagfl_routine <- function(y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose) {
+    .Call(`_PAGFL_tv_pagfl_routine`, y, X, X_const, d, M, i_index, t_index, N, p_const, lambda_vec, kappa, min_group_frac, max_iter, tol_convergence, tol_group, varrho, rho, parallel, verbose)
 }
 
 getTVAlpha <- function(xi, K_hat, p, n_periods, B) {
