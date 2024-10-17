@@ -22,8 +22,8 @@
     TRUE (542 iterations)
     
     Information criterion:
-          IC   lambda 
-    1.045192 5.000000 
+         IC  lambda 
+    1.04519 5.00000 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -58,8 +58,8 @@
       TRUE (25 iterations)
       
       Information criterion:
-               IC      lambda 
-         7.537249 1000.000000 
+              IC     lambda 
+         7.53725 1000.00000 
       
       Residuals:
             Min        1Q    Median        3Q       Max 
@@ -99,8 +99,8 @@
     
     
     Information criterion:
-          IC 
-    1.045192 
+         IC 
+    1.04519 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -133,8 +133,8 @@
       
       
       Information criterion:
-            IC 
-      7.537249 
+           IC 
+      7.53725 
       
       Residuals:
             Min        1Q    Median        3Q       Max 

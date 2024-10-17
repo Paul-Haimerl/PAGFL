@@ -65,7 +65,7 @@ print.summary.pagfl <- function(x, ...) {
   cat(x$convergence$convergence, paste0("(", x$convergence$iter, " iterations)\n"))
   cat("\nInformation criterion:\n")
   ic_vec <- c(IC = x$IC$IC, lambda = x$IC$lambda)
-  print(ic_vec)
+  print(round(ic_vec, 5))
   cat("\nResiduals:\n")
   resid_vec <- x$residuals
   quantile_vec <- round(stats::quantile(resid_vec, probs = c(0, .25, .5, .75, 1)), 5)

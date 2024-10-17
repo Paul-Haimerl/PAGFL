@@ -62,7 +62,7 @@ print.summary.gplm <- function(x, ...) {
   }
   cat(paste0("\n", balanced, " panel: N = ", N, ", T = ", t_range, ", obs = ", length(x$residuals), "\n\n"))
   cat("\nInformation criterion:\n")
-  print(c(IC = x$IC$IC))
+  print(round(c(IC = x$IC$IC), 5))
   cat("\nResiduals:\n")
   resid_vec <- x$residuals
   quantile_vec <- round(stats::quantile(resid_vec, probs = c(0, .25, .5, .75, 1)), 5)
