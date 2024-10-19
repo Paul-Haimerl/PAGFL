@@ -66,7 +66,7 @@ $$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$ with $\cu
 To execute the PAGFL procedure, pass the dependent and independent variables, the number of time periods, and a penalization parameter $\lambda$.
 
 ```{r}
-estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20)
+estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20, verbose = F)
 summary(estim)
 ```
 
@@ -96,7 +96,7 @@ Furthermore, it is also possible to supply a `data.frame` with named variables a
 colnames(data)[-1] <- c("a", "b")
 
 lambda_set <- exp(log(10) * seq(log10(1e-4), log10(10), length.out = 10))
-estim_set <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = lambda_set)
+estim_set <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = lambda_set, verbose = F)
 summary(estim_set)
 ```
 
@@ -116,7 +116,7 @@ data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z need to be passed
-estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3, verbose = F)
 summary(estim_endo)
 ```
 
@@ -133,7 +133,7 @@ n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
 tv_data <- tv_sim$data
 
-tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5)
+tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5, verbose = F)
 summary(tv_estim)
 ```
 
@@ -164,7 +164,7 @@ tv_data$t_index <- rep(1:n_periods, N)
 # Delete some observations
 tv_data <- tv_data[delete_index, ]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5)
+tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5, verbose = F)
 summary(tv_estim_unbalanced)
 ```
 
