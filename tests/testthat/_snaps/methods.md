@@ -40,7 +40,7 @@
     Group 3  0.22479  1.54219
     
     Residual standard error: 0.99552 on 2978 degrees of freedom
-    Mean squared error 0.9838
+    Mean squared error: 0.9838
     Multiple R-squared: 0.91956, Adjusted R-squared: 0.91899 
 
 ---
@@ -72,7 +72,7 @@
       Group 1 -2.08433 0.67843
       
       Residual standard error: 2.75179 on 2976 degrees of freedom
-      Mean squared error 7.51678
+      Mean squared error: 7.51678
       Multiple R-squared: 0.38579, Adjusted R-squared: 0.38146 
 
 # S3 grouped_plm
@@ -117,7 +117,7 @@
     Group 3  0.22479  1.54219
     
     Residual standard error: 0.99552 on 2978 degrees of freedom
-    Mean squared error 0.9838
+    Mean squared error: 0.9838
     Multiple R-squared: 0.91956, Adjusted R-squared: 0.91899 
 
 ---
@@ -147,7 +147,7 @@
       Group 1 -2.08433 0.67843
       
       Residual standard error: 2.75179 on 2976 degrees of freedom
-      Mean squared error 7.51678
+      Mean squared error: 7.51678
       Multiple R-squared: 0.38579, Adjusted R-squared: 0.38146 
 
 # S3 tv_pagfl
@@ -183,7 +183,7 @@
      1  1  2  3  4  5  5  3  5  3 
     
     Residual standard error: 1.02363 on 980 degrees of freedom
-    Mean squared error 1.02686
+    Mean squared error: 1.02686
     Multiple R-squared: 0.81416, Adjusted R-squared: 0.81055 
 
 # S3 grouped_tv_plm
@@ -219,7 +219,7 @@
      1  1  2  3  1  2  2  3  2  3 
     
     Residual standard error: 1.03669 on 980 degrees of freedom
-    Mean squared error 1.05323
+    Mean squared error: 1.05323
     Multiple R-squared: 0.80939, Adjusted R-squared: 0.80569 
 
 # S3 tv_pagfl const coef unbalanced
@@ -251,7 +251,7 @@
     Group 2 -0.06506
     
     Residual standard error: 1.05644 on 689 degrees of freedom
-    Mean squared error 1.08306
+    Mean squared error: 1.08306
     Multiple R-squared: 0.79851, Adjusted R-squared: 0.79266 
 
 ---
@@ -293,7 +293,7 @@
     Group 3  0.12088
     
     Residual standard error: 1.01522 on 689 degrees of freedom
-    Mean squared error 1.00019
+    Mean squared error: 1.00019
     Multiple R-squared: 0.81393, Adjusted R-squared: 0.80853 
 
 ---

@@ -80,7 +80,7 @@ print.summary.tv_gplm <- function(x, ...) {
     print(round(x$coefficients$const, 5))
   }
   cat("\nResidual standard error:", round(x$r.se, 5), "on", x$r.df, "degrees of freedom\n")
-  cat("Mean squared error", round(x$IC$msr, 5))
+  cat("Mean squared error:", round(x$IC$msr, 5))
   cat("\nMultiple R-squared:", paste0(round(x$r.squared, 5), ","), "Adjusted R-squared:", round(x$adj.r.squared, 5), "\n")
   # Plot of the functional coefficient
   p <- dim(x$coefficients$tv)[2]
