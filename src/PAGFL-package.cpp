@@ -1188,7 +1188,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
 }
 
 // Compute the BIC IC
-Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uvec &groups, arma::vec &y_tilde, arma::mat &X_tilde, const double &rho, const unsigned int &N, arma::uvec &i_index)
+Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uvec &groups, arma::vec &y_tilde, arma::mat &X_tilde, const double &rho, const unsigned int &N, arma::uvec &i_index, const bool &fit_log)
 {
     // Compute the penalty term
     int p = alpha_hat.n_cols;
@@ -1219,7 +1219,13 @@ Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uve
     float msr = msr_sum / y_tilde.n_elem;
 
     // Construct the IC
-    double IC = msr + penalty;
+    double IC;
+    if (fit_log) {
+      IC = log(msr) + penalty;
+    } else {
+      IC = msr + penalty;
+    }
+
     Rcpp::List output = Rcpp::List::create(
         Rcpp::Named("IC") = IC,
         Rcpp::Named("fitted") = fit,
@@ -1311,7 +1317,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
         // Estimate
         estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
         // Compute the Information criterion
-        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, X_tilde, rho, N, i_index);
+        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, X_tilde, rho, N, i_index, FALSE);
         output = Rcpp::List::create(
             Rcpp::Named("estimOutput") = estimOutput,
             Rcpp::Named("IC") = IC_list);
@@ -1477,7 +1483,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
         // Estimate
         estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
         // Compute the Information Criterion
-        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index);
+        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index, TRUE);
         output = Rcpp::List::create(
             Rcpp::Named("estimOutput") = estimOutput,
             Rcpp::Named("IC") = IC_list);
@@ -1626,7 +1632,7 @@ Rcpp::List tv_pagfl_oracle_routine(arma::vec &y, arma::mat &X, arma::mat &X_cons
     // Compute the IC               //
     //------------------------------//
 
-    Rcpp::List IC_list = IC(n_groups, xi_mat_vec, groups, y_tilde, Z_tilde, rho, N, i_index);
+    Rcpp::List IC_list = IC(n_groups, xi_mat_vec, groups, y_tilde, Z_tilde, rho, N, i_index, TRUE);
 
     //------------------------------//
     // Output                       //
@@ -1686,7 +1692,7 @@ Rcpp::List pagfl_oracle_routine(arma::vec &y, arma::mat &X, const arma::uvec &gr
     // Compute the IC               //
     //------------------------------//
 
-    Rcpp::List IC_list = IC(n_groups, alpha_mat, groups, y_tilde, X_tilde, rho, N, i_index);
+    Rcpp::List IC_list = IC(n_groups, alpha_mat, groups, y_tilde, X_tilde, rho, N, i_index, FALSE);
 
     //------------------------------//
     // Output                       //

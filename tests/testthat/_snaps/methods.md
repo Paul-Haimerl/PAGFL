@@ -172,7 +172,7 @@
     
     Information criterion:
          IC  lambda 
-    1.46375 7.00000 
+    0.46339 7.00000 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -208,7 +208,7 @@
     
     Information criterion:
          IC 
-    1.31536 
+    0.31399 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -235,7 +235,7 @@
     
     Information criterion:
           IC   lambda 
-     1.27529 25.00000 
+     0.27202 25.00000 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -276,7 +276,7 @@
     
     Information criterion:
          IC 
-    1.28854 
+    0.28854 
     
     Residuals:
          Min       1Q   Median       3Q      Max 

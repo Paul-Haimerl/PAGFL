@@ -180,7 +180,7 @@ The package is still under active development. Future versions are planned to in
 
 You are not a R-user? Worry not - An equivalent Python library is in the works.
 
-Please feel free to reach out if you have any further suggestions.
+Feel free to reach out if you have any suggestions or questions.
 
 ## References
 

@@ -6,6 +6,7 @@
 * Changed x-axis label in the plot produced by calling `summary()` of a `tvpagfl` object
 * Bugfix in the plot produced by calling `fitted()` and passing a character time-index variable
 * Added the current algorithm iteration and tuning parameter as a progress counter to the console if option `verbose` is selected
+* Changed the IC selecting the best fitting tuning parameter for the `tv_pagfl` and `grouped_tv_plm` procedures to include the logarithmic mean squared error as the fitness term
 
 # PAGFL 1.1.1
 

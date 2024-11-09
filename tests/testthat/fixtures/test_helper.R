@@ -43,7 +43,7 @@ check_tv_pagfl <- function(estim, groups_0, alpha_0) {
   expect_equal(estim$groups$groups, groups_0, ignore_attr = TRUE)
   expect_equal(estim$groups$n_groups, max(groups_0), ignore_attr = TRUE)
   expect_equal(estim$coefficients$tv[20:80, 2, ], alpha_0[20:80, 2, ], ignore_attr = TRUE, tolerance = 0.1)
-  expect_equal(round(estim$IC$IC, 6), 1.315359)
+  expect_equal(round(estim$IC$IC, 6), 0.313991)
   expect_equal(round(estim$IC$msr, 6), 1.053228)
   resid_0 <- readRDS(test_path("fixtures", "tv_pagfl_resid.rds"))
   expect_equal(estim$residuals, resid_0)
