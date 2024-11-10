@@ -40,7 +40,7 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
-The stable version (1.1.1) is available on CRAN:
+The stable version (1.1.2) is available on CRAN:
 
     install.packages("PAGFL")
 
@@ -110,7 +110,7 @@ summary(estim)
 #> Group 2 -0.49489 -1.23534
 #> 
 #> Residual standard error: 1.15012 on 2978 degrees of freedom
-#> Mean squared error 1.31307
+#> Mean squared error: 1.31307
 #> Multiple R-squared: 0.65845, Adjusted R-squared: 0.65605
 ```
 
@@ -193,7 +193,7 @@ summary(estim_set)
 #> Group 3  0.24172  1.61613
 #> 
 #> Residual standard error: 1.03695 on 2978 degrees of freedom
-#> Mean squared error 1.06738
+#> Mean squared error: 1.06738
 #> Multiple R-squared: 0.72236, Adjusted R-squared: 0.7204
 ```
 
@@ -253,7 +253,7 @@ summary(estim_endo)
 #> Group 3  1.60547 -1.43718
 #> 
 #> Residual standard error: 1.38812 on 3958 degrees of freedom
-#> Mean squared error 1.91621
+#> Mean squared error: 1.91621
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
@@ -294,7 +294,7 @@ summary(tv_estim)
 #> 
 #> Information criterion:
 #>      IC  lambda 
-#> 1.16747 5.00000 
+#> 0.16648 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
@@ -305,7 +305,7 @@ summary(tv_estim)
 #>  1  1  1  2  2  2  1  3  3  3  2  2  3  1  3  1  2  3  2  3 
 #> 
 #> Residual standard error: 1.02901 on 1974 degrees of freedom
-#> Mean squared error 1.04509
+#> Mean squared error: 1.04509
 #> Multiple R-squared: 0.74213, Adjusted R-squared: 0.73886
 ```
 
@@ -368,8 +368,8 @@ summary(tv_estim_unbalanced)
 #> TRUE (950 iterations)
 #> 
 #> Information criterion:
-#>     IC lambda 
-#> 1.1915 5.0000 
+#>      IC  lambda 
+#> 0.18921 5.00000 
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
@@ -380,7 +380,7 @@ summary(tv_estim_unbalanced)
 #>  1  1  1  2  2  2  1  2  3  3  2  2  3  1  3  1  2  3  2  2 
 #> 
 #> Residual standard error: 1.04387 on 1353 degrees of freedom
-#> Mean squared error 1.06912
+#> Mean squared error: 1.06912
 #> Multiple R-squared: 0.73683, Adjusted R-squared: 0.73197
 ```
 
@@ -404,7 +404,7 @@ planned to include
 You are not a R-user? Worry not - An equivalent Python library is in the
 works.
 
-Please feel free to reach out if you have any further suggestions.
+Feel free to reach out if you have any suggestions or questions.
 
 ## References
 

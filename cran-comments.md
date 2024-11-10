@@ -18,4 +18,4 @@
 
 ## Unit-test coverage
 
-97%
+96%
