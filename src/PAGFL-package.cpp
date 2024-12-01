@@ -1,6 +1,7 @@
 #define ARMA_64BIT_WORD 1
 #include <RcppArmadillo.h>
 #include <RcppParallel.h>
+#include <RcppThread.h>
 #include <tuple>
 using namespace Rcpp;
 using namespace arma;
@@ -8,6 +9,7 @@ using namespace RcppParallel;
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppParallel)]]
 // [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::depends(RcppThread)]]
 
 arma::vec bspline_basis(arma::vec &x, const arma::vec &knot_vec, const unsigned int &d, const unsigned int &indx)
 {
@@ -305,14 +307,6 @@ arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const ar
         }
     }
     return delta;
-}
-
-// Checks for convergence
-bool stoppingCrit(const arma::vec &resid, const double &tol)
-{
-    // Check if the estimates have sufficiently converged
-    bool result = arma::norm(resid, "fro") < tol;
-    return result;
 }
 
 // Constructs  a block diagonal matrix from a vector of matrices
@@ -1084,7 +1078,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 }
 
 // PAGFL routine
-Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose, const unsigned int &lambda_num, const unsigned int &n_lambda)
+Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1101,20 +1095,21 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
         lambda_star = std::pow(n_periods, 2) * lambda / (2 * N);
     }
     arma::vec ada_weights = omega * lambda_star / varrho;
-    arma::vec resid, v_new, beta;
     arma::vec delta = delta_ini;
+    unsigned int iter = 0;
+    unsigned int convergence_perc_out_old = 0;
+    arma::vec resid, v_new, beta;
+    double resid_norm;
+    bool convergence_ind;
+    unsigned int progress_increment, convergence_perc_out, convergence_perc;
+    RcppThread::ProgressBar progress_bar(10000, 1);
 
     //------------------------------//
     // Run the algorithm            //
     //------------------------------//
 
-    unsigned int iter = 0;
     for (unsigned int i = 0; i < max_iter; i++)
     {
-        if (verbose)
-        {
-          Rcout << "\r" << "Lambda: " << lambda << " (" << lambda_num << "/" << n_lambda << ")" << " - Iteration: " << i + 1 << "/" << max_iter << std::flush;
-        }
         // Update the ...
         // parameter estimates (sec. 5.1/ 5.2 step 2a)
         beta = getBeta(invXcovY, invXcov, VarLambdat, varrho, v_old, delta);
@@ -1124,15 +1119,29 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
         resid = Lambda * beta - delta;
         v_new = v_old + varrho * resid;
         // Check for convergence (step 2d)
-        iter++;
-        if (stoppingCrit(resid, tol_convergence))
+        resid_norm = arma::norm(resid, "fro");
+        convergence_perc = tol_convergence / resid_norm;
+        if (verbose)
         {
-            break;
+          convergence_perc_out = std::floor(convergence_perc * 10000);
+          convergence_perc_out = (convergence_perc_out > 10000) ? 10000 : convergence_perc_out;
+
+          if (convergence_perc_out > convergence_perc_out_old)
+          {
+            progress_increment = convergence_perc_out - convergence_perc_out_old;
+            for (unsigned int a = 0; a < progress_increment; a++)
+            {
+              progress_bar++;
+            }
+          }
+          convergence_perc_out_old = convergence_perc_out;
         }
+        iter++;
+        convergence_ind = resid_norm < tol_convergence;
+
+        if (convergence_ind) break;
         v_old = v_new;
     }
-    // Create an indicator whether convergence was achieved (also possibly on the final iteration)
-    bool convergence = stoppingCrit(resid, tol_convergence);
 
     //------------------------------//
     // Pull the grouping            //
@@ -1183,7 +1192,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
         Rcpp::Named("K_hat") = K_hat,
         Rcpp::Named("groups_hat") = groups_hat.t(),
         Rcpp::Named("iter") = iter,
-        Rcpp::Named("convergence") = convergence);
+        Rcpp::Named("convergence") = convergence_ind);
     return output;
 }
 
@@ -1220,10 +1229,13 @@ Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uve
 
     // Construct the IC
     double IC;
-    if (fit_log) {
-      IC = log(msr) + penalty;
-    } else {
-      IC = msr + penalty;
+    if (fit_log)
+    {
+        IC = log(msr) + penalty;
+    }
+    else
+    {
+        IC = msr + penalty;
     }
 
     Rcpp::List output = Rcpp::List::create(
@@ -1312,10 +1324,9 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
-      // Clear the line
-      if (verbose)  Rcout << "\r" << std::string(80, ' ') << "\r";
+      if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
         // Estimate
-        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
+        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
         // Compute the Information criterion
         IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, X_tilde, rho, N, i_index, FALSE);
         output = Rcpp::List::create(
@@ -1327,7 +1338,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
 }
 
 // Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose, const unsigned int &lambda_num, const unsigned int &n_lambda)
+Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1337,19 +1348,20 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
     arma::vec delta = delta_ini;
     float lambda_star = n_periods * lambda / (2 * N);
     arma::vec ada_weights = omega * lambda_star / varrho;
+    unsigned int iter = 0;
+    unsigned int convergence_perc_out_old = 0;
+    arma::vec resid, v_new, pi;
+    double resid_norm;
+    bool convergence_ind;
+    unsigned int progress_increment, convergence_perc_out, convergence_perc;
+    RcppThread::ProgressBar progress_bar(10000, 1);
 
     //------------------------------//
     // Run the algorithm            //
     //------------------------------//
 
-    arma::vec resid, v_new, pi;
-    unsigned int iter = 0;
     for (unsigned int i = 0; i < max_iter; i++)
     {
-        if (verbose)
-        {
-            Rcout << "\r" << "Lambda: " << lambda << " (" << lambda_num << "/" << n_lambda << ")" << " - Iteration: " << i + 1 << "/" << max_iter << std::flush;
-        }
         // Update the ...
         // parameter estimates (step 2a)
         pi = getBeta(invZcovY, invZcov, VarLambdat, varrho, v_old, delta);
@@ -1359,16 +1371,28 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
         resid = Lambda * pi - delta;
         v_new = v_old + varrho * resid;
         // Check for convergence (step 2d)
-        iter++;
-        if (stoppingCrit(resid, tol_convergence))
+        resid_norm = arma::norm(resid, "fro");
+        convergence_perc = tol_convergence / resid_norm;
+        if (verbose)
         {
-            break;
+          convergence_perc_out = std::floor(convergence_perc * 10000);
+          convergence_perc_out = (convergence_perc_out > 10000) ? 10000 : convergence_perc_out;
+
+          if (convergence_perc_out > convergence_perc_out_old)
+          {
+            progress_increment = convergence_perc_out - convergence_perc_out_old;
+            for (unsigned int a = 0; a < progress_increment; a++)
+            {
+              progress_bar++;
+            }
+          }
+          convergence_perc_out_old = convergence_perc_out;
         }
+        iter++;
+        convergence_ind = resid_norm < tol_convergence;
+        if (convergence_ind) break;
         v_old = v_new;
     }
-
-    // Create an indicator whether convergence was achieved (also possibly on the final iteration)
-    bool convergence = stoppingCrit(resid, tol_convergence);
 
     //------------------------------//
     // Pull the grouping            //
@@ -1405,7 +1429,7 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
         Rcpp::Named("K_hat") = K_hat,
         Rcpp::Named("groups_hat") = groups_hat.t(),
         Rcpp::Named("iter") = iter,
-        Rcpp::Named("convergence") = convergence);
+        Rcpp::Named("convergence") = convergence_ind);
     return output;
 }
 
@@ -1478,10 +1502,9 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
-      // Clear the line
-      if (verbose)  Rcout << "\r" << std::string(80, ' ') << "\r";
+      if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
         // Estimate
-        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose, l + 1, lambda_vec.n_elem);
+        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
         // Compute the Information Criterion
         IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index, TRUE);
         output = Rcpp::List::create(
@@ -1489,7 +1512,6 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
             Rcpp::Named("IC") = IC_list);
         lambdalist[l] = output;
     }
-
     return lambdalist;
 }
 
