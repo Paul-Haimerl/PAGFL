@@ -31,7 +31,7 @@ that, we extend the `PAGFL` to time-varying functional coefficients.
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL` (1.1.2)
+Always stay up-to-date with the development version of `PAGFL` (1.1.3)
 from [GitHub](https://github.com/):
 
 ``` r

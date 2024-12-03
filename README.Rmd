@@ -30,7 +30,7 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL` (1.1.2) from [GitHub](https://github.com/):
+Always stay up-to-date with the development version of `PAGFL` (1.1.3) from [GitHub](https://github.com/):
 
 ```{r message=FALSE, warning=FALSE}
 # install.packages("devtools")
