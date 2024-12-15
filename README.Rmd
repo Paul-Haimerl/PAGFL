@@ -124,7 +124,7 @@ Furthermore, `pagfl` lets you select a minimum group size, adjust the efficiency
 
 ## The Time-varying PAGFL
 
-The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with the time-varying coefficients $\beta_i (t/T)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$. Following Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
+The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with the time-varying coefficients $\beta_i (t/T)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$. Following Huang et al. ([2004](https://www.jstor.org/stable/24307415)) and Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
 
 ```{r}
 # Simulate a time-varying panel with a trend and a group pattern
@@ -184,10 +184,10 @@ Feel free to reach out if you have any suggestions or questions.
 
 ## References
 
--   Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. DOI: [10.1093/restud/rdv007](https://doi.org/10.1093/restud/rdv007)
+-   Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030. [doi.org/10.1093/restud/rdv007](https://doi.org/10.1093/restud/rdv007)
 
--   Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. *Journal of Econometrics*, 235(2), 1464-1482. DOI: [10.1016/j.jeconom.2022.12.002](https://doi.org/10.1016/j.jeconom.2022.12.002)
+-   Huang, J. Z., Wu, C. O., & Zhou, L. (2004). Polynomial spline estimation and inference for varying coefficient models with longitudinal data. Statistica Sinica, 763-788. [jstor.org/stable/24307415](https://www.jstor.org/stable/24307415)
 
--   Schumaker, L. (2007). Spline functions: basic theory. *Cambridge university press*. DOI: [10.1017/CBO9780511618994](https://doi.org/10.1017/CBO9780511618994)
+-   Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. *Journal of Econometrics*, 235(2), 1464-1482. [doi.org/10.1016/j.jeconom.2022.12.002](https://doi.org/10.1016/j.jeconom.2022.12.002)
 
--   Su, L., Wang, X., & Jin, S. (2019). Sieve estimation of time-varying panel data models with latent structures. *Journal of Business & Economic Statistics*, 37(2), 334-349. DOI: [10.1080/07350015.2017.1340299](https://doi.org/10.1080/07350015.2017.1340299)
+-   Su, L., Wang, X., & Jin, S. (2019). Sieve estimation of time-varying panel data models with latent structures. *Journal of Business & Economic Statistics*, 37(2), 334-349. [doi.org/10.1080/07350015.2017.1340299](https://doi.org/10.1080/07350015.2017.1340299)
