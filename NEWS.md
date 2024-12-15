@@ -1,6 +1,9 @@
 # PAGFL 1.1.3 (development version)
 
 * Added a progress bar displaying the percentage of convergence to `pagfl` and `tv_pagfl` if `verbose` is selected
+* Slight changes in the formatting of the `print` method for `summary` of `pagfl` and `grouped_plm` objects
+* Fix of missing regressor name in the output of `pagfl` and `grouped_plm` when having a single regressor and passing an empty formula
+* Deprecation of `DGP` argument in `sim_tv_DGP`
 
 # PAGFL 1.1.2 (stable version)
 

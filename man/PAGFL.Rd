@@ -154,7 +154,8 @@ i_index <- rep(1:20, each = 80)
 t_index <- rep(1:80, 20)
 df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
 estim <- pagfl(
-  y ~ ., data = df, index = c("i_index", "t_index"), lambda = 0.5, method = "PLS"
+  y ~ .,
+  data = df, index = c("i_index", "t_index"), lambda = 0.5, method = "PLS"
 )
 summary(estim)
 }

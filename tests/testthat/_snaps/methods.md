@@ -97,10 +97,7 @@
     
     Balanced panel: N = 20, T = 150, obs = 3000
     
-    
-    Information criterion:
-         IC 
-    1.04519 
+    Information criterion: 1.04519 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -131,10 +128,7 @@
       
       Unbalanced panel: N = 20, T = 149-150, obs = 2998
       
-      
-      Information criterion:
-           IC 
-      7.53725 
+      Information criterion: 7.53725 
       
       Residuals:
             Min        1Q    Median        3Q       Max 
@@ -205,10 +199,7 @@
     
     Balanced panel: N = 10, T = 100, obs = 1000
     
-    
-    Information criterion:
-         IC 
-    0.31399 
+    Information criterion: 0.31399 
     
     Residuals:
          Min       1Q   Median       3Q      Max 
@@ -273,10 +264,7 @@
     
     Unbalanced panel: N = 10, T = 66-77, obs = 710
     
-    
-    Information criterion:
-         IC 
-    0.28854 
+    Information criterion: 0.28854 
     
     Residuals:
          Min       1Q   Median       3Q      Max 

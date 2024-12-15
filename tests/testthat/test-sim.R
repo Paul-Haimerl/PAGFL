@@ -76,13 +76,6 @@ test_that("tv_pagfl sim", {
   polynomial_coef <- aperm(apply(polynomial_coef, c(1, 3), function(x) x - mean(x) + 1 / d), c(2, 1, 3))
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, p = p, n_groups = K, d = d, locations = locations, scales = scales, polynomial_coef = polynomial_coef)
   check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
-  # Legacy DGP
-  expect_warning(sim <- sim_tv_DGP(DGP = 1, N = N, n_periods = n_periods, n_groups = K))
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = 1, K = K)
-  expect_warning(sim <- sim_tv_DGP(DGP = 2, N = N, n_periods = n_periods, n_groups = K))
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = 2, K = K)
-  expect_warning(sim <- sim_tv_DGP(DGP = 3, N = N, n_periods = n_periods, n_groups = K))
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = 1, K = K)
 })
 
 test_that("tv_pagfl sim input", {

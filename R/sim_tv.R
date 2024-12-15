@@ -20,12 +20,6 @@
 #' @param scales a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
 #' @param polynomial_coef a \eqn{p \times d \times K} array of coefficients for a the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
 #' @param sd_error standard deviation of the cross-sectional errors. Default is 1.
-#' @param DGP `r lifecycle::badge("deprecated")` the data generating process. Options are
-#' \describe{
-#'  \item{1}{generates a trend only.}
-#'  \item{2}{simulates a trend and an additional exogenous explanatory variable.}
-#'  \item{1}{draws a dynamic panel data model with one \eqn{AR} lag.}
-#' }
 #'
 #' @details
 #' The scalar dependent variable \eqn{y_{it}} is generated according to the following time-varying grouped panel data model
@@ -48,8 +42,9 @@
 #'
 #' @examples
 #' # Simulate a time-varying panel subject to a time trend and a group structure
-#' sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 1)
+#' sim <- sim_tv_DGP(N = 20, n_periods = 50, p = 1)
 #' y <- sim$y
+#' X <- sim$X
 #'
 #' @author Paul Haimerl
 #'
@@ -61,26 +56,12 @@
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
 #' \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 #' @export
-sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups = 3, d = 3, dynamic = FALSE, group_proportions = NULL, error_spec = "iid", locations = NULL, scales = NULL, polynomial_coef = NULL, sd_error = 1, DGP = lifecycle::deprecated()) {
+sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups = 3, d = 3, dynamic = FALSE, group_proportions = NULL, error_spec = "iid", locations = NULL, scales = NULL, polynomial_coef = NULL, sd_error = 1) {
   #------------------------------#
   #### Checks                 ####
   #------------------------------#
 
   error_spec <- match.arg(error_spec, c("iid", "AR"))
-  if (lifecycle::is_present(DGP)) {
-    lifecycle::deprecate_warn("1.1.0", "sim_tv_DGP(DGP)", "sim_tv_DGP(p)")
-    if (DGP == 1) {
-      intercept <- TRUE
-      p <- 1
-    } else if (DGP == 2) {
-      intercept <- TRUE
-      p <- 2
-    } else {
-      intercept <- FALSE
-      p <- 1
-      dynamic <- TRUE
-    }
-  }
 
   if (intercept) {
     p_star <- p
@@ -89,7 +70,6 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
     p_star <- p
   }
   if (dynamic) {
-    p_star <- p_star
     p <- p - 1
   }
   p <- max(p, 0)

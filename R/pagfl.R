@@ -70,7 +70,8 @@
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
 #' estim <- pagfl(
-#'   y ~ ., data = df, index = c("i_index", "t_index"), lambda = 0.5, method = "PLS"
+#'   y ~ .,
+#'   data = df, index = c("i_index", "t_index"), lambda = 0.5, method = "PLS"
 #' )
 #' summary(estim)
 #' @references
@@ -127,6 +128,7 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
     # If present, remove the intercept
     formula <- stats::update(formula, . ~ . - 1)
     X <- stats::model.matrix(formula, data)
+    regressor_names <- colnames(X)
   } else {
     # Remove the index variables if present
     if (is.null(index)) {
@@ -135,13 +137,15 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
       data_temp <- data[, !(colnames(data) %in% index)]
     }
     X <- stats::model.matrix(formula, data_temp)
+    regressor_names <- colnames(X)
     # If present, remove the intercept
-    X <- X[, apply(X, 2, stats::sd) != 0]
-    rm(data_temp)
+    intercept_index <- apply(X, 2, stats::sd) != 0
+    X <- X[, intercept_index]
+    regressor_names <- regressor_names[intercept_index]
+    rm(data_temp, intercept_index)
   }
   X <- as.matrix(X)
   y <- as.matrix(data[[all.vars(formula[[2]])]])
-  regressor_names <- colnames(X)
   # Build the final data set
   model_data <- as.data.frame(cbind(c(y), X))
   colnames(model_data)[1] <- all.vars(formula[[2]])

@@ -111,7 +111,7 @@ In case of an unbalanced panel data set, the earliest and latest available obser
 # Simulate a time-varying panel with a trend and a group pattern
 set.seed(1)
 sim <- sim_tv_DGP(N = 10, n_periods = 50, intercept = TRUE, p = 2)
-df <- data.frame(y = c(sim$y))
+df <- data.frame(y = c(sim$y), X = sim$X)
 groups <- sim$groups
 
 # Estimate the time-varying grouped panel data model

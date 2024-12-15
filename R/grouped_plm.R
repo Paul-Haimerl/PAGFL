@@ -43,6 +43,7 @@
 #'
 #' @examples
 #' # Simulate a panel with a group structure
+#' set.seed(1)
 #' sim <- sim_DGP(N = 20, n_periods = 80, p = 2, n_groups = 3)
 #' y <- sim$y
 #' X <- sim$X
@@ -108,6 +109,7 @@ grouped_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, m
     # If present, remove the intercept
     formula <- stats::update(formula, . ~ . - 1)
     X <- stats::model.matrix(formula, data)
+    regressor_names <- colnames(X)
   } else {
     # Remove the index variables if present
     if (is.null(index)) {
@@ -116,13 +118,15 @@ grouped_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, m
       data_temp <- data[, !(colnames(data) %in% index)]
     }
     X <- stats::model.matrix(formula, data_temp)
+    regressor_names <- colnames(X)
     # If present, remove the intercept
-    X <- X[, apply(X, 2, stats::sd) != 0]
-    rm(data_temp)
+    intercept_index <- apply(X, 2, stats::sd) != 0
+    X <- X[, intercept_index]
+    regressor_names <- regressor_names[intercept_index]
+    rm(data_temp, intercept_index)
   }
   X <- as.matrix(X)
   y <- as.matrix(data[[all.vars(formula[[2]])]])
-  regressor_names <- colnames(X)
   # Build the final data set
   model_data <- as.data.frame(cbind(c(y), X))
   colnames(model_data)[1] <- all.vars(formula[[2]])

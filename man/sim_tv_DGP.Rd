@@ -17,8 +17,7 @@ sim_tv_DGP(
   locations = NULL,
   scales = NULL,
   polynomial_coef = NULL,
-  sd_error = 1,
-  DGP = lifecycle::deprecated()
+  sd_error = 1
 )
 }
 \arguments{
@@ -52,13 +51,6 @@ Default is \code{"iid"}.}
 \item{polynomial_coef}{a \eqn{p \times d \times K} array of coefficients for a the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
 
 \item{sd_error}{standard deviation of the cross-sectional errors. Default is 1.}
-
-\item{DGP}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} the data generating process. Options are
-\describe{
-\item{1}{generates a trend only.}
-\item{2}{simulates a trend and an additional exogenous explanatory variable.}
-\item{1}{draws a dynamic panel data model with one \eqn{AR} lag.}
-}}
 }
 \value{
 A list holding
@@ -93,8 +85,9 @@ The final coefficient function follows as \eqn{\alpha_k (t/T) = 3 * F(t/T, locat
 }
 \examples{
 # Simulate a time-varying panel subject to a time trend and a group structure
-sim <- sim_tv_DGP(N = 20, n_periods = 50, intercept = TRUE, p = 1)
+sim <- sim_tv_DGP(N = 20, n_periods = 50, p = 1)
 y <- sim$y
+X <- sim$X
 
 }
 \author{

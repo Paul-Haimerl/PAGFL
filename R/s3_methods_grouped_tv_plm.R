@@ -61,9 +61,9 @@ print.summary.tv_gplm <- function(x, ...) {
     balanced <- "Unbalanced"
     t_range <- paste0(min_max_t, collapse = "-")
   }
-  cat(paste0("\n", balanced, " panel: N = ", N, ", T = ", t_range, ", obs = ", length(x$residuals), "\n\n"))
-  cat("\nInformation criterion:\n")
-  print(round(c(IC = x$IC$IC), 5))
+  cat(paste0("\n", balanced, " panel: N = ", N, ", T = ", t_range, ", obs = ", length(x$residuals), "\n"))
+  cat("\nInformation criterion: ")
+  cat(round(c(x$IC$IC), 5), "\n")
   cat("\nResiduals:\n")
   resid_vec <- x$residuals
   quantile_vec <- round(stats::quantile(resid_vec, probs = c(0, .25, .5, .75, 1)), 5)
