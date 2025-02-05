@@ -11,6 +11,7 @@ status](http://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/p
 [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
+
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data
@@ -37,29 +38,6 @@ from [GitHub](https://github.com/):
 ``` r
 # install.packages("devtools")
 devtools::install_github("Paul-Haimerl/PAGFL")
-#> 
-#> ── R CMD build ─────────────────────────────────────────────────────────────────
-#>       ✔  checking for file 'C:\Users\au772358\AppData\Local\Temp\Rtmpa0ILwA\remotes9f818152b581f\Paul-Haimerl-PAGFL-43d96e6/DESCRIPTION' (1s)
-#>       ─  preparing 'PAGFL': (606ms)
-#>    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
-#> ─  cleaning src
-#>       ─  checking for LF line-endings in source and make files and shell scripts (1.4s)
-#>   ─  checking for empty or unneeded directories
-#>      NB: this package now depends on R (>=        NB: this package now depends on R (>= 3.5.0)
-#>        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
-#>      serialize/load version 3 cannot be read in older versions of R.
-#>      File(s) containing such objects:
-#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
-#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_sim.rds'
-#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_resid.rds'
-#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
-#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim_smallNk.rds'
-#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
-#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
-#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
-#> ─  building 'PAGFL_1.1.3.tar.gz'
-#>      
-#> 
 library(PAGFL)
 ```
 
@@ -90,10 +68,10 @@ $G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
 [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
-`sim_DGP` also nests, among other, all DGPs employed in the simulation
+`sim_DGP()` also nests, among other, all DGPs employed in the simulation
 study of Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6). I refer
-to the documentation of `sim_DGP` or Mehrabani
+to the documentation of `sim_DGP()` or Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6) for more
 details.
 
@@ -104,10 +82,10 @@ variables, the number of time periods, and a penalization parameter
 $\lambda$.
 
 ``` r
-estim <- pagfl(y ~ X1 + X2, data = data, n_periods = 150, lambda = 20, verbose = F)
+estim <- pagfl(y ~ ., data = data, n_periods = 150, lambda = 20, verbose = F)
 summary(estim)
 #> Call:
-#> pagfl(formula = y ~ X1 + X2, data = data, n_periods = 150, lambda = 20, 
+#> pagfl(formula = y ~ ., data = data, n_periods = 150, lambda = 20, 
 #>     verbose = F)
 #> 
 #> Balanced panel: N = 20, T = 150, obs = 3000
@@ -157,30 +135,32 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-Furthermore, `pagfl` objects can be used in a variety of useful generic
-methods like `summary()`, `fitted()`, `resid()`, `df.residual`,
-`formula`, and `coef()`.
+> \[!TIP\] `pagfl` objects can be used in a variety of useful generic
+> methods like `summary()`, `fitted()`, `resid()`, `df.residual`,
+> `formula`, and `coef()`.
 
 ``` r
 estim_fit <- fitted(estim)
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="50%" />
 
-Selecting a $\lambda$ value a priori can be tricky. For instance, it
-seems like `lambda = 20` is too high since the number of groups $K$ is
-underestimated. We suggest iterating over a comprehensive range of
-candidate values to trace out the correct model. To specify a suitable
-grid, create a logarithmic sequence ranging from 0 to a penalty
-parameter that induces an entirely homogeneous model (i.e.,
-$\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in
-place of any specific value, and a BIC IC selects the best-fitting
-parameter.
+> \[!IMPORTANT\] Selecting a $\lambda$ value a priori can be tricky. For
+> instance, it seems like `lambda = 20` is too high since the number of
+> groups $K$ is underestimated.
+
+We suggest iterating over a comprehensive range of candidate values to
+trace out the correct model. To specify a suitable grid, create a
+logarithmic sequence ranging from 0 to a penalty parameter that induces
+an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting
+$\lambda$ grid vector can be passed in place of any specific value, and
+a BIC IC selects the best-fitting parameter.
 
 Furthermore, it is also possible to supply a `data.frame` with named
 variables and choose a specific formula that selects the variables in
-that `data.frame`. If the explanatory variables in `X` are named, these
-names also appear in the output.
+that `data.frame`, just like in the base `lm()` function. If the
+explanatory variables in `X` are named, these names also appear in the
+output.
 
 ``` r
 colnames(data)[-1] <- c("a", "b")
@@ -221,7 +201,7 @@ summary(estim_set)
 ```
 
 When, as above, the specific estimation method is left unspecified,
-`pagfl` defaults to penalized Least Squares (*PLS*) `method = 'PLS'`
+`pagfl()` defaults to penalized Least Squares (*PLS*) `method = 'PLS'`
 (Mehrabani, [2023](https://doi.org/10.1016/j.jeconom.2022.12.002),
 sec. 2.2). *PLS* is very efficient but requires weakly exogenous
 regressors. However, even endogenous predictors can be accounted for by
@@ -280,17 +260,17 @@ summary(estim_endo)
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
-Furthermore, `pagfl` lets you select a minimum group size, adjust the
-efficiency vs. accuracy trade-off of the iterative estimation algorithm,
-and modify a list of further settings. Visit the documentation
-`?pagfl()` for more information.
+> \[!TIP\] `pagfl()` lets you select a minimum group size, adjust the
+> efficiency vs. accuracy trade-off of the iterative estimation
+> algorithm, and modify a list of further settings. Visit the
+> documentation `?pagfl()` for more information.
 
 ## The Time-varying PAGFL
 
 The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
-which generate and estimate grouped panel data models with the
-time-varying coefficients $\beta_i (t/T)$. Just like in the static case,
-the functional coefficients admit to a group structure
+which generate and estimate grouped panel data models with time-varying
+coefficients $\beta_i (t/T)$. Just like in the static case, the
+functional coefficients admit to a group structure
 $\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$.
 Following Huang et al. ([2004](https://www.jstor.org/stable/24307415))
 and Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)),
@@ -332,7 +312,7 @@ summary(tv_estim)
 #> Multiple R-squared: 0.74213, Adjusted R-squared: 0.73886
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="50%" />
 
 `tv_pagfl()` returns an object of class `tvpagfl`, which contains
 
@@ -357,8 +337,8 @@ summary(tv_estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-Again, `tvpagfl` objects have generic `summary()`, `fitted()`,
-`resid()`, `df.residual`, `formula`, and `coef()` methods.
+> \[!TIP\] Again, `tvpagfl` objects have generic `summary()`,
+> `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` methods.
 
 In empirical applications, it is commonplace to encounter unbalanced
 panel data sets. In such instances, time-varying coefficient functions
@@ -407,13 +387,54 @@ summary(tv_estim_unbalanced)
 #> Multiple R-squared: 0.73683, Adjusted R-squared: 0.73197
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="50%" />
 
-Furthermore, `tv_pagfl` lets you specify a lot more optionalities than
-shown here. For example, it is possible to adjust the polyomial degree
-and the number of interior knots in the spline basis system, or estimate
-a panel data model with a mix of time-varying and time-constant
-coefficients. See `?tv_pagfl()` for details.
+> \[!TIP\] `tv_pagfl()` lets you specify a lot more optionalities than
+> shown here. For example, it is possible to adjust the polyomial degree
+> and the number of interior knots in the spline basis system, or
+> estimate a panel data model with a mix of time-varying and
+> time-constant coefficients. See `?tv_pagfl()` for details.
+
+## Observing a Group Structure
+
+It may occur that the group structure is known and does not need to be
+estimated. In such instances, `grouped_plm()` and `grouped_tv_plm()`
+make it easy to estimate a (time-varying) linear panel data model given
+an observed grouping.
+
+``` r
+groups <- sim$groups
+estim_oracle <- grouped_plm(y ~ ., data = data, n_periods = 150, groups = groups, method = "PLS")
+summary(estim_oracle)
+#> Call:
+#> grouped_plm(formula = y ~ ., data = data, groups = groups, n_periods = 150, 
+#>     method = "PLS")
+#> 
+#> Balanced panel: N = 20, T = 150, obs = 3000
+#> 
+#> Information criterion: 1.12877 
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.47858 -0.66283 -0.02688  0.72880  3.77812 
+#> 
+#> 3 groups:
+#>  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+#>  1  1  2  3  1  3  3  2  3  3  2  2  2  1  1  1  3  1  2  3 
+#> 
+#> Coefficients:
+#>                 a        b
+#> Group 1 -0.95114  1.61719
+#> Group 2 -0.49489 -1.23534
+#> Group 3  0.24172  1.61613
+#> 
+#> Residual standard error: 1.03695 on 2978 degrees of freedom
+#> Mean squared error: 1.06738
+#> Multiple R-squared: 0.72236, Adjusted R-squared: 0.7204
+```
+
+Besides not estimating the group structure, `grouped_plm()`
+(`grouped_tv_plm()`) behave identically to `pagfl()` (`tv_pagfl()`)
 
 ## Future Outlook
 
@@ -427,7 +448,8 @@ planned to include
 You are not a R-user? Worry not - An equivalent Python library is in the
 works.
 
-Feel free to reach out if you have any suggestions or questions.
+Feel free to [reach out](mailto:paul.haimerl@econ.au.dk) if you have any
+suggestions or questions.
 
 ## References
 
