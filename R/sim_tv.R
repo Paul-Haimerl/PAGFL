@@ -42,6 +42,7 @@
 #'
 #' @examples
 #' # Simulate a time-varying panel subject to a time trend and a group structure
+#' set.seed(1)
 #' sim <- sim_tv_DGP(N = 20, n_periods = 50, p = 1)
 #' y <- sim$y
 #' X <- sim$X

@@ -37,6 +37,29 @@ from [GitHub](https://github.com/):
 ``` r
 # install.packages("devtools")
 devtools::install_github("Paul-Haimerl/PAGFL")
+#> 
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>       ✔  checking for file 'C:\Users\au772358\AppData\Local\Temp\Rtmpa0ILwA\remotes9f818152b581f\Paul-Haimerl-PAGFL-43d96e6/DESCRIPTION' (1s)
+#>       ─  preparing 'PAGFL': (606ms)
+#>    checking DESCRIPTION meta-information ...  ✔  checking DESCRIPTION meta-information
+#> ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts (1.4s)
+#>   ─  checking for empty or unneeded directories
+#>      NB: this package now depends on R (>=        NB: this package now depends on R (>= 3.5.0)
+#>        WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+#>      serialize/load version 3 cannot be read in older versions of R.
+#>      File(s) containing such objects:
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim_smallNk.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
+#> ─  building 'PAGFL_1.1.3.tar.gz'
+#>      
+#> 
 library(PAGFL)
 ```
 

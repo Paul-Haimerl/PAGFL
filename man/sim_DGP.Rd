@@ -81,6 +81,7 @@ The function nests, among other, the DGPs employed in the simulation study of Me
 }
 \examples{
 # Simulate DGP 1 from Mehrabani (2023, sec. 6)
+set.seed(1)
 alpha_0_DGP1 <- matrix(c(0.4, 1, 1.6, 1.6, 1, 0.4), ncol = 2)
 DGP1 <- sim_DGP(
   N = 50, n_periods = 20, p = 2, n_groups = 3,

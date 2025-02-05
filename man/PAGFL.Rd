@@ -140,6 +140,7 @@ We recommend identifying a suitable \eqn{\lambda} parameter by passing a logarit
 }
 \examples{
 # Simulate a panel with a group structure
+set.seed(1)
 sim <- sim_DGP(N = 20, n_periods = 80, p = 2, n_groups = 3)
 y <- sim$y
 X <- sim$X
