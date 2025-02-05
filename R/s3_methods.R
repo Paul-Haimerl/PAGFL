@@ -164,13 +164,17 @@ gen_fit_plot_pagfl <- function(plot_df, y_name, col_map) {
     ggplot2::labs(colour = "") +
     ggplot2::theme(
       panel.grid.major = ggplot2::element_blank(),
-      panel.background = ggplot2::element_rect(colour = NA, fill = NA),
-      panel.border = ggplot2::element_rect(colour = "black", fill = NA),
       panel.grid.minor = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(colour = NA, fill = NA),
+      panel.border = ggplot2::element_blank(),
+      axis.line = ggplot2::element_line(colour = "black"),
+      axis.text = ggplot2::element_text(size = ggplot2::rel(1), colour = "black"),
+      axis.ticks.length = ggplot2::unit(6, "pt"),
       legend.position = "bottom",
-      strip.background = ggplot2::element_rect(colour = "#dcdcdc", fill = "#dcdcdc"),
-      strip.text = ggplot2::element_text(face = "bold"),
+      strip.background = ggplot2::element_rect(colour = NA, fill = NA),
+      strip.text = ggplot2::element_text(face = "bold", size = ggplot2::rel(1)),
       legend.margin = ggplot2::margin(t = -25),
-      legend.text = ggplot2::element_text(size = ggplot2::rel(1))
+      legend.title = ggplot2::element_text(colour = "black", size = ggplot2::rel(1)),
+      legend.text = ggplot2::element_text(size = ggplot2::rel(1), colour = "black")
     )
 }

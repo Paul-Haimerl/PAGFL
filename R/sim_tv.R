@@ -97,6 +97,9 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
     alpha_mat <- poly_fctn(coef_mat = polynomial_coef[, , k], n_periods = n_periods)
     alpha_array[, , k] <- alpha_mat + 3 * trend_mat_star
   }
+  if (dynamic) {
+    alpha_array[, 1, ] <- sweep(alpha_array[, 1, ], 2, apply(alpha_array[, 1, ], 2, function(x) max(abs(x)) + 1e-4), "/")
+  }
 
   #------------------------------#
   #### Simulate the groupings ####
@@ -125,17 +128,20 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
     u <- simAR(errorList = uList)
   }
   # Draw the fixed-effects
-  gamma <- rep(stats::rnorm(N), each = n_periods)
+  gamma <- stats::rnorm(N)
   # Generate the regressors
-  X <- matrix(stats::rnorm(N * p * n_periods), ncol = p)
-  if (intercept & p > 0) {
-    X <- cbind(rep(1, N * n_periods), X)
-  } else if (intercept) {
+  if (intercept & p == 0) {
     X <- as.matrix(rep(1, N * n_periods))
+  } else {
+    X <- matrix(stats::rnorm(N * p * n_periods), ncol = p)
+    if (intercept) {
+      X <- cbind(rep(1, N * n_periods), X)
+    }
   }
+
   # Construct the observations
   if (!dynamic) {
-    y <- rowSums(X * beta_mat) + u + .2 * gamma
+    y <- rowSums(X * beta_mat) + u + rep(gamma, each = n_periods)
   } else {
     y <- rep(0, n_periods * N)
     X_ar <- as.matrix(rep(0, n_periods * N))
@@ -147,19 +153,40 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
     }
     for (i in 1:N) {
       indx <- (i - 1) * n_periods + 1
+      # Initialize the first observation
       y[indx] <- u[indx]
       if (p > 0) {
         y[indx] <- y[indx] + sum(beta_mat[indx, -1] * X[indx, -1])
       }
+      # Iterate through the time series
       for (t in 1:(n_periods - 1)) {
         X[indx + t, 1] <- y[indx + t - 1]
-        y[indx + t] <- u[indx + t] + sum(X[indx + t, ] * beta_mat[indx + t, ])
+        y[indx + t] <- sum(X[indx + t, ] * beta_mat[indx + t, ]) + gamma[i] + u[indx + t]
       }
     }
-    y <- y + gamma
   }
   data <- data.frame(y = c(y), X)
   return(list(alpha = alpha_array, beta = beta_array, groups = groups, y = y, X = X, data = data))
+}
+
+# Logarithmic CDF as a time trend
+trend_fctn <- function(coef_mat, n_periods) {
+  trends <- apply(coef_mat, 1, function(coefs, n_periods) {
+    1 / (1 + exp(-(((1:n_periods) / n_periods) - coefs[1]) / coefs[2]))
+  }, n_periods = n_periods)
+  return(trends)
+}
+
+# Polynomial coefficient functions
+poly_fctn <- function(coef_mat, n_periods) {
+  if (!is.matrix(coef_mat)) coef_mat <- t(coef_mat)
+  d <- ncol(coef_mat)
+  beta_mat <- apply(coef_mat, 1, function(coefs, n_periods, d) {
+    beta <- rowSums(sapply(1:d, function(x, coefs, n_periods) {
+      coefs[x] * ((1:n_periods) / n_periods)^x
+    }, coefs, n_periods))
+  }, n_periods = n_periods, d = d)
+  return(beta_mat)
 }
 
 # Logarithmic CDF as a time trend

@@ -4,6 +4,8 @@
 * Slight changes in the formatting of the `print` method for `summary` of `pagfl` and `grouped_plm` objects
 * Fix of missing regressor name in the output of `pagfl` and `grouped_plm` when having a single regressor and passing an empty formula
 * Deprecation of `DGP` argument in `sim_tv_DGP`
+* Bugfix when passing a prescribed coefficient matrix and selecting `dynamic = TRUE` in `sim_DGP`
+* Bugfix to preclude explosive processes when selecting `dynamic = TRUE` in `sim_tv_DGP`
 
 # PAGFL 1.1.2 (stable version)
 
