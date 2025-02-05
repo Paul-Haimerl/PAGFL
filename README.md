@@ -135,7 +135,7 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> \[!TIP\] `pagfl` objects can be used in a variety of useful generic
+> [!TIP] `pagfl` objects can be used in a variety of useful generic
 > methods like `summary()`, `fitted()`, `resid()`, `df.residual`,
 > `formula`, and `coef()`.
 
@@ -145,7 +145,7 @@ estim_fit <- fitted(estim)
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="50%" />
 
-> \[!IMPORTANT\] Selecting a $\lambda$ value a priori can be tricky. For
+> [!IMPORTANT] Selecting a $\lambda$ value a priori can be tricky. For
 > instance, it seems like `lambda = 20` is too high since the number of
 > groups $K$ is underestimated.
 
@@ -260,7 +260,7 @@ summary(estim_endo)
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
-> \[!TIP\] `pagfl()` lets you select a minimum group size, adjust the
+> [!TIP] `pagfl()` lets you select a minimum group size, adjust the
 > efficiency vs. accuracy trade-off of the iterative estimation
 > algorithm, and modify a list of further settings. Visit the
 > documentation `?pagfl()` for more information.
@@ -337,7 +337,7 @@ summary(tv_estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> \[!TIP\] Again, `tvpagfl` objects have generic `summary()`,
+> [!TIP] Again, `tvpagfl` objects have generic `summary()`,
 > `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` methods.
 
 In empirical applications, it is commonplace to encounter unbalanced
@@ -389,7 +389,7 @@ summary(tv_estim_unbalanced)
 
 <img src="man/figures/README-unnamed-chunk-9-1.png" width="50%" />
 
-> \[!TIP\] `tv_pagfl()` lets you specify a lot more optionalities than
+> [!TIP] `tv_pagfl()` lets you specify a lot more optionalities than
 > shown here. For example, it is possible to adjust the polyomial degree
 > and the number of interior knots in the spline basis system, or
 > estimate a panel data model with a mix of time-varying and
