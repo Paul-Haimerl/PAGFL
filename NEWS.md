@@ -7,6 +7,7 @@
 * Bugfix when passing a prescribed coefficient matrix and selecting `dynamic = TRUE` in `sim_DGP`
 * Bugfix to preclude explosive processes when selecting `dynamic = TRUE` in `sim_tv_DGP`
 * Added seeds to all function examples
+* Support for RcppArmadillo 14.4.0
 
 # PAGFL 1.1.2 (stable version)
 

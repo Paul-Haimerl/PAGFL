@@ -8,8 +8,7 @@ output: github_document
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "50%"
+  fig.path = "man/figures/README-"
 )
 ```
 
@@ -29,7 +28,7 @@ The `PAGFL` package makes this powerful procedure easy to use. On top of that, w
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL` (1.1.3) from [GitHub](https://github.com/):
+Always stay up-to-date with the development version of `PAGFL` from [GitHub](https://github.com/):
 
 ```{r message=FALSE, warning=FALSE}
 # install.packages("devtools")
@@ -37,7 +36,7 @@ devtools::install_github("Paul-Haimerl/PAGFL")
 library(PAGFL)
 ```
 
-The stable version (1.1.2) is available on CRAN:
+The stable version (1.1.3) is available on CRAN:
 
 ```         
 install.packages("PAGFL")
@@ -84,7 +83,7 @@ summary(estim)
 > [!TIP] 
 > `pagfl` objects can be used in a variety of useful generic methods like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
 
-```{r}
+```{r, fig.width = 7, fig.height = 5}
 estim_fit <- fitted(estim)
 ```
 
@@ -130,7 +129,7 @@ summary(estim_endo)
 
 The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with time-varying coefficients $\beta_i (t/T)$. Just like in the static case, the functional coefficients admit to a group structure $\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$. Following Huang et al. ([2004](https://www.jstor.org/stable/24307415)) and Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)), the time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*).
 
-```{r}
+```{r, fig.width = 9, fig.height = 4}
 # Simulate a time-varying panel with a trend and a group pattern
 N <- 20
 n_periods <- 100
@@ -160,7 +159,7 @@ In empirical applications, it is commonplace to encounter unbalanced panel data 
 
 Lets delete 30% of observations, add indicator variables, and run `tv_pagfl()` again.
 
-```{r}
+```{r, fig.width = 9, fig.height = 4}
 # Draw some observations to be omitted
 delete_index <- as.logical(rbinom(n = N * n_periods, prob = 0.7, size = 1))
 # Construct cross-sectional and time indicator variables

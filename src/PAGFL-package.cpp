@@ -1572,7 +1572,7 @@ arma::vec fitMeasures(unsigned int &N, const unsigned int &k, arma::vec &y, arma
     {
         y_tilde = fdIndVec(y, N, i_index);
     }
-    arma::vec ssq; // could also brace-initialise ssq{arma::sum(...)} 
+    arma::vec ssq;
     ssq = arma::sum(arma::pow(y_tilde, 2));
     unsigned int n = y_tilde.n_elem;
     double r_df = n - N - k;
