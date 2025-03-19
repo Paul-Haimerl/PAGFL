@@ -1,4 +1,4 @@
-# PAGFL 1.1.3 (development version)
+# PAGFL 1.1.3 (stable version)
 
 * Added a progress bar displaying the percentage of convergence to `pagfl` and `tv_pagfl` if `verbose` is selected
 * Slight changes in the formatting of the `print` method for `summary` of `pagfl` and `grouped_plm` objects
@@ -9,7 +9,7 @@
 * Added seeds to all function examples
 * Support for RcppArmadillo 14.4.0
 
-# PAGFL 1.1.2 (stable version)
+# PAGFL 1.1.2
 
 * Fixed backwards compatibility issue with the generic functions `fitted` and `resid`
 * Bugfix when passing index variables and an empty formula `y ~ .` for `tv_pagfl` and `grouped_tv_plm`
