@@ -17,22 +17,23 @@ status](https://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/
 Unobservable group structures are a common challenge in panel data
 analysis. Disregarding group-level heterogeneity can introduce bias.
 Conversely, estimating individual coefficients for each cross-sectional
-unit is inefficient and may lead to high uncertainty.
+unit is inefficient and may lead to high uncertainty. Furthermore,
+neglecting time-variance in slope coefficients can lead to inconsistent
+and misleading results, even in large panels.
 
-This package efficiently addresses the issue of unobservable group
-structures by implementing the pairwise adaptive group fused Lasso
-(*PAGFL*) by Mehrabani
-([2023](https://doi.org/10.1016/j.jeconom.2022.12.002)). *PAGFL* is a
+This package efficiently addresses these issues by implementing the
+pairwise adaptive group fused Lasso (*PAGFL*) by Mehrabani
+([2023](https://doi.org/10.1016/j.jeconom.2022.12.002)) and the
+*time-varying PAGFL* by Haimerl et
+al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)). *PAGFL* is a
 regularizer that identifies latent group structures and estimates
-group-specific coefficients in a single step. On top of that, we extend
-the PAGFL to time-varying functional coefficients.
+group-specific (time-varying) coefficients in a single step.
 
-The `PAGFL` package makes this powerful procedure easy to use. On top of
-that, we extend the `PAGFL` to time-varying functional coefficients.
+The `PAGFL` package makes these powerful procedures easy to use.
 
 ## Installation
 
-Always stay up-to-date with the development version of `PAGFL`
+Always stay up-to-date with the development version (1.1.4) of `PAGFL`
 from [GitHub](https://github.com/):
 
 ``` r
@@ -57,23 +58,25 @@ sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
 data <- sim$data
 ```
 
-$$y_{it} = \beta_i^\prime x_{it} + \eta_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
-where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
-vector of explanatory variables, and $\eta_i$ reflects a fixed effect.
-The slope coefficients are subject to the group structure
+$$
+y_{it} = \boldsymbol{\beta}_i^{0\prime} \boldsymbol{x}_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,
+$$ where $y_{it}$ is a scalar dependent variable, $\boldsymbol{x}_{it}$
+a $p \times 1$ vector of explanatory variables, and $\gamma_i$ reflects
+an individual fixed effect. The $p$-dimensional vector slope
+coefficients $\boldsymbol{\beta}_i^0$ follows the (latent) group
+structure
 
-$$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$
-with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
-$G_k \cap G_j = \emptyset$ as well as $|| \alpha_k \neq \alpha_j ||$ for
-any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
+$$
+\boldsymbol{\beta}_{i} = \sum_{k = 1}^K \boldsymbol{\alpha}_k \boldsymbol{1} \{i \in G_k \},
+$$ with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
+$G_k \cap G_j = \emptyset$ as well as
+$\| \boldsymbol{\alpha}_k \neq \boldsymbol{\alpha}_j \|$ for any
+$k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
 [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
 `sim_DGP()` also nests, among other, all DGPs employed in the simulation
 study of Mehrabani
-([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6). I refer
-to the documentation of `sim_DGP()` or Mehrabani
-([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6) for more
-details.
+([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6).
 
 ## Applying PAGFL
 
@@ -135,8 +138,8 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP]
-> `pagfl` objects can be used in a variety of useful generic methods like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
+> [!TIP] 
+> `pagfl` objects support a variety of useful generic functions like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
 
 ``` r
 estim_fit <- fitted(estim)
@@ -144,15 +147,15 @@ estim_fit <- fitted(estim)
 
 ![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
 
-> [!IMPORTANT]
+> [!IMPORTANT] 
 > Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated.
 
 We suggest iterating over a comprehensive range of candidate values to
 trace out the correct model. To specify a suitable grid, create a
 logarithmic sequence ranging from 0 to a penalty parameter that induces
-an entirely homogeneous model (i.e., $\widehat{K} = 1$). The resulting
-$\lambda$ grid vector can be passed in place of any specific value, and
-a BIC IC selects the best-fitting parameter.
+slope homogeneity (i.e., $\widehat{K} = 1$). The resulting $\lambda$
+grid vector can be passed in place of any specific value, and a BIC IC
+selects the best-fitting parameter.
 
 Furthermore, it is also possible to supply a `data.frame` with named
 variables and choose a specific formula that selects the variables in
@@ -258,20 +261,22 @@ summary(estim_endo)
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
-> [!TIP]
+> [!TIP] 
 > `pagfl()` lets you select a minimum group size, adjust the efficiency vs. accuracy trade-off of the iterative estimation algorithm, and modify a list of further settings. Visit the documentation `?pagfl()` for more information.
 
 ## The Time-varying PAGFL
 
 The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
-which generate and estimate grouped panel data models with time-varying
-coefficients $\beta_i (t/T)$. Just like in the static case, the
-functional coefficients admit to a group structure
-$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}$.
-Following Huang et al. ([2004](https://www.jstor.org/stable/24307415))
-and Su et al. ([2019](https://doi.org/10.1080/07350015.2017.1340299)),
-the time-varying coefficients are estimated using polynomial B-spline
-functions employing a penalized sieve estimation (*PSE*).
+which generate and estimate grouped panel data models with smoothly
+time-varying coefficients $\boldsymbol{\beta}_i (t/T)$. As detailed in
+Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the
+functional coefficients admit to a group structure $$
+\boldsymbol{\beta}_{i} (t/T) = \sum_{k = 1}^K \boldsymbol{\alpha}_k (t/T) \boldsymbol{1} \{i \in G_k \}.
+$$
+
+The time-varying coefficients are estimated using polynomial B-spline
+functions employing a penalized sieve estimation (*PSE*) (see Haimerl et
+al. ([2025](https://doi.org/10.48550/arXiv.2503.23165), sec. 2).
 
 ``` r
 # Simulate a time-varying panel with a trend and a group pattern
@@ -333,14 +338,16 @@ summary(tv_estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP]
-> Again, `tvpagfl` objects have generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` methods.
+> [!TIP] 
+> Again, `tvpagfl` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
 
-In empirical applications, it is commonplace to encounter unbalanced
-panel data sets. In such instances, time-varying coefficient functions
-can be estimated nonetheless. The nonparametric spline functions simply
-interpolate missing periods. However, when using unbalanced datasets it
-is required to provide explicit indicator variables that declare the
+In empirical settings, unbalanced panel datasets are common;
+nevertheless, time-varying coefficient functions remain identifiable
+(see Haimerl et al. [2025](https://doi.org/10.48550/arXiv.2503.23165),
+Appendix D). The spline functions simply interpolate missing time
+periods and the group structure compensates for missings in any
+individual cross-sectional unit. However, when using unbalanced datasets
+it is required to provide explicit indicator variables that declare the
 cross-sectional individual and time period each observation belongs to.
 
 Lets delete 30% of observations, add indicator variables, and run
@@ -385,7 +392,7 @@ summary(tv_estim_unbalanced)
 
 ![](man/figures/README-unnamed-chunk-9-1.png)<!-- -->
 
-> [!TIP]
+> [!TIP] 
 > `tv_pagfl()` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polyomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
 
 ## Observing a Group Structure
@@ -446,22 +453,17 @@ suggestions or questions.
 
 ## References
 
-- Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of
-  fixed-effect models. *The Review of Economic Studies*, 82(3),
-  991-1030.
-  [doi.org/10.1093/restud/rdv007](https://doi.org/10.1093/restud/rdv007)
+Dhaene, G., & Jochmans, K. (2015). Split-panel jackknife estimation of
+fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030.
+DOI:
+[doi.org/10.1093/restud/rdv007](https://doi.org/10.1093/restud/rdv007)
 
-- Huang, J. Z., Wu, C. O., & Zhou, L. (2004). Polynomial spline
-  estimation and inference for varying coefficient models with
-  longitudinal data. Statistica Sinica, 763-788.
-  [jstor.org/stable/24307415](https://www.jstor.org/stable/24307415)
+Haimerl, P., Smeekes, S., & Wilms, I. (2025). Polynomial spline
+estimation and inference for varying coefficient models with
+longitudinal data. **arXiv preprint arXiv:2503.23165**. DOI:
+[doi.org/10.48550/arXiv.2503.23165](https://doi.org/10.48550/arXiv.2503.23165)
 
-- Mehrabani, A. (2023). Estimation and identification of latent group
-  structures in panel data. *Journal of Econometrics*, 235(2),
-  1464-1482.
-  [doi.org/10.1016/j.jeconom.2022.12.002](https://doi.org/10.1016/j.jeconom.2022.12.002)
-
-- Su, L., Wang, X., & Jin, S. (2019). Sieve estimation of time-varying
-  panel data models with latent structures. *Journal of Business &
-  Economic Statistics*, 37(2), 334-349.
-  [doi.org/10.1080/07350015.2017.1340299](https://doi.org/10.1080/07350015.2017.1340299)
+Mehrabani, A. (2023). Estimation and identification of latent group
+structures in panel data. *Journal of Econometrics*, 235(2), 1464-1482.
+DOI:
+[doi.org/10.1016/j.jeconom.2022.12.002](https://doi.org/10.1016/j.jeconom.2022.12.002)

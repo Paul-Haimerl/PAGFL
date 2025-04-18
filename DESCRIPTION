@@ -1,6 +1,6 @@
 Package: PAGFL
-Title: Joint Estimation of Latent Groups and Group-Specific Coefficients in Panel Data Models
-Version: 1.1.3
+Title: Joint Estimation of Latent Groups and Group-Specific Coefficients in (Time-Varying) Panel Data Models
+Version: 1.1.4
 Authors@R: c(
     person("Paul", "Haimerl", email = "paul.haimerl@econ.au.dk", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
     person("Stephan", "Smeekes", email = "s.smeekes@maastrichtuniversity.nl", role = "ctb", comment = c(ORCID = "0000-0002-0157-639X")),
@@ -10,7 +10,7 @@ Maintainer: Paul Haimerl <paul.haimerl@econ.au.dk>
 Description: 
     Latent group structures are a common challenge in panel data analysis. Disregarding group-level heterogeneity can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty.
     This package addresses the issue of unobservable group structures by implementing the pairwise adaptive group fused Lasso (PAGFL) by Mehrabani (2023) <doi:10.1016/j.jeconom.2022.12.002>. PAGFL identifies latent group structures and group-specific coefficients in a single step.    
-    On top of that, we extend the PAGFL to time-varying coefficient functions.
+    On top of that, we extend the PAGFL to time-varying coefficient functions (time-varying PAGFL), following Haimerl et al. (2025) <doi:10.48550/arXiv.2503.23165>.
 License: AGPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

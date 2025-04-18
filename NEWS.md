@@ -1,3 +1,8 @@
+# PAGFL 1.1.4 (development version)
+
+* Added references to new arXiv submission 
+* Updated documentation
+
 # PAGFL 1.1.3 (stable version)
 
 * Added a progress bar displaying the percentage of convergence to `pagfl` and `tv_pagfl` if `verbose` is selected

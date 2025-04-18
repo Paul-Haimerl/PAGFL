@@ -22,12 +22,12 @@
 #' @param sd_error standard deviation of the cross-sectional errors. Default is 1.
 #'
 #' @details
-#' The scalar dependent variable \eqn{y_{it}} is generated according to the following time-varying grouped panel data model
-#' \deqn{y_{it} = \gamma_i + \beta^\prime_{it} x_{it} + u_{it}, \quad i = 1, \dots, N, \; t = 1, \dots, T,}
-#' where \eqn{\gamma_i} is an individual fixed effect and \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables.
-#' The coefficient vector \eqn{\beta_i = \{\beta_{i1}^\prime, \dots, \beta_{iT}^\prime \}^\prime} is subject to the group pattern
-#' \deqn{\beta_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\sup_{v \in [0,1]} \left( \| \alpha_k(v) - \alpha_j(v) \| \right) \neq 0} for any \eqn{k \neq j}, \eqn{k = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
+#' The scalar dependent variable \eqn{y_{it}} is generated according to the time-varying panel data model
+#' \deqn{y_{it} = \gamma_i + \bold{\beta}^\prime_{i} (t/T) \bold{x}_{it} + u_{it}, \quad i = 1, \dots, N, \; t = 1, \dots, T,}
+#' where \eqn{\gamma_i} is an individual fixed effect and \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables.
+#' The \eqn{p \times 1} coefficient vector \eqn{\bold{\beta}_i (t/T)} follows the group pattern
+#' \deqn{\bold{\beta}_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}} and \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
 #'
 #' The predictors are simulated as:
 #' \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
@@ -35,10 +35,10 @@
 #'
 #' The errors \eqn{u_{it}} feature a \eqn{iid} standard normal distribution.
 #'
-#' In case \code{locations = NULL}, the location parameters are drawn from \eqn{\sim U[0.3, 0.9]}.
-#' In case \code{scales = NULL}, the scale parameters are drawn from \eqn{\sim U[0.01, 0.09]}.
-#' In case \code{polynomial_coef = NULL}, the polynomial coefficients are drawn from \eqn{\sim U[-20, 20]} and normalized so that all coefficients of one polynomial sum up to 1.
-#' The final coefficient function follows as \eqn{\alpha_k (t/T) = 3 * F(t/T, location, scale) + \sum_{j=1}^d a_j (t/T)^j}, where \eqn{F(\cdot, location, scale)} denotes a cumulative logistic distribution function and \eqn{a_j} reflects a polynomial coefficient.
+#' In case \code{locations = NULL}, the location parameters are drawn from \eqn{\sim Unif[0.3, 0.9]}.
+#' In case \code{scales = NULL}, the scale parameters are drawn from \eqn{\sim Unif[0.01, 0.09]}.
+#' In case \code{polynomial_coef = NULL}, the polynomial coefficients are drawn from \eqn{\sim Unif[-20, 20]} and normalized so that all coefficients of one polynomial sum up to 1.
+#' The final coefficient function follows as \eqn{\bold{\alpha}_k (t/T) = 3 * F(t/T, location, scale) + \sum_{j=1}^d a_j (t/T)^j}, where \eqn{F(\cdot, location, scale)} denotes a cumulative logistic distribution function and \eqn{a_j} reflects a polynomial coefficient.
 #'
 #' @examples
 #' # Simulate a time-varying panel subject to a time trend and a group structure
@@ -53,8 +53,8 @@
 #' \item{\code{alpha}}{a \eqn{T \times p \times K} array of group-specific time-varying parameters}
 #' \item{\code{beta}}{a \eqn{T \times p \times N} array of individual time-varying parameters}
 #' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
-#' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=(y_1, \dots, y_N)^\prime}, \eqn{y_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
-#' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(x_1, \dots, x_N)^\prime}, \eqn{x_i = (x_{i1}, \dots, x_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{x_{it}}.}
+#' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=( \bold{y}_1, \dots, \bold{y}_N)^\prime}, \eqn{\bold{y}_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
+#' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(\bold{X}_1^\prime, \dots, \bold{X}_N^\prime)^\prime}, \eqn{\bold{X}_i = (\bold{x}_{i1}, \dots, \bold{x}_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{\bold{x}_{it}}.}
 #' \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and the explanatory variables.}
 #' @export
 sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups = 3, d = 3, dynamic = FALSE, group_proportions = NULL, error_spec = "iid", locations = NULL, scales = NULL, polynomial_coef = NULL, sd_error = 1) {

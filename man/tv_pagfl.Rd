@@ -49,7 +49,7 @@ tv_pagfl(
 \arguments{
 \item{formula}{a formula object describing the model to be estimated.}
 
-\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, x_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
+\item{data}{a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, \bold{x}_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.}
 
 \item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
 
@@ -59,7 +59,7 @@ tv_pagfl(
 
 \item{d}{the polynomial degree of the B-splines. Default is 3.}
 
-\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} is used. Note that \eqn{M} does not include the boundary knots and the entire sequence of knots is of length \eqn{M + d + 1}.}
+\item{M}{the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} following Haimerl et al. (2025) is used.}
 
 \item{min_group_frac}{the minimum group cardinality as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, each of its members is allocated to one of the remaining groups according to the \emph{MSE}. Default is 0.05.}
 
@@ -73,9 +73,9 @@ tv_pagfl(
 
 \item{tol_group}{the tolerance limit for within-group differences. Two individuals are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is \eqn{1*10^{-3}}.}
 
-\item{rho}{the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.}
+\item{rho}{the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Haimerl et al. (2025) is used. We recommend the default.}
 
-\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation \emph{PSE}, the \eqn{\varrho} value is trivial. We recommend the default 1.}
+\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation \emph{PSE}, the \eqn{\varrho} value is not very influential. We recommend the default 1.}
 
 \item{verbose}{logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.}
 
@@ -99,35 +99,37 @@ An object of class \code{tvpagfl} holding
 \item{\code{convergence}}{a \code{list} containing (i) a logical variable if convergence was achieved and (ii) the number of executed \emph{ADMM} algorithm iterations,}
 \item{\code{call}}{the function call.}
 
-An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual} and \code{coef} S3 methods.
+An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 }
 \description{
-Estimate a time-varying panel data model with a latent group structure using the pairwise adaptive group fused lasso (\emph{time-varying PAGFL}). The \emph{time-varying PAGFL} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
-The time-varying coefficients are modeled as polynomial B-splines. The function supports both static and dynamic panel data models.
+Estimate a time-varying panel data model subject to a latent group structure using the time-varying pairwise adaptive group fused lasso (\emph{time-varying PAGFL}) by Haimerl et al. (2025). The \emph{time-varying PAGFL} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
+The time-varying coefficients are approximated as polynomial B-splines. The function supports both static and dynamic panel data models.
 }
 \details{
-Consider the grouped time-varying panel data model
-\deqn{y_{it} = \gamma_i + \beta^\prime_{i} (t/T) x_{it} + \epsilon_{it}, \quad i = 1, \dots, N, \; t = 1, \dots, T,}
-where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i} is an individual fixed effect, \eqn{x_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
-The coefficient vector \eqn{\beta_{i} (t/T)} is subject to the latent group pattern
-\deqn{\beta_i \left(\frac{t}{T} \right) = \sum_{k = 1}^K \alpha_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \alpha_k - \alpha_j \| \neq 0} for any \eqn{k \neq j}, \eqn{k = 1, \dots, K}.
+Consider the grouped time-varying panel data model subject to a latent group structure
+\deqn{y_{it} = \gamma_i^0 + \bold{\beta}^{0\prime}_{i} (t/T) \bold{x}_{it} + \epsilon_{it}, \quad i = 1, \dots, N, \; t = 1, \dots, T,}
+where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} denotes a zero mean error.
+The \eqn{p}-dimensional coefficient vector \eqn{\bold{\beta}_{i}^0 (t/T)} contains smooth functions of time and follows the latent group pattern
+\deqn{\bold{\beta}_i^0 \left(\frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k^0 \left( \frac{t}{T} \right) \bold{1} \{i \in G_k^0 \},}
+with \eqn{\cup_{k = 1}^K G_k^0 = \{1, \dots, N\}}, \eqn{G_k^0 \cap G_j^0 = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}.
 
-The time-varying coefficient functions are estimated as polynomial B-splines using the penalized sieve-technique. To this end, let \eqn{B(v)} denote a \eqn{M + d +1} vector basis functions, where \eqn{d} denotes the polynomial degree and \eqn{M} the number of interior knots.
-Then, \eqn{\beta_{i}(t/T)} and \eqn{\alpha_{k}(t/T)} are approximated by forming linear combinations of the basis functions \eqn{\beta_{i} (t/T) \approx \pi_i^\prime B(t/T)} and \eqn{\alpha_{i}(t/T) \approx \xi_k^\prime B(t/T)}, where \eqn{\pi_i} and \eqn{\xi_i} are \eqn{(M + d + 1) \times p} coefficient matrices.
+The time-varying coefficient functions are estimated as polynomial B-splines. To this end, let \eqn{\bold{b}(v)} denote a \eqn{M + d +1} vector of polynomial basis functions with the polynomial degree \eqn{d} and \eqn{M} interior knots.
+Then, \eqn{\bold{\beta}_i^0 (t/T)} is approximated by forming linear combinations of these basis functions \eqn{\bold{\beta}_i^0 (t/T) \approx \bold{\Pi}_i^{0 \prime} \bold{b} (t/T)}, where \eqn{\bold{\Pi}_i^{0}} is a \eqn{(M + d + 1) \times p} matrix of spline control points.
 
-The explanatory variables are projected onto the spline basis system, which results in the \eqn{(M + d + 1)p \times 1} vector \eqn{z_{it} = x_{it} \otimes B(v)}. Subsequently, the DGP can be reformulated as
-\deqn{y_{it} = \gamma_i + z_{it}^\prime \text{vec}(\pi_{i}) + u_{it},}
-where \eqn{u_{it} = \epsilon_{it} + \eta_{it}} and \eqn{\eta_{it}} reflects a sieve approximation error. We refer to Su et al. (2019, sec. 2) for more details on the sieve technique.
+To estimate \eqn{\bold{\Pi}_i^{0}}, we project the explanatory variables onto the spline basis system, resulting in the \eqn{(M + d + 1)p \times 1} regressor vector \eqn{\bold{z}_{it} = \bold{x}_{it} \otimes \bold{b}(v)}. Subsequently, the DGP can be reformulated as
+\deqn{y_{it} = \gamma_i^0 + \bold{\pi}_{i}^{0 \prime} \bold{z}_{it} + u_{it},}
+where \eqn{\bold{\pi}_i^0 = \text{vec}(\bold{\Pi}_i^0)}, and \eqn{u_{it} = \epsilon_{it} + \eta_{it}} collects the idiosyncratic \eqn{\epsilon_{it}} and the sieve approximation error \eqn{\eta_{it}}.
 
-Inspired by Su et al. (2019) and Mehrabani (2023), the time-varying PAGFL jointly estimates the functional coefficients and the group structure by minimizing the criterion
-\deqn{Q_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \tilde{z}_{it}^\prime \text{vec}(\pi_{i}))^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j > i}^N \dot{\omega}_{ij} \| \pi_i - \pi_j \|}
-with respect to \eqn{\bold{\pi} = (\text{vec}(\pi_i)^\prime, \dots, \text{vec}(\pi_N)^\prime)^\prime}. \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum^{T}_{t=1} a_{it}}, \eqn{a = \{y, z\}} to concentrate out the individual fixed effects \eqn{\gamma_i}. \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation. \eqn{\| \cdot \|} represents the Frobenius norm.
-The solution criterion function is minimized via the iterative alternating direction method of multipliers (\emph{ADMM}) algorithm proposed by Mehrabani (2023, sec. 5.1).
+Following Haimerl et al. (2025, sec. 2), the \emph{time-varying PAGFL} jointly estimates the functional coefficients and the group structure by minimizing the criterion
+\deqn{F_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \bold{\pi}_{i}^\prime \tilde{\bold{z}}_{it})^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j = i+1}^N \dot{\omega}_{ij} \| \bold{\pi}_i - \bold{\pi}_j \|_2}
+with respect to \eqn{\bold{\pi} = (\bold{\pi}_i^\prime, \dots, \bold{\pi}_N^\prime)^\prime}. \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum^{T}_{t=1} a_{it}}, \eqn{a = \{y, \bold{z}\}} to concentrate out the individual fixed effects \eqn{\gamma_i^0} (within-transformation). \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation.
+The criterion function is minimized via an iterative alternating direction method of multipliers (\emph{ADMM}) algorithm (Haimerl et al. 2053, Appendix C).
 
-Two individuals are assigned to the same group if \eqn{\| \text{vec} (\hat{\pi}_i - \hat{\pi}_j) \| \leq \epsilon_{\text{tol}}}, where \eqn{\epsilon_{\text{tol}}} is determined by \code{tol_group}. Subsequently, the number of groups follows as the number of distinct elements in \eqn{\hat{\bold{\pi}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates \eqn{\hat{\bold{\xi}}} using group-wise least squares (see \code{\link{grouped_tv_plm}}).
+Two individuals are assigned to the same group if \eqn{\| \hat{\bold{\pi}}_i - \hat{\bold{\pi}}_j \|_2 \leq \epsilon_{\text{tol}}} (and hence \eqn{\hat{\bold{\xi}}_k = \hat{\bold{\pi}}_i = \hat{\bold{\pi}}_j} for some \eqn{k = 1, \dots, \hat{K}}), where \eqn{\epsilon_{\text{tol}}} is determined by \code{tol_group}. The time-varying coefficients are then retrieved by taking \eqn{\hat{\bold{\beta}}_i (t/T) = \hat{\bold{\Pi}}_i^\prime \bold{b}(t/T)}, where \eqn{\hat{\bold{\pi}}_i = \text{vec}(\hat{\bold{\Pi}}_i)} (analogously \eqn{\hat{\bold{\alpha}}_k (t/T) = \hat{\bold{\Xi}}_k^\prime \bold{b}(t/T)}, using \eqn{\hat{\bold{\xi}}_k = \text{vec}(\hat{\bold{\Xi}}_k)}).
 
-We recommend identifying a suitable \eqn{\lambda} parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then selects the best fitting \eqn{\lambda} value.
+Subsequently, the estimated number of groups \eqn{\hat{K}} and group structure follow by examining the number of distinct elements in \eqn{\hat{\bold{\pi}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates \eqn{\hat{\bold{\alpha}}^p_k (t/T) = \hat{\bold{\Xi}}^{p \prime}_k \bold{b}(t/T)} for each \eqn{k = 1, \dots, \hat{K} } using group-wise least squares (see \code{\link{grouped_tv_plm}}).
+
+We recommend choosing a \eqn{\lambda} tuning parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then automatically selects the best fitting \eqn{\lambda} value.
 
 In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and end-points of the interval on which the group-specific time-varying coefficients are defined.
 }
@@ -143,9 +145,7 @@ summary(estim)
 
 }
 \references{
-Mehrabani, A. (2023). Estimation and identification of latent group structures in panel data. \emph{Journal of Econometrics}, 235(2), 1464-1482. \doi{10.1016/j.jeconom.2022.12.002}.
-
-Su, L., Wang, X., & Jin, S. (2019). Sieve estimation of time-varying panel data models with latent structures. \emph{Journal of Business & Economic Statistics}, 37(2), 334-349. \doi{10.1080/07350015.2017.1340299}.
+Haimerl, P., Smeekes, S., & Wilms, I. (2025). Estimation of latent group structures in time-varying panel data models. \emph{arXiv preprint arXiv:2503.23165}. \doi{10.48550/arXiv.2503.23165}.
 }
 \author{
 Paul Haimerl
