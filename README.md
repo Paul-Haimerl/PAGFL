@@ -58,17 +58,13 @@ sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
 data <- sim$data
 ```
 
-$$
-y_{it} = \boldsymbol{\beta}_i^{0\prime} \boldsymbol{x}_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,
-$$ where $y_{it}$ is a scalar dependent variable, $\boldsymbol{x}_{it}$
-a $p \times 1$ vector of explanatory variables, and $\gamma_i$ reflects
-an individual fixed effect. The $p$-dimensional vector slope
-coefficients $\boldsymbol{\beta}_i^0$ follows the (latent) group
-structure
-
-$$
-\boldsymbol{\beta}_{i} = \sum_{k = 1}^K \boldsymbol{\alpha}_k \boldsymbol{1} \{i \in G_k \},
-$$ with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
+$$y_{it} = \boldsymbol{\beta}_i^{0\prime} \boldsymbol{x}_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
+where $y_{it}$ is a scalar dependent variable, $\boldsymbol{x}_{it}$ a
+$p \times 1$ vector of explanatory variables, and $\gamma_i$ reflects an
+individual fixed effect. The $p$-dimensional vector slope coefficients
+$\boldsymbol{\beta}_i^0$ follows the (latent) group structure
+$$\boldsymbol{\beta}_{i} = \sum_{k = 1}^K \boldsymbol{\alpha}_k \boldsymbol{1} \{i \in G_k \},$$
+with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as
 $\| \boldsymbol{\alpha}_k \neq \boldsymbol{\alpha}_j \|$ for any
 $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
@@ -138,7 +134,7 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP] 
+> [!TIP]
 > `pagfl` objects support a variety of useful generic functions like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
 
 ``` r
@@ -147,7 +143,7 @@ estim_fit <- fitted(estim)
 
 ![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
 
-> [!IMPORTANT] 
+> [!IMPORTANT]
 > Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated.
 
 We suggest iterating over a comprehensive range of candidate values to
@@ -270,9 +266,8 @@ The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
 which generate and estimate grouped panel data models with smoothly
 time-varying coefficients $\boldsymbol{\beta}_i (t/T)$. As detailed in
 Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the
-functional coefficients admit to a group structure $$
-\boldsymbol{\beta}_{i} (t/T) = \sum_{k = 1}^K \boldsymbol{\alpha}_k (t/T) \boldsymbol{1} \{i \in G_k \}.
-$$
+functional coefficients admit to a group structure
+$$\boldsymbol{\beta}_{i} (t/T) = \sum_{k = 1}^K \boldsymbol{\alpha}_k (t/T) \boldsymbol{1} \{i \in G_k \}.$$
 
 The time-varying coefficients are estimated using polynomial B-spline
 functions employing a penalized sieve estimation (*PSE*) (see Haimerl et
@@ -339,7 +334,7 @@ summary(tv_estim)
 9.  `call`: The function call.
 
 > [!TIP] 
-> Again, `tvpagfl` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
+> Again, `tvpagfl` objects support generic `summary()`,`fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
 
 In empirical settings, unbalanced panel datasets are common;
 nevertheless, time-varying coefficient functions remain identifiable
@@ -460,7 +455,7 @@ DOI:
 
 Haimerl, P., Smeekes, S., & Wilms, I. (2025). Polynomial spline
 estimation and inference for varying coefficient models with
-longitudinal data. **arXiv preprint arXiv:2503.23165**. DOI:
+longitudinal data. *arXiv preprint arXiv:2503.23165*. DOI:
 [doi.org/10.48550/arXiv.2503.23165](https://doi.org/10.48550/arXiv.2503.23165)
 
 Mehrabani, A. (2023). Estimation and identification of latent group
