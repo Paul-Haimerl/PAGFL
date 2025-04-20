@@ -53,13 +53,12 @@ sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
 data <- sim$data
 ```
 
-$$
-y_{it} = \beta_i^{0 \prime} x_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,
-$$ 
+$$y_{it} = \beta_i^{0 \prime} x_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$ 
+
 where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$ vector of explanatory variables, and $\gamma_i$ reflects an individual fixed effect. The $p$-dimensional vector slope coefficients $\beta_i^0$ follows the (latent) group structure 
-$$
-\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},
-$$ 
+
+$$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$ 
+
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and $G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j \|$ for any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
 `sim_DGP()` also nests, among other, all DGPs employed in the simulation study of Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6).
@@ -133,9 +132,8 @@ summary(estim_endo)
 ## The Time-varying PAGFL
 
 The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with smoothly time-varying coefficients $\beta_i (t/T)$. As detailed in Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the functional coefficients admit to a group structure
-$$
-\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}.
-$$ 
+
+$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}.$$ 
 
 The time-varying coefficients are estimated using polynomial B-spline functions employing a penalized sieve estimation (*PSE*) (see Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165), sec. 2).
 

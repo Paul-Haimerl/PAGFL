@@ -58,14 +58,16 @@ sim <- sim_DGP(N = 20, n_periods = 150, p = 2, n_groups = 3)
 data <- sim$data
 ```
 
-$$
-y_{it} = \beta_i^{0 \prime} x_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,
-$$ where $y_{it}$ is a scalar dependent variable, $x_{it}$ a
-$p \times 1$ vector of explanatory variables, and $\gamma_i$ reflects an
-individual fixed effect. The $p$-dimensional vector slope coefficients
-$\beta_i^0$ follows the (latent) group structure $$
-\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},
-$$ with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
+$$y_{it} = \beta_i^{0 \prime} x_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N, \quad t = 1, \dots, T,$$
+
+where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
+vector of explanatory variables, and $\gamma_i$ reflects an individual
+fixed effect. The $p$-dimensional vector slope coefficients $\beta_i^0$
+follows the (latent) group structure
+
+$$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$
+
+with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j \|$ for
 any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
 [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
@@ -134,8 +136,9 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP] 
-> `pagfl` objects support a variety of useful generic functions like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
+> \[!TIP\] `pagfl` objects support a variety of useful generic functions
+> like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and
+> `coef()`.
 
 ``` r
 estim_fit <- fitted(estim)
@@ -143,8 +146,9 @@ estim_fit <- fitted(estim)
 
 ![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
 
-> [!IMPORTANT] 
-> Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated.
+> \[!IMPORTANT\] Selecting a $\lambda$ value a priori can be tricky. For
+> instance, it seems like `lambda = 20` is too high since the number of
+> groups $K$ is underestimated.
 
 We suggest iterating over a comprehensive range of candidate values to
 trace out the correct model. To specify a suitable grid, create a
@@ -257,8 +261,10 @@ summary(estim_endo)
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
-> [!TIP] 
-> `pagfl()` lets you select a minimum group size, adjust the efficiency vs. accuracy trade-off of the iterative estimation algorithm, and modify a list of further settings. Visit the documentation `?pagfl()` for more information.
+> \[!TIP\] `pagfl()` lets you select a minimum group size, adjust the
+> efficiency vs. accuracy trade-off of the iterative estimation
+> algorithm, and modify a list of further settings. Visit the
+> documentation `?pagfl()` for more information.
 
 ## The Time-varying PAGFL
 
@@ -266,9 +272,9 @@ The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
 which generate and estimate grouped panel data models with smoothly
 time-varying coefficients $\beta_i (t/T)$. As detailed in Haimerl et
 al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the functional
-coefficients admit to a group structure $$
-\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}.
-$$
+coefficients admit to a group structure
+
+$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}.$$
 
 The time-varying coefficients are estimated using polynomial B-spline
 functions employing a penalized sieve estimation (*PSE*) (see Haimerl et
@@ -334,8 +340,9 @@ summary(tv_estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP] 
-> Again, `tvpagfl` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
+> \[!TIP\] Again, `tvpagfl` objects support generic `summary()`,
+> `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`
+> functions.
 
 In empirical settings, unbalanced panel datasets are common;
 nevertheless, time-varying coefficient functions remain identifiable
@@ -388,8 +395,11 @@ summary(tv_estim_unbalanced)
 
 ![](man/figures/README-unnamed-chunk-9-1.png)<!-- -->
 
-> [!TIP] 
-> `tv_pagfl()` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polyomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
+> \[!TIP\] `tv_pagfl()` lets you specify a lot more optionalities than
+> shown here. For example, it is possible to adjust the polyomial degree
+> and the number of interior knots in the spline basis system, or
+> estimate a panel data model with a mix of time-varying and
+> time-constant coefficients. See `?tv_pagfl()` for details.
 
 ## Observing a Group Structure
 
