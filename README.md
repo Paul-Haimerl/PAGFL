@@ -39,6 +39,29 @@ from [GitHub](https://github.com/):
 ``` r
 # install.packages("devtools")
 devtools::install_github("Paul-Haimerl/PAGFL")
+#> 
+#> ── R CMD build ─────────────────────────────────────────────────────────────────
+#>       ✔  checking for file 'C:\Users\au772358\AppData\Local\Temp\RtmpKQn6Hw\remotes4b18432e92a3e\Paul-Haimerl-PAGFL-b09f38d/DESCRIPTION'
+#>       ─  preparing 'PAGFL':
+#>    checking DESCRIPTION meta-information ...     checking DESCRIPTION meta-information ...   ✔  checking DESCRIPTION meta-information
+#> ─  cleaning src
+#>       ─  checking for LF line-endings in source and make files and shell scripts (409ms)
+#>   ─  checking for empty or unneeded directories
+#>        NB: this package now depends on R (>= 3.5.0)
+#>      WARNING: Added dependency on R >= 3.5.0 because serialized objects in
+#>      serialize/load version 3 cannot be read in older versions of R.
+#>      File(s) containing such objects:
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pgmm_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/pagfl_pls_sim_smallNk.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_resid.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim.rds'
+#>        'PAGFL/tests/testthat/fixtures/tv_pagfl_sim_2.rds'
+#>       ─  building 'PAGFL_1.1.4.tar.gz'
+#>      
+#> 
 library(PAGFL)
 ```
 
@@ -456,9 +479,9 @@ fixed-effect models. *The Review of Economic Studies*, 82(3), 991-1030.
 DOI:
 [doi.org/10.1093/restud/rdv007](https://doi.org/10.1093/restud/rdv007)
 
-Haimerl, P., Smeekes, S., & Wilms, I. (2025). Polynomial spline
-estimation and inference for varying coefficient models with
-longitudinal data. *arXiv preprint arXiv:2503.23165*. DOI:
+Haimerl, P., Smeekes, S., & Wilms, I. (2025). Estimation of latent group
+structures in time-varying panel data models. *arXiv preprint
+arXiv:2503.23165*. DOI:
 [doi.org/10.48550/arXiv.2503.23165](https://doi.org/10.48550/arXiv.2503.23165)
 
 Mehrabani, A. (2023). Estimation and identification of latent group
