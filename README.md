@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# PAGFL
+# PAGFL <img src="man/figures/icon.png" align="right" width="120" />
 
 <!-- badges: start -->
 
@@ -136,8 +136,8 @@ summary(estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP] 
-> `pagfl` objects support a variety of useful generic functions like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
+> !TIP 
+>`pagfl` objects support a variety of useful generic functions like `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()`.
 
 ``` r
 estim_fit <- fitted(estim)
@@ -145,7 +145,7 @@ estim_fit <- fitted(estim)
 
 ![](man/figures/README-unnamed-chunk-5-1.png)<!-- -->
 
-> [!IMPORTANT] 
+> !IMPORTANT 
 > Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated.
 
 We suggest iterating over a comprehensive range of candidate values to
@@ -259,7 +259,7 @@ summary(estim_endo)
 #> Multiple R-squared: 0.87079, Adjusted R-squared: 0.8701
 ```
 
-> [!TIP] 
+> !TIP 
 > `pagfl()` lets you select a minimum group size, adjust the efficiency vs. accuracy trade-off of the iterative estimation algorithm, and modify a list of further settings. Visit the documentation `?pagfl()` for more information.
 
 ## The Time-varying PAGFL
@@ -336,7 +336,7 @@ summary(tv_estim)
     algorithm iterations.
 9.  `call`: The function call.
 
-> [!TIP] 
+> !TIP 
 > Again, `tvpagfl` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
 
 In empirical settings, unbalanced panel datasets are common;
@@ -390,7 +390,7 @@ summary(tv_estim_unbalanced)
 
 ![](man/figures/README-unnamed-chunk-9-1.png)<!-- -->
 
-> [!TIP] 
+> !TIP 
 > `tv_pagfl()` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polyomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
 
 ## Observing a Group Structure

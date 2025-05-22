@@ -2,6 +2,8 @@
 
 * Added references to new arXiv submission 
 * Updated documentation
+* Slight costemtic changes to figures
+* Added icon
 
 # PAGFL 1.1.3 (stable version)
 
