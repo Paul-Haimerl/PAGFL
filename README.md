@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# PAGFL <img src="man/figures/icon.png" align="right" width="120" />
+# PAGFL <img src="man/figures/icon.png" align="right" width="130" />
 
 <!-- badges: start -->
 
