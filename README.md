@@ -65,7 +65,7 @@ vector of explanatory variables, and $\gamma_i$ reflects an individual
 fixed effect. The $p$-dimensional vector slope coefficients $\beta_i^0$
 follows the (latent) group structure
 
-$$\beta_{i} = \sum_{k = 1}^K \alpha_k \boldsymbol{1} \{i \in G_k \},$$
+$$\beta_{i} = \sum_{k = 1}^K \alpha_k 1 \{i \in G_k \},$$
 
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
 $G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j \|$ for
@@ -205,7 +205,7 @@ When, as above, the specific estimation method is left unspecified,
 sec. 2.2). *PLS* is very efficient but requires weakly exogenous
 regressors. However, even endogenous predictors can be accounted for by
 employing a penalized Generalized Method of Moments (*PGMM*) routine in
-combination with exogenous instruments $\boldsymbol{Z}$.
+combination with exogenous instruments $Z$.
 
 Specify a slightly more elaborate endogenous and dynamic panel data set
 and apply *PGMM*. When encountering a dynamic panel data set, we
@@ -268,13 +268,13 @@ The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`,
 which generate and estimate grouped panel data models with smoothly
 time-varying coefficients $\beta_i (t/T)$. As detailed in Haimerl et
 al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the functional
-coefficients admit to a group structure
+coefficients admit to the group structure
 
-$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \boldsymbol{1} \{i \in G_k \}.$$
+$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) 1 \{i \in G_k \}.$$
 
 The time-varying coefficients are estimated using polynomial B-spline
-functions employing a penalized sieve estimation (*PSE*) (see Haimerl et
-al. ([2025](https://doi.org/10.48550/arXiv.2503.23165), sec. 2).
+functions, yielding a penalized sieve estimator (*PSE*) (see [Haimerl et
+al., 2025](https://doi.org/10.48550/arXiv.2503.23165), sec. 2).
 
 ``` r
 # Simulate a time-varying panel with a trend and a group pattern
