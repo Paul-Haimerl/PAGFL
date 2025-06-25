@@ -104,7 +104,11 @@ grouped_plm <- function(formula, data, groups, index = NULL, n_periods = NULL, m
   # Construct a vector of the dependent variable and a regressor matrix
   # If present, remove the intercept
   data <- as.data.frame(data)
-  data <- stats::na.omit(data)
+  if (any(all.vars(formula[[3]]) == ".")) {
+    data <- stats::na.omit(data)
+  } else {
+    data <- data[stats::complete.cases(data[, c(index, all.vars(formula))]), ]
+  }
   if (!is.null(index)) data <- data[order(data[, index[1]], data[, index[2]]), ]
   if (all(all.vars(formula[[3]]) != ".")) {
     # If present, remove the intercept

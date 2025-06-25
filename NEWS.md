@@ -2,8 +2,9 @@
 
 * Added references to new arXiv submission 
 * Updated documentation
-* Slight costemtic changes to figures
+* Slight cosmetic changes to figures
 * Added icon
+* Observations with NAs of irrelevant variables are no longer removed
 
 # PAGFL 1.1.3 (stable version)
 
