@@ -8,24 +8,24 @@ test_that("pagfl PLS output", {
   X <- sim$X
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, verbose = F)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X)
   # With . formula
-  estim <- pagfl(y ~ ., data = data, n_periods = 150, lambda = 5)
+  estim <- pagfl(y ~ ., data = data, n_periods = 150, lambda = 5, verbose = F)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X)
   # With index
   data$i <- as.character(rep(101:120, each = 150))
   data$t <- rep(1:150, 20)
-  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), lambda = 5)
+  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), lambda = 5, verbose = F)
   check_pagfl_pls(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t)
   # with bias correction
-  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, bias_correc = TRUE)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, bias_correc = TRUE, verbose = F)
   check_pagfl_output(estim = estim, X = X)
   # With un-parallel
-  estim_single <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, parallel = FALSE)
+  estim_single <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, parallel = FALSE, verbose = F)
   check_pagfl_pls(estim = estim_single, groups_0 = groups_0, alpha_0 = alpha_0)
 })
 
@@ -40,13 +40,13 @@ test_that("pagfl PGMM output", {
   Z <- sim$Z
   colnames(X) <- c("a", "b")
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, method = "PGMM", Z = Z, lambda = 2)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, method = "PGMM", Z = Z, lambda = 2, verbose = F)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X)
   # With index
   data$i <- as.character(rep(101:120, each = 150))
   data$t <- rep(1:150, 20)
-  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", Z = Z, lambda = 2)
+  estim <- pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", Z = Z, lambda = 2, verbose = F)
   check_pagfl_pgmm(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t)
 })
@@ -62,17 +62,17 @@ test_that("tv_pagfl results", {
   colnames(X) <- "a"
   p <- 2
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 15)
+  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 15, verbose = F)
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X)
   # With . formula
-  estim <- tv_pagfl(y ~ ., data = data, n_periods = 100, lambda = 15)
+  estim <- tv_pagfl(y ~ ., data = data, n_periods = 100, lambda = 15, verbose = F)
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X)
   # With index
   data$i <- rep(1:10, each = 100)
   data$t <- rep(1:100, 10)
-  estim <- tv_pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 15)
+  estim <- tv_pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 15, verbose = F)
   check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
   check_tv_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t)
 })
@@ -107,7 +107,7 @@ test_that("tv_pagfl const_coef", {
   X <- sim$X
   colnames(X) <- "a"
   data <- as.data.frame(cbind(y = c(y), X))
-  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 20, const_coef = "a")
+  estim <- tv_pagfl(y ~ 1 + a, data = data, n_periods = 100, lambda = 20, const_coef = "a", verbose = F)
 
   expect_equal(dim(estim$coefficients$const), c(3, 1))
   expect_equal(colnames(estim$coefficients$const), "a")

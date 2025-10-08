@@ -5,6 +5,7 @@
 * Slight cosmetic changes to figures
 * Added icon
 * Observations with NAs of irrelevant variables are no longer removed
+* Extended unit tests
 
 # PAGFL 1.1.3 (stable version)
 

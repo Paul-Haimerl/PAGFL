@@ -69,7 +69,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   #------------------------------#
 
   if (lifecycle::is_present(dyn_panel)) {
-    lifecycle::deprecate_warn("1.1.0", "sim_DGP(dyn_panel)", "sim_DGP(dynamic)")
+    lifecycle::deprecate_warn("1.1.0", "sim_DGP(dyn_panel)", "sim_DGP(dynamic)", always = TRUE)
     dynamic <- dyn_panel
   }
 

@@ -5,7 +5,7 @@ test_that("S3 pagfl", {
   X <- sim$X
   colnames(X) <- c("a", "b")
   data <- data.frame(y = y, X)
-  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5)
+  estim <- pagfl(y ~ a + b, data = data, n_periods = 150, lambda = 5, verbose = F)
   # print
   expect_snapshot_output(estim, cran = FALSE)
   # coef
@@ -31,7 +31,7 @@ test_that("S3 pagfl", {
   data$i_index <- rep(1:(length(y) / 150), each = 150)
   data$t_index <- rep(1:150, length(y) / 150)
   data <- data[-c(1, 200), ]
-  estim <- pagfl(y ~ a + b, data = data, lambda = 1e3, index = c("i_index", "t_index"))
+  estim <- pagfl(y ~ a + b, data = data, lambda = 1e3, index = c("i_index", "t_index"), verbose = F)
   expect_snapshot(summary(estim))
 })
 
@@ -80,7 +80,7 @@ test_that("S3 tv_pagfl", {
   X <- sim$X
   data <- data.frame(y = y, X1 = X)
   data$a <- stats::rnorm(length(y))
-  estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7)
+  estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7, verbose = F)
   estim_const <- tv_pagfl(y ~ X1 + a, data = data, n_periods = 100, lambda = 7, const_coef = "a")
   # print
   expect_snapshot(estim, cran = FALSE)
@@ -152,7 +152,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   df$t_index <- rep(1:100, length(y) / 100)
   rm_index <- as.logical(rbinom(n = length(y), prob = 0.7, size = 1))
   df <- df[rm_index, ]
-  estim <- tv_pagfl(y ~ X + a, const_coef = "a", data = df, index = c("i_index", "t_index"), lambda = 25)
+  estim <- tv_pagfl(y ~ X + a, const_coef = "a", data = df, index = c("i_index", "t_index"), lambda = 25, verbose = F)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 3, 10))
@@ -197,4 +197,56 @@ test_that("S3 grouped_tv_plm const coef unbalanced summary", {
   estim <- grouped_tv_plm(y ~ ., data = df, groups = rep(1, length(groups_0)), index = c("i_index", "t_index"))
   expect_no_error(summary(estim))
   expect_no_error(coef(estim))
+})
+
+test_that("fitted.pagfl handles character indices without plotting", {
+  skip_on_cran()
+  n_units <- 25
+  t_per_unit <- 2
+  fitted_vals <- seq_len(n_units * t_per_unit)
+  fake_pagfl <- structure(
+    list(
+      fitted = fitted_vals,
+      args = list(labs = list(
+        i = rep(paste0("id", seq_len(n_units)), each = t_per_unit),
+        t = rep(letters[1:t_per_unit], n_units),
+        index = c("i", "t")
+      )),
+      model = data.frame(y = fitted_vals),
+      groups = list(n_groups = 1, groups = setNames(1, "id1"))
+    ),
+    class = "pagfl"
+  )
+
+  res <- fitted(fake_pagfl)
+  expect_s3_class(res, "data.frame")
+  expect_equal(nrow(res), length(fitted_vals))
+  expect_identical(colnames(res), c("fit", "i", "t"))
+  expect_true(all(res$fit == fitted_vals))
+})
+
+test_that("fitted.gplm converts character time indices", {
+  skip_on_cran()
+  n_units <- 30
+  t_per_unit <- 3
+  fitted_vals <- seq_len(n_units * t_per_unit)
+  fake_gplm <- structure(
+    list(
+      fitted = fitted_vals,
+      args = list(labs = list(
+        i = rep(paste0("unit", seq_len(n_units)), each = t_per_unit),
+        t = rep(c("t1", "t2", "t3"), n_units),
+        index = c("i", "t")
+      )),
+      model = data.frame(y = fitted_vals),
+      groups = list(n_groups = 1, groups = setNames(1, "unit1"))
+    ),
+    class = "gplm"
+  )
+
+  res <- fitted(fake_gplm)
+  expect_s3_class(res, "data.frame")
+  expect_equal(nrow(res), length(fitted_vals))
+  expect_identical(colnames(res), c("fit", "i", "t"))
+  expect_true(all(res$fit == fitted_vals))
 })

@@ -98,3 +98,13 @@ test_that("tv_pagfl sim input", {
   # AR error
   expect_no_error(sim_tv_DGP(error_spec = "AR"))
 })
+
+test_that("sim_DGP dyn_panel deprecated argument triggers warning", {
+  skip_on_cran()
+  expect_warning(sim <-  sim_DGP(dyn_panel = TRUE, N = 6, n_periods = 5, p = 2, n_groups = 2),
+                        class = "lifecycle_warning_deprecated"
+  )
+  expect_type(sim, "list")
+  expect_named(sim, c("alpha", "groups", "y", "X", "Z", "data"))
+  expect_equal(ncol(sim$alpha), 2)
+})

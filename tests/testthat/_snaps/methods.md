@@ -3,7 +3,8 @@
     Groups: 3 
     
     Call:
-    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
+    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5, 
+        verbose = F)
     
     Coefficients:
                    a        b
@@ -14,7 +15,8 @@
 ---
 
     Call:
-    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5)
+    pagfl(formula = y ~ a + b, data = data, n_periods = 150, lambda = 5, 
+        verbose = F)
     
     Balanced panel: N = 20, T = 150, obs = 3000
     
@@ -50,7 +52,7 @@
     Output
       Call:
       pagfl(formula = y ~ a + b, data = data, index = c("i_index", 
-          "t_index"), lambda = 1000)
+          "t_index"), lambda = 1000, verbose = F)
       
       Unbalanced panel: N = 20, T = 149-150, obs = 2998
       
@@ -152,12 +154,14 @@
       Groups: 5 
       
       Call:
-      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
+      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
+          verbose = F)
 
 ---
 
     Call:
-    tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7)
+    tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
+        verbose = F)
     
     Balanced panel: N = 10, T = 100, obs = 1000
     
@@ -217,7 +221,7 @@
 
     Call:
     tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
-        "t_index"), lambda = 25, const_coef = "a")
+        "t_index"), lambda = 25, const_coef = "a", verbose = F)
     
     Unbalanced panel: N = 10, T = 66-77, obs = 710
     
@@ -254,7 +258,7 @@
       
       Call:
       tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
-          "t_index"), lambda = 25, const_coef = "a")
+          "t_index"), lambda = 25, const_coef = "a", verbose = F)
 
 # S3 grouped_tv_plm const coef unbalanced summary
 

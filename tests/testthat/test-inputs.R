@@ -32,7 +32,7 @@ test_that("pagfl inputs", {
   # Plain PGMM
   expect_no_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, Z = X, verbose = F))
   # Plain PGMM and bias correction
-  expect_no_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, Z = X, bias_correc = T))
+  expect_no_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "PGMM", lambda = 1, Z = X, bias_correc = T, verbose = F))
   # No method
   expect_error(pagfl(y ~ a + b, data = data, index = c("i", "t"), method = "A", lambda = 1, verbose = F))
   # Incorrect argument
@@ -45,20 +45,20 @@ test_that("pagfl inputs", {
   # No dependent variable
   expect_error(pagfl(~., data = data, index = c("i", "t"), lambda = 1, verbose = F))
   # Large min_group_frac
-  expect_warning(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = .5))
+  expect_warning(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = TRUE, min_group_frac = .5))
   # 0 ming_group_frac
-  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = NULL))
+  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = F, min_group_frac = NULL))
   # Negative ming_group_frac
-  expect_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = T, min_group_frac = -.5))
+  expect_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1, verbose = F, min_group_frac = -.5))
   # Force some trivial groups
   sim_smallNk <- readRDS(test_path("fixtures", "pagfl_pls_sim_smallNk.rds"))
-  expect_no_error(pagfl(y ~ ., data = sim_smallNk$data, n_periods = 75, lambda = 2, min_group_frac = .3))
+  expect_no_error(pagfl(y ~ ., data = sim_smallNk$data, n_periods = 75, lambda = 2, min_group_frac = .3, verbose = F))
   # Intercept
   data_star_2 <- data
   data_star_2$c <- 1
-  expect_error(pagfl(y ~ c, data = data_star_2, index = c("i", "t"), lambda = 1, verbose = T))
+  expect_error(pagfl(y ~ c, data = data_star_2, index = c("i", "t"), lambda = 1, verbose = F))
   # Force only one group
-  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1e4))
+  expect_no_error(pagfl(y ~ ., data = data, index = c("i", "t"), lambda = 1e6, verbose = F))
 })
 
 test_that("Unbalanced panel pagfl", {
