@@ -16,13 +16,15 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
-[![CRAN status](https://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL) [![License_GPLv3_Badge](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0.html) [![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml) [![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
+[![CRAN status](https://www.r-pkg.org/badges/version/PAGFL)](https://cran.r-project.org/package=PAGFL) [![CRAN_Downloads_Badge](https://cranlogs.r-pkg.org/badges/grand-total/PAGFL)](https://cran.r-project.org/package=PAGFL) 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+[![R-CMD-check](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Paul-Haimerl/PAGFL/actions/workflows/R-CMD-check.yaml) [![codecov](https://codecov.io/gh/Paul-Haimerl/PAGFL/graph/badge.svg?token=22WHU5SU63)](https://app.codecov.io/gh/Paul-Haimerl/PAGFL)
 
 <!-- badges: end -->
 
 Unobservable group structures are a common challenge in panel data analysis. Disregarding group-level heterogeneity can introduce bias. Conversely, estimating individual coefficients for each cross-sectional unit is inefficient and may lead to high uncertainty. Furthermore, neglecting time-variance in slope coefficients can lead to inconsistent and misleading results, even in large panels.
 
-This package efficiently addresses these issues by implementing the pairwise adaptive group fused Lasso (*PAGFL*) by Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002)) and the *time-varying PAGFL* by Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)). *PAGFL* is a regularizer that identifies latent group structures and estimates group-specific (time-varying) coefficients in a single step. 
+This package efficiently addresses these issues by implementing the pairwise adaptive group fused Lasso (*PAGFL*) by Mehrabani ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002)) and *FUSE-TIME*--Fused Unobserved group Spline Estimation--by Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)). *PAGFL* is a regularizer that identifies latent group structures and estimates group-specific coefficients in a single step. *FUSE-TIME* generalizes this to smoothly time-varying coefficients.
 
 The `PAGFL` package makes these powerful procedures easy to use.
 
@@ -94,7 +96,7 @@ estim_fit <- fitted(estim)
 > [!IMPORTANT] 
 > Selecting a $\lambda$ value a priori can be tricky. For instance, it seems like `lambda = 20` is too high since the number of groups $K$ is underestimated.
 
-We suggest iterating over a comprehensive range of candidate values to trace out the correct model. To specify a suitable grid, create a logarithmic sequence ranging from 0 to a penalty parameter that induces slope homogeneity (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
+We suggest iterating over a comprehensive range of candidate values to trace out the correct model. To specify a suitable grid, create a logarithmic sequence ranging from a penalty parameter that induces complete slope heterogeneity to complete slope homogeneity (i.e., $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in place of any specific value, and a BIC IC selects the best-fitting parameter.
 
 Furthermore, it is also possible to supply a `data.frame` with named variables and choose a specific formula that selects the variables in that `data.frame`, just like in the base `lm()` function. If the explanatory variables in `X` are named, these names also appear in the output.
 
@@ -112,28 +114,28 @@ Specify a slightly more elaborate endogenous and dynamic panel data set and appl
 
 ```{r}
 # Generate a panel where the predictors X correlate with the cross-sectional innovation,
-# but can be instrumented with q = 3 variables in Z. Furthermore, include GARCH(1,1)
-# innovations, an AR lag of the dependent variable, and specific group sizes
+# but can be instrumented with q = 2 variables in Z. Furthermore, include GARCH(1,1)
+# innovations, and specific group sizes
 sim_endo <- sim_DGP(
   N = 20, n_periods = 200, p = 2, n_groups = 3, group_proportions = c(0.3, 0.3, 0.4),
-  error_spec = "GARCH", q = 2, dynamic = FALSE
+  error_spec = "GARCH", q = 2
 )
 data_endo <- sim_endo$data
 Z <- sim_endo$Z
 
 # Note that the method PGMM and the instrument matrix Z need to be passed
-estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3, verbose = F)
+estim_endo <- pagfl(y ~ ., data = data_endo, n_periods = 200, lambda = 2, method = "PGMM", Z = Z, bias_correc = TRUE, max_iter = 50e3, verbose = FALSE)
 summary(estim_endo)
 ```
 
 > [!TIP] 
 > `pagfl()` lets you select a minimum group size, adjust the efficiency vs. accuracy trade-off of the iterative estimation algorithm, and modify a list of further settings. Visit the documentation `?pagfl()` for more information.
 
-## The Time-varying PAGFL
+## FUSE-TIME
 
-The package also includes the functions `sim_tv_DGP()`and `tv_pagfl()`, which generate and estimate grouped panel data models with smoothly time-varying coefficients $\beta_i (t/T)$. As detailed in Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the functional coefficients admit to the group structure
+The package also includes the functions `sim_tv_DGP()` and `fuse_time()`, which generate and estimate grouped panel data models with smoothly time-varying coefficients $\beta_i (t/T)$. As detailed in Haimerl et al. ([2025](https://doi.org/10.48550/arXiv.2503.23165)), the functional coefficients admit to the group structure
 
-$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) 1 \{i \in G_k \}.$$ 
+$$\beta_{i} (t/T) = \sum_{k = 1}^K \alpha_k (t/T) \mathbb{1} \{i \in G_k \}.$$ 
 
 The time-varying coefficients are estimated using polynomial B-spline functions, yielding a penalized sieve estimator (*PSE*) (see [Haimerl et al., 2025](https://doi.org/10.48550/arXiv.2503.23165), sec. 2).
 
@@ -144,11 +146,11 @@ n_periods <- 100
 tv_sim <- sim_tv_DGP(N = N, n_periods = n_periods, sd_error = 1, intercept = TRUE, p = 1)
 tv_data <- tv_sim$data
 
-tv_estim <- tv_pagfl(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5, verbose = F)
+tv_estim <- fuse_time(y ~ 1, data = tv_data, n_periods = n_periods, lambda = 5, verbose = F)
 summary(tv_estim)
 ```
 
-`tv_pagfl()` returns an object of class `tvpagfl`, which contains
+`fuse_time()` returns an object of class `fusetime`, which contains
 
 1.  `model`: A `data.frame` containing the dependent and explanatory variables as well as individual and time indices (if provided).
 2.  `coefficients`: A list holding (i) a $T \times p^{(1)} \times \hat{K}$ array of the post-Lasso group-specific functional coefficients and (ii) a $K \times p^{(2)}$ matrix of time-constant parameter estimates (when running a mixed time-varying panel data model).
@@ -161,11 +163,11 @@ summary(tv_estim)
 9.  `call`: The function call.
 
 > [!TIP] 
-> Again, `tvpagfl` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
+> Again, `fusetime` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
 
 In empirical settings, unbalanced panel datasets are common; nevertheless, time-varying coefficient functions remain identifiable (see Haimerl et al. [2025](https://doi.org/10.48550/arXiv.2503.23165), Appendix D). The spline functions simply interpolate missing time periods and the group structure compensates for missings in any individual cross-sectional unit. However, when using unbalanced datasets it is required to provide explicit indicator variables that declare the cross-sectional individual and time period each observation belongs to.
 
-Lets delete 30% of observations, add indicator variables, and run `tv_pagfl()` again.
+Lets delete 30% of observations, add indicator variables, and run `fuse_time()` again.
 
 ```{r, fig.width = 9, fig.height = 4}
 # Draw some observations to be omitted
@@ -176,12 +178,12 @@ tv_data$t_index <- rep(1:n_periods, N)
 # Delete some observations
 tv_data <- tv_data[delete_index, ]
 # Apply the time-varying PAGFL to an unbalanced panel
-tv_estim_unbalanced <- tv_pagfl(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5, verbose = F)
+tv_estim_unbalanced <- fuse_time(y ~ 1, data = tv_data, index = c("i_index", "t_index"), lambda = 5, verbose = F)
 summary(tv_estim_unbalanced)
 ```
 
 > [!TIP] 
-> `tv_pagfl()` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polyomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?tv_pagfl()` for details.
+> `fuse_time()` lets you specify a lot more optionalities than shown here. For example, it is possible to adjust the polynomial degree and the number of interior knots in the spline basis system, or estimate a panel data model with a mix of time-varying and time-constant coefficients. See `?fuse_time()` for details.
 
 ## Observing a Group Structure
 
@@ -193,7 +195,7 @@ estim_oracle <- grouped_plm(y ~ ., data = data, n_periods = 150, groups = groups
 summary(estim_oracle)
 ```
 
-Besides not estimating the group structure, `grouped_plm()` (`grouped_tv_plm()`) behave identically to `pagfl()` (`tv_pagfl()`)
+Besides not estimating the group structure, `grouped_plm()` (`grouped_tv_plm()`) behave identically to `pagfl()` (`fuse_time()`)
 
 ## Future Outlook
 
