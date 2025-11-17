@@ -48,7 +48,7 @@ Default is \code{"iid"}.}
 
 \item{scales}{a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
 
-\item{polynomial_coef}{a \eqn{p \times d \times K} array of coefficients for a the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
+\item{polynomial_coef}{a \eqn{p \times d \times K} array of coefficients for the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.}
 
 \item{sd_error}{standard deviation of the cross-sectional errors. Default is 1.}
 }

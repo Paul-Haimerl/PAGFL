@@ -146,7 +146,7 @@
       Mean squared error: 7.51678
       Multiple R-squared: 0.38579, Adjusted R-squared: 0.38146 
 
-# S3 tv_pagfl
+# S3 fuse_time
 
     Code
       estim
@@ -154,13 +154,13 @@
       Groups: 5 
       
       Call:
-      tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
+      fuse_time(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
           verbose = F)
 
 ---
 
     Call:
-    tv_pagfl(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
+    fuse_time(formula = y ~ X1, data = data, n_periods = 100, lambda = 7, 
         verbose = F)
     
     Balanced panel: N = 10, T = 100, obs = 1000
@@ -217,10 +217,10 @@
     Mean squared error: 1.05323
     Multiple R-squared: 0.80939, Adjusted R-squared: 0.80569 
 
-# S3 tv_pagfl const coef unbalanced
+# S3 fuse_time const coef unbalanced
 
     Call:
-    tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
+    fuse_time(formula = y ~ X + a, data = df, index = c("i_index", 
         "t_index"), lambda = 25, const_coef = "a", verbose = F)
     
     Unbalanced panel: N = 10, T = 66-77, obs = 710
@@ -257,7 +257,7 @@
       Groups: 2 
       
       Call:
-      tv_pagfl(formula = y ~ X + a, data = df, index = c("i_index", 
+      fuse_time(formula = y ~ X + a, data = df, index = c("i_index", 
           "t_index"), lambda = 25, const_coef = "a", verbose = F)
 
 # S3 grouped_tv_plm const coef unbalanced summary

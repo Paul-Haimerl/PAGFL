@@ -1,12 +1,12 @@
-#' Time-varying Pairwise Adaptive Group Fused Lasso
+#' Fused Unobserved group Spline Estimation of TIME varying coefficients
 #'
-#' @description Estimate a time-varying panel data model subject to a latent group structure using the time-varying pairwise adaptive group fused lasso (\emph{time-varying PAGFL}) by Haimerl et al. (2025). The \emph{time-varying PAGFL} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
+#' @description Estimate a time-varying panel data model subject to a latent group structure using \emph{FUSE-TIME}--Fused Unobserved group Spline Estimation of TIME varying coefficients--by Haimerl et al. (2025). \emph{FUSE-TIME} jointly identifies the latent group structure and group-specific time-varying functional coefficients.
 #' The time-varying coefficients are approximated as polynomial B-splines. The function supports both static and dynamic panel data models.
 #'
 #' @param formula a formula object describing the model to be estimated.
 #' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, \bold{x}_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
-#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
-#' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.
+#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the number of time periods \code{n_periods} is supplied.
+#' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{NULL}.
 #' @param lambda the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting \eqn{\lambda} value.
 #' @param d the polynomial degree of the B-splines. Default is 3.
 #' @param M the number of interior knots of the B-splines. If left unspecified, the default heuristic \eqn{M = \text{floor}((NT)^{\frac{1}{7}} - \log(p))} following Haimerl et al. (2025) is used.
@@ -37,7 +37,7 @@
 #' \deqn{y_{it} = \gamma_i^0 + \bold{\pi}_{i}^{0 \prime} \bold{z}_{it} + u_{it},}
 #' where \eqn{\bold{\pi}_i^0 = \text{vec}(\bold{\Pi}_i^0)}, and \eqn{u_{it} = \epsilon_{it} + \eta_{it}} collects the idiosyncratic \eqn{\epsilon_{it}} and the sieve approximation error \eqn{\eta_{it}}.
 #'
-#' Following Haimerl et al. (2025, sec. 2), the \emph{time-varying PAGFL} jointly estimates the functional coefficients and the group structure by minimizing the criterion
+#' Following Haimerl et al. (2025, sec. 2), \emph{FUSE-TIME} jointly estimates the functional coefficients and the group structure by minimizing the criterion
 #' \deqn{F_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \bold{\pi}_{i}^\prime \tilde{\bold{z}}_{it})^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j = i+1}^N \dot{\omega}_{ij} \| \bold{\pi}_i - \bold{\pi}_j \|_2}
 #' with respect to \eqn{\bold{\pi} = (\bold{\pi}_i^\prime, \dots, \bold{\pi}_N^\prime)^\prime}. \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum^{T}_{t=1} a_{it}}, \eqn{a = \{y, \bold{z}\}} to concentrate out the individual fixed effects \eqn{\gamma_i^0} (within-transformation). \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation.
 #' The criterion function is minimized via an iterative alternating direction method of multipliers (\emph{ADMM}) algorithm (Haimerl et al. 2053, Appendix C).
@@ -50,14 +50,16 @@
 #'
 #' In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and end-points of the interval on which the group-specific time-varying coefficients are defined.
 #'
+#' We refer to Haimerl et al. (2025) for more details.
+#'
 #' @examples
 #' # Simulate a time-varying panel with a trend and a group pattern
 #' set.seed(1)
 #' sim <- sim_tv_DGP(N = 10, n_periods = 50, intercept = TRUE, p = 1)
 #' df <- data.frame(y = c(sim$y))
 #'
-#' # Run the time-varying PAGFL
-#' estim <- tv_pagfl(y ~ ., data = df, n_periods = 50, lambda = 10, parallel = FALSE)
+#' # Run FUSE-TIME
+#' estim <- fuse_time(y ~ ., data = df, n_periods = 50, lambda = 10, parallel = FALSE)
 #' summary(estim)
 #'
 #' @references
@@ -65,7 +67,7 @@
 #'
 #' @author Paul Haimerl
 #'
-#' @return An object of class \code{tvpagfl} holding
+#' @return An object of class \code{fusetime} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
 #' \item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates.}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
@@ -76,11 +78,11 @@
 #' \item{\code{convergence}}{a \code{list} containing (i) a logical variable if convergence was achieved and (ii) the number of executed \emph{ADMM} algorithm iterations,}
 #' \item{\code{call}}{the function call.}
 #'
-#' An object of class \code{tvpagfl} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
+#' An object of class \code{fusetime} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 #' @export
-tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
-                     const_coef = NULL, kappa = 2, max_iter = 5e4, tol_convergence = 1e-10, tol_group = 1e-3,
-                     rho = .04 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
+fuse_time <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
+                      const_coef = NULL, kappa = 2, max_iter = 5e4, tol_convergence = 1e-10, tol_group = 1e-3,
+                      rho = .04 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#
   #### Preliminaries          ####
   #------------------------------#
@@ -181,7 +183,7 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
   #------------------------------#
 
   # Run the algorithm
-  lambdaList <- tv_pagfl_routine(
+  lambdaList <- fuse_time_routine(
     y = y, X = X, X_const = X_const, d = d, M = M, i_index = i_index, t_index = t_index, N = N, p_const = p_const, lambda_vec = lambda, kappa = kappa,
     min_group_frac = min_group_frac, max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group,
     varrho = varrho, rho = rho, parallel = parallel, verbose = verbose
@@ -197,7 +199,7 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
   #### Output                 ####
   #------------------------------#
 
-  out <- tv_pagfl_output(
+  out <- fuse_time_output(
     out = out, fe_vec = fe_vec, p = p, p_const = p_const, n_periods = n_periods, d = d, M = M, coef_rownames = coef_rownames,
     regressor_names = regressor_names, const_coef = const_coef, index = index, i_index_labs = i_index_labs, i_index = i_index,
     t_index = t_index, model_data = model_data
@@ -209,6 +211,20 @@ tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 
   out$IC$lambda <- lambda[indx]
   out$call <- match.call()
 
-  class(out) <- "tvpagfl"
+  class(out) <- "fusetime"
   return(out)
+}
+
+
+#' @export
+#' @rdname fuse_time
+tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
+                     const_coef = NULL, kappa = 2, max_iter = 5e4, tol_convergence = 1e-10, tol_group = 1e-3,
+                     rho = .04 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
+  lifecycle::deprecate_warn(when = "1.1.4", what = "tv_pagfl()", with = "fuse_time()")
+  fuse_time(
+    formula = formula, data = data, index = index, n_periods = n_periods, lambda = lambda, d = d, M = M, min_group_frac = min_group_frac,
+    const_coef = const_coef, kappa = kappa, max_iter = max_iter, tol_convergence = tol_convergence, tol_group = tol_group,
+    rho = rho, varrho = varrho, verbose = verbose, parallel = parallel, ...
+  )
 }

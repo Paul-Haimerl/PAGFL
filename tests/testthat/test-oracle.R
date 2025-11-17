@@ -74,7 +74,7 @@ test_that("grouped_plm input", {
 test_that("grouped_tv_plm results", {
   skip_on_cran()
   source(test_path("fixtures", "test_helper.R"))
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   groups_0 <- sim$groups
   alpha_0 <- sim$alpha
   y <- sim$y
@@ -83,24 +83,24 @@ test_that("grouped_tv_plm results", {
   p <- 2
   data <- as.data.frame(cbind(y = c(y), X))
   estim <- grouped_tv_plm(y ~ 1 + a, data = data, groups = groups_0, n_periods = 100)
-  check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_tv_pagfl_output(estim = estim, X = X, oracle = TRUE)
+  check_fuse_time(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
+  check_fuse_time_output(estim = estim, X = X, oracle = TRUE)
   # With . formula
   estim <- grouped_tv_plm(y ~ ., data = data, groups = groups_0, n_periods = 100)
-  check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_tv_pagfl_output(estim = estim, X = X, oracle = TRUE)
+  check_fuse_time(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
+  check_fuse_time_output(estim = estim, X = X, oracle = TRUE)
   # With index
   data$i <- rep(1:10, each = 100)
   data$t <- rep(1:100, 10)
   estim <- grouped_tv_plm(y ~ ., data = data, groups = groups_0, index = c("i", "t"))
-  check_tv_pagfl(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
-  check_tv_pagfl_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
+  check_fuse_time(estim = estim, groups_0 = groups_0, alpha_0 = alpha_0)
+  check_fuse_time_output(estim = estim, X = X, i_index = data$i, t_index = data$t, oracle = TRUE)
 })
 
 
 test_that("grouped_tv_plm Unbalanced panel output", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim.rds"))
   y <- sim$y
   groups_0 <- sim$groups
   data <- as.data.frame(cbind(y = c(y)))
@@ -124,7 +124,7 @@ test_that("grouped_tv_plm Unbalanced panel output", {
 
 test_that("grouped_tv_plm const_coef", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   groups_0 <- sim$groups

@@ -5,8 +5,8 @@
 #'
 #' @param formula a formula object describing the model to be estimated.
 #' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, \bold{x}_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
-#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.
-#' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty.
+#' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the number of time periods \code{n_periods} is supplied.
+#' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{NULL}.
 #' @param lambda the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting \eqn{\lambda} value.
 #' @param method the estimation method. Options are
 #' \describe{
@@ -97,7 +97,7 @@
 #'
 #' A \code{pagfl} object has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
 #' @export
-pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 5e3, tol_convergence = 1e-8,
+pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method = "PLS", Z = NULL, min_group_frac = .05, bias_correc = FALSE, kappa = 2, max_iter = 1e4, tol_convergence = 1e-8,
                   tol_group = 1e-3, rho = .07 * log(N * n_periods) / sqrt(N * n_periods),
                   varrho = max(sqrt(5 * N * n_periods * p) / log(N * n_periods * p) - 7, 1), verbose = TRUE, parallel = TRUE, ...) {
   #------------------------------#

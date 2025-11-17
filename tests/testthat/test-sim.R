@@ -47,7 +47,7 @@ test_that("pagfl sim input", {
   expect_error(sim_DGP(N = N, n_periods = n_periods, dynamic = TRUE, alpha_0 = alpha_0_ar))
 })
 
-test_that("tv_pagfl sim", {
+test_that("fuse_time sim", {
   skip_on_cran()
   N <- 10
   n_periods <- 15
@@ -55,19 +55,19 @@ test_that("tv_pagfl sim", {
   K <- 3
   # No intercept
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, intercept = FALSE, p = p, n_groups = K, group_proportions = c(.6, .2, .2))
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
   # Intercept
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, intercept = T, p = p, n_groups = K)
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
   # Dynamic, no intercept
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, intercept = F, p = p, n_groups = K, dynamic = T, sd_error = 2)
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
   # Dynamic with intercept
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, intercept = TRUE, p = p, n_groups = K, dynamic = T, sd_error = 2)
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
   # Dynamic with intercept and extra var
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, intercept = TRUE, p = p + 1, n_groups = K, dynamic = T, sd_error = 2)
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p + 1, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p + 1, K = K)
   # With specific coefficients
   locations <- matrix(stats::runif(p * K, .3, .9), ncol = K)
   scales <- matrix(stats::runif(p * K, .01, .09), ncol = K)
@@ -75,10 +75,10 @@ test_that("tv_pagfl sim", {
   polynomial_coef <- array(stats::runif(p * d * K, -20, 20), dim = c(p, d, K))
   polynomial_coef <- aperm(apply(polynomial_coef, c(1, 3), function(x) x - mean(x) + 1 / d), c(2, 1, 3))
   sim <- sim_tv_DGP(N = N, n_periods = n_periods, p = p, n_groups = K, d = d, locations = locations, scales = scales, polynomial_coef = polynomial_coef)
-  check_tv_pagfl_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
+  check_fuse_time_sim(sim = sim, N = N, n_periods = n_periods, p = p, K = K)
 })
 
-test_that("tv_pagfl sim input", {
+test_that("fuse_time sim input", {
   skip_on_cran()
   N <- 10
   n_periods <- 10

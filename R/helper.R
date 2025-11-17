@@ -1,4 +1,4 @@
-tv_pagfl_output <- function(out, fe_vec, p, p_const, n_periods, d, M, coef_rownames, regressor_names, const_coef, index, i_index, i_index_labs, t_index, model_data) {
+fuse_time_output <- function(out, fe_vec, p, p_const, n_periods, d, M, coef_rownames, regressor_names, const_coef, index, i_index, i_index_labs, t_index, model_data) {
   # Add FE to the estimated values
   fitted <- c(out$IC$fitted + fe_vec)
   # Prep the functional coefficients

@@ -47,9 +47,9 @@ grouped_tv_plm(
 
 \item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership of each cross-sectional unit \eqn{i}.}
 
-\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
+\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i}, and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the number of time periods \code{n_periods} is supplied.}
 
-\item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{Null}.}
+\item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{NULL}.}
 
 \item{d}{the polynomial degree of the B-splines. Default is 3.}
 
@@ -92,7 +92,7 @@ Consider the time-varying panel data model
 where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 The \eqn{p}-dimensional coefficient vector \eqn{\bold{\beta}_{i}^0 (t/T)} contains smooth functions of time and follows the observed group pattern
 \deqn{\bold{\beta}_i^0 \left(\frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k^0 \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is reflected in \code{groups}.
+with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
 
 The time-varying coefficient functions in \eqn{\bold{\alpha}_k (t/T)} and, in turn, \eqn{\bold{\beta}_i (t/T)} are estimated as polynomial B-splines. To this end, let \eqn{\bold{b}(v)} denote a \eqn{M + d +1} vector of polynomial basis functions with the polynomial degree \eqn{d} and \eqn{M} interior knots.
 \eqn{\bold{\alpha}_k^0 (t/T)} is approximated by forming linear combinations of the basis functions \eqn{\bold{\alpha}_k^0 (t/T) \approx \bold{\Xi}_k^{0 \prime} \bold{b} (t/T)}, where \eqn{\bold{\Xi}_i^{0}} is a group-specific \eqn{(M + d + 1) \times p} matrix of spline control points.

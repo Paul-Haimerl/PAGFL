@@ -95,7 +95,7 @@ print.summary.tv_gplm <- function(x, ...) {
     Group = rep(group_names, each = p * n_periods)
   )
   legend_position <- ifelse(x$groups$n_groups <= 10, "bottom", "none")
-  coef_plot <- gen_coef_plot_tvpagfl(coef_df, legend_position)
+  coef_plot <- gen_coef_plot_fusetime(coef_df, legend_position)
   print(coef_plot)
 }
 
@@ -168,7 +168,7 @@ fitted.tv_gplm <- function(object, ...) {
     y_name <- colnames(object$model)[1]
     col_map <- c("red", "black")
     names(col_map) <- c("fit", y_name)
-    fit_plot <- gen_fit_plot_tvpagfl(plot_df, y_name, col_map)
+    fit_plot <- gen_fit_plot_fusetime(plot_df, y_name, col_map)
     print(fit_plot)
   }
   return(fitted_df)

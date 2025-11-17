@@ -1,8 +1,8 @@
-#' @name tv_pagfl
-#' @param object of class \code{tvpagfl}.
-#' @method summary tvpagfl
+#' @name fuse_time
+#' @param object of class \code{fusetime}.
+#' @method summary fusetime
 #' @export
-summary.tvpagfl <- function(object, ...) {
+summary.fusetime <- function(object, ...) {
   tmp <- object[c("call", "residuals", "coefficients", "groups", "IC", "convergence", "args", "model")]
   k_tv <- ncol(tmp$coefficients$tv) * (tmp$args$d + tmp$args$M + 1)
   k_const <- ifelse(is.null(ncol(tmp$coefficients$const)), 0, ncol(tmp$coefficients$const))
@@ -11,23 +11,23 @@ summary.tvpagfl <- function(object, ...) {
   i_index <- as.numeric(factor(object$args$labs$i))
   measures_vec <- fitMeasures(N = N, k = k, y = object$model[[1]], i_index = i_index, method = "PLS", msr = tmp$IC$msr)
   out <- c(tmp, r.df = round(measures_vec[1]), r.squared = measures_vec[2], adj.r.squared = measures_vec[3], r.se = measures_vec[4], msr = tmp$IC$msr)
-  class(out) <- "summary.tvpagfl"
+  class(out) <- "summary.fusetime"
   return(out)
 }
 
-#' @name tv_pagfl
-#' @param x of class \code{tvpagfl}.
-#' @method formula tvpagfl
+#' @name fuse_time
+#' @param x of class \code{fusetime}.
+#' @method formula fusetime
 #' @export
-formula.tvpagfl <- function(x, ...) {
+formula.fusetime <- function(x, ...) {
   x$args$formula
 }
 
-#' @name tv_pagfl
-#' @param object of class \code{tvpagfl}.
-#' @method df.residual tvpagfl
+#' @name fuse_time
+#' @param object of class \code{fusetime}.
+#' @method df.residual fusetime
 #' @export
-df.residual.tvpagfl <- function(object, ...) {
+df.residual.fusetime <- function(object, ...) {
   M <- object$args$M + object$args$d + 1
   df_fe <- length(unique(object$args$labs$i))
   p <- max(ncol(object$coefficients$tv), 0)
@@ -35,18 +35,18 @@ df.residual.tvpagfl <- function(object, ...) {
   length(object$args$labs$t) - df_fe - (p * M + p_const) * object$groups$n_groups
 }
 
-#' @name tv_pagfl
-#' @param x of class \code{tvpagfl}.
-#' @method print tvpagfl
+#' @name fuse_time
+#' @param x of class \code{fusetime}.
+#' @method print fusetime
 #' @export
-print.tvpagfl <- function(x, ...) {
+print.fusetime <- function(x, ...) {
   cat(paste("Groups:", x$groups$n_groups), "\n")
   cat("\nCall:\n")
   print(x$call)
 }
 
 #' @export
-print.summary.tvpagfl <- function(x, ...) {
+print.summary.fusetime <- function(x, ...) {
   cat("Call:\n")
   print(x$call)
   unique_i <- unique(x$args$labs$i)
@@ -101,11 +101,11 @@ print.summary.tvpagfl <- function(x, ...) {
     Group = rep(group_names, each = p * n_periods)
   )
   legend_position <- ifelse(x$groups$n_groups <= 10, "bottom", "none")
-  coef_plot <- gen_coef_plot_tvpagfl(coef_df, legend_position)
+  coef_plot <- gen_coef_plot_fusetime(coef_df, legend_position)
   print(coef_plot)
 }
 
-gen_coef_plot_tvpagfl <- function(coef_df, legend_position) {
+gen_coef_plot_fusetime <- function(coef_df, legend_position) {
   coef <- coef_df$coef
   index <- coef_df$index
   Group <- coef_df$Group
@@ -133,11 +133,11 @@ gen_coef_plot_tvpagfl <- function(coef_df, legend_position) {
 }
 
 
-#' @name tv_pagfl
-#' @param object of class \code{tvpagfl}.
-#' @method coef tvpagfl
+#' @name fuse_time
+#' @param object of class \code{fusetime}.
+#' @method coef fusetime
 #' @export
-coef.tvpagfl <- function(object, ...) {
+coef.fusetime <- function(object, ...) {
   tv <- object$coefficients$tv
   if (!is.null(object$coefficients$const)) {
     const <- object$coefficients$const
@@ -156,11 +156,11 @@ coef.tvpagfl <- function(object, ...) {
 }
 
 
-#' @name tv_pagfl
-#' @param object of class \code{tvpagfl}.
-#' @method residuals tvpagfl
+#' @name fuse_time
+#' @param object of class \code{fusetime}.
+#' @method residuals fusetime
 #' @export
-residuals.tvpagfl <- function(object, ...) {
+residuals.fusetime <- function(object, ...) {
   resid_vec <- object$residuals
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t
@@ -174,11 +174,11 @@ residuals.tvpagfl <- function(object, ...) {
 }
 
 
-#' @name tv_pagfl
-#' @param object of class \code{tvpagfl}.
-#' @method fitted tvpagfl
+#' @name fuse_time
+#' @param object of class \code{fusetime}.
+#' @method fitted fusetime
 #' @export
-fitted.tvpagfl <- function(object, ...) {
+fitted.fusetime <- function(object, ...) {
   fitted_vec <- object$fitted
   i_index <- object$args$labs$i
   t_index <- object$args$labs$t
@@ -202,13 +202,13 @@ fitted.tvpagfl <- function(object, ...) {
     y_name <- colnames(object$model)[1]
     col_map <- c("red", "black")
     names(col_map) <- c("fit", y_name)
-    fit_plot <- gen_fit_plot_tvpagfl(plot_df, y_name, col_map)
+    fit_plot <- gen_fit_plot_fusetime(plot_df, y_name, col_map)
     print(fit_plot)
   }
   return(fitted_df)
 }
 
-gen_fit_plot_tvpagfl <- function(plot_df, y_name, col_map) {
+gen_fit_plot_fusetime <- function(plot_df, y_name, col_map) {
   t_index <- plot_df$t_index
   y <- plot_df$y
   fit <- plot_df$fit

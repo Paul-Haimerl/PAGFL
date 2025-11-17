@@ -1337,8 +1337,8 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     return lambdalist;
 }
 
-// Time-varying PAGFL routine
-Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
+// FUSE-TIME routine
+Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1433,9 +1433,9 @@ Rcpp::List tv_pagfl_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZ
     return output;
 }
 
-// Combine the time-varying PAGFL algo and the IC
+// Combine the FUSE-TIME algo and the IC
 // [[Rcpp::export]]
-Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel, const bool &verbose)
+Rcpp::List fuse_time_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, const unsigned int &d, const unsigned int &M, arma::uvec &i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &p_const, const arma::vec &lambda_vec, const double &kappa, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const double &rho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1504,7 +1504,7 @@ Rcpp::List tv_pagfl_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, cons
     {
       if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
         // Estimate
-        estimOutput = tv_pagfl_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
+        estimOutput = fuse_time_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
         // Compute the Information Criterion
         IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index, TRUE);
         output = Rcpp::List::create(

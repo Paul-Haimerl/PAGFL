@@ -73,15 +73,15 @@ test_that("S3 grouped_plm", {
   expect_snapshot(summary(estim))
 })
 
-test_that("S3 tv_pagfl", {
+test_that("S3 fuse_time", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   data <- data.frame(y = y, X1 = X)
   data$a <- stats::rnorm(length(y))
-  estim <- tv_pagfl(y ~ X1, data = data, n_periods = 100, lambda = 7, verbose = F)
-  estim_const <- tv_pagfl(y ~ X1 + a, data = data, n_periods = 100, lambda = 7, const_coef = "a")
+  estim <- fuse_time(y ~ X1, data = data, n_periods = 100, lambda = 7, verbose = F)
+  estim_const <- fuse_time(y ~ X1 + a, data = data, n_periods = 100, lambda = 7, const_coef = "a")
   # print
   expect_snapshot(estim, cran = FALSE)
   # coef
@@ -108,7 +108,7 @@ test_that("S3 tv_pagfl", {
 
 test_that("S3 grouped_tv_plm", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   groups_0 <- sim$groups
@@ -140,9 +140,9 @@ test_that("S3 grouped_tv_plm", {
   expect_equal(df.residual(estim), length(y) - length(y) / 100 - 2 * (estim$args$M + estim$args$d + 1) * estim$groups$n_groups)
 })
 
-test_that("S3 tv_pagfl const coef unbalanced", {
+test_that("S3 fuse_time const coef unbalanced", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   df <- data.frame(y = y, X)
@@ -152,7 +152,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
   df$t_index <- rep(1:100, length(y) / 100)
   rm_index <- as.logical(rbinom(n = length(y), prob = 0.7, size = 1))
   df <- df[rm_index, ]
-  estim <- tv_pagfl(y ~ X + a, const_coef = "a", data = df, index = c("i_index", "t_index"), lambda = 25, verbose = F)
+  estim <- fuse_time(y ~ X + a, const_coef = "a", data = df, index = c("i_index", "t_index"), lambda = 25, verbose = F)
   # coef
   coef_res <- coef(estim)
   expect_equal(dim(coef_res), c(100, 3, 10))
@@ -177,7 +177,7 @@ test_that("S3 tv_pagfl const coef unbalanced", {
 
 test_that("S3 grouped_tv_plm const coef unbalanced summary", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim_2.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim_2.rds"))
   y <- sim$y
   X <- sim$X
   groups_0 <- sim$groups

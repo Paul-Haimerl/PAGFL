@@ -1,11 +1,13 @@
 # PAGFL 1.1.4 (development version)
 
 * Added references to new arXiv submission 
+* Renamed `tv_pagfl` to `fuse_time`
 * Updated documentation
 * Slight cosmetic changes to figures
 * Added icon
 * Observations with NAs of irrelevant variables are no longer removed
 * Extended unit tests
+* Added R >= 3.5.0 dependency
 
 # PAGFL 1.1.3 (stable version)
 

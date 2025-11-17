@@ -47,9 +47,9 @@ grouped_plm(
 
 \item{groups}{a numerical or character vector of length \eqn{N} that indicates the group membership of each cross-sectional unit \eqn{i}.}
 
-\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the the number of time periods \code{n_periods} is supplied.}
+\item{index}{a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the number of time periods \code{n_periods} is supplied.}
 
-\item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} is passed, this argument can be left empty.}
+\item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} is passed, this argument can be left empty. Default is \code{NULL}.}
 
 \item{method}{the estimation method. Options are
 \describe{
@@ -96,7 +96,7 @@ Consider the grouped panel data model
 where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of (weakly) exogenous explanatory variables, and \eqn{\epsilon_{it}} denotes a zero mean error.
 The coefficient vector \eqn{\bold{\beta}_i^0} follows the observed group pattern
 \deqn{\bold{\beta}_i^0 = \sum_{k = 1}^K \bold{\alpha}_k^0 \bold{1} \{i \in G_k \},}
-with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is reflected in \code{groups}.
+with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
 
 Using \emph{PLS}, the group-specific coefficients of group \eqn{k, \, k = 1, \dots, K}, are obtained by \emph{OLS}
 \deqn{\hat{\bold{\alpha}}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{x}}_{it} \tilde{\bold{x}}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{x}}_{it} \tilde{y}_{it},}

@@ -89,35 +89,35 @@ test_that("grouped_plm inputs", {
   expect_error(grouped_plm(y ~ 1, data = data, groups = groups_0_star, n_periods = 150, verbose = F))
 })
 
-test_that("tv_pagfl inputs", {
+test_that("fuse_time inputs", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))
   data$i <- as.character(rep(1:20, each = 100))
   data$t <- rep(1:100, 20)
   # Wrong number of time periods
-  expect_error(tv_pagfl(y ~ 1, data = data, n_periods = 101, lambda = 1, verbose = F))
+  expect_error(fuse_time(y ~ 1, data = data, n_periods = 101, lambda = 1, verbose = F))
   # Char matrix for y
   data_star <- data.frame(y = as.character(c(y)))
-  expect_error(tv_pagfl(y ~ 1, data = data_star, n_periods = 100, lambda = 1, verbose = F))
+  expect_error(fuse_time(y ~ 1, data = data_star, n_periods = 100, lambda = 1, verbose = F))
   # Wrong index variables
   data$a <- stats::rnorm(length(y))
-  expect_error(tv_pagfl(y ~ 1 + a, data = data, index = c("a", "t"), lambda = 1, verbose = F))
-  expect_error(tv_pagfl(y ~ 1, data = data, index = c("c", "t"), lambda = 1, verbose = F))
+  expect_error(fuse_time(y ~ 1 + a, data = data, index = c("a", "t"), lambda = 1, verbose = F))
+  expect_error(fuse_time(y ~ 1, data = data, index = c("c", "t"), lambda = 1, verbose = F))
   # Nonexistent regressor
-  expect_error(tv_pagfl(y ~ 1 + b, data = data, index = c("i", "t"), lambda = 1, verbose = F))
+  expect_error(fuse_time(y ~ 1 + b, data = data, index = c("i", "t"), lambda = 1, verbose = F))
   # Wrong argument
-  expect_error(tv_pagfl(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, d = -1))
+  expect_error(fuse_time(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, d = -1))
   # Const_coef not in data
-  expect_error(tv_pagfl(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, const_coef = "a"))
+  expect_error(fuse_time(y ~ 1, data = data, index = c("i", "t"), lambda = 1, verbose = F, const_coef = "a"))
   # Force only one group with const coef
-  expect_no_error(tv_pagfl(y ~ 1 + a, data = data, index = c("i", "t"), lambda = 1e4, verbose = F, const_coef = "a"))
+  expect_no_error(fuse_time(y ~ 1 + a, data = data, index = c("i", "t"), lambda = 1e4, verbose = F, const_coef = "a"))
 })
 
 test_that("tv_grouped_plm inputs", {
   skip_on_cran()
-  sim <- readRDS(test_path("fixtures", "tv_pagfl_sim.rds"))
+  sim <- readRDS(test_path("fixtures", "fuse_time_sim.rds"))
   y <- sim$y
   data <- as.data.frame(cbind(y = c(y)))
   groups_0 <- sim$groups
