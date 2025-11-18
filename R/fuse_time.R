@@ -218,9 +218,9 @@ fuse_time <- function(formula, data, index = NULL, n_periods = NULL, lambda, d =
 
 #' @export
 #' @rdname fuse_time
-tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M = floor(length(y)^(1 / 7) - log(p)), min_group_frac = .05,
+tv_pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, d = 3, M, min_group_frac = .05,
                      const_coef = NULL, kappa = 2, max_iter = 5e4, tol_convergence = 1e-10, tol_group = 1e-3,
-                     rho = .04 * log(N * n_periods) / sqrt(N * n_periods), varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
+                     rho, varrho = 1, verbose = TRUE, parallel = TRUE, ...) {
   lifecycle::deprecate_warn(when = "1.1.4", what = "tv_pagfl()", with = "fuse_time()")
   fuse_time(
     formula = formula, data = data, index = index, n_periods = n_periods, lambda = lambda, d = d, M = M, min_group_frac = min_group_frac,
