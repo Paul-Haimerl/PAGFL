@@ -1,4 +1,4 @@
-# PAGFL 1.1.4 (development version)
+# PAGFL 1.1.4 (stable version)
 
 * Added references to new arXiv submission 
 * Renamed `tv_pagfl` to `fuse_time`
@@ -9,7 +9,7 @@
 * Extended unit tests
 * Added R >= 3.5.0 dependency
 
-# PAGFL 1.1.3 (stable version)
+# PAGFL 1.1.3
 
 * Added a progress bar displaying the percentage of convergence to `pagfl` and `tv_pagfl` if `verbose` is selected
 * Slight changes in the formatting of the `print` method for `summary` of `pagfl` and `grouped_plm` objects
