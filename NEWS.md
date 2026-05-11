@@ -1,6 +1,7 @@
 # PAGFL 1.1.5 (development version)
 
 * Bugfix in backend sparse matrix handling
+* Speed optimizations
 
 
 # PAGFL 1.1.4 (stable version)

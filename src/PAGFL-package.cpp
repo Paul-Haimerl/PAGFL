@@ -84,14 +84,22 @@ arma::mat buildZ(const arma::mat &X, const arma::mat &B, const arma::uvec &t_ind
 // Ols via inverse chol decomposition
 arma::vec ols_chol(arma::mat &XtX, arma::vec &Xty)
 {
+    // XtX = U^T U with U upper-triangular. Solve U^T z = Xty, then U beta = z.
     arma::mat chol_decomp = arma::chol(XtX);
-    arma::mat chol_inv = arma::inv(arma::trimatu(chol_decomp));
-    arma::vec estim = chol_inv * chol_inv.t() * Xty;
+    arma::vec z = arma::solve(arma::trimatl(chol_decomp.t()), Xty, arma::solve_opts::fast);
+    arma::vec estim = arma::solve(arma::trimatu(chol_decomp), z, arma::solve_opts::fast);
     return estim;
 }
 
 arma::vec ols_naive(arma::mat &XtX, arma::vec &Xty)
 {
+    // pinv is load-bearing on the `robust = TRUE` path: it tolerates
+    // rank-deficient designs (multicollinear regressors, unbalanced panels
+    // where some Z_i'Z_i is rank-deficient) via SVD truncation of small
+    // singular values. arma::solve — even with solve_opts::no_approx —
+    // succeeds on ill-conditioned-but-not-quite-singular matrices and returns
+    // a numerically very different answer, which breaks unbalanced-panel
+    // tests by shifting group assignments. Keep pinv.
     return arma::pinv(XtX) * Xty;
 }
 
@@ -123,7 +131,7 @@ arma::uvec addOneObsperI(const arma::uvec &vec)
 }
 
 // Demean a matrix per individual
-arma::mat demeanIndMat(arma::mat x, unsigned int N, arma::uvec i_index)
+arma::mat demeanIndMat(const arma::mat &x, unsigned int N, const arma::uvec &i_index)
 {
     arma::mat x_tilde = x;
     arma::uvec ind_seq;
@@ -142,7 +150,7 @@ arma::mat demeanIndMat(arma::mat x, unsigned int N, arma::uvec i_index)
 
 // Demean a vector per individual
 // [[Rcpp::export]]
-arma::vec demeanIndVec(arma::vec x, unsigned int N, arma::uvec i_index)
+arma::vec demeanIndVec(const arma::vec &x, unsigned int N, const arma::uvec &i_index)
 {
     arma::vec x_tilde = x;
     arma::uvec ind_seq, finite_inds;
@@ -161,7 +169,7 @@ arma::vec demeanIndVec(arma::vec x, unsigned int N, arma::uvec i_index)
 }
 
 // Take column-wise differences of a matrix per individual
-arma::mat fdIndMat(arma::mat x, unsigned int N, arma::uvec i_index)
+arma::mat fdIndMat(const arma::mat &x, unsigned int N, const arma::uvec &i_index)
 {
     arma::mat x_tilde;
     arma::uvec ind_seq;
@@ -177,7 +185,7 @@ arma::mat fdIndMat(arma::mat x, unsigned int N, arma::uvec i_index)
 }
 
 // Take column-wise differences of a vector per individual
-arma::vec fdIndVec(arma::vec x, unsigned int N, arma::uvec i_index)
+arma::vec fdIndVec(const arma::vec &x, unsigned int N, const arma::uvec &i_index)
 {
     arma::mat x_tilde;
     arma::uvec ind_seq;
@@ -235,28 +243,30 @@ arma::sp_mat buildLambda(const unsigned int &p, const unsigned int &N)
 // Obtain adaptive penalty weights
 arma::vec getOmega(const arma::vec &delta, const double &kappa, const unsigned int &N, const unsigned int &p)
 {
-    int n = N * (N - 1) * p / 2;
-    // Build a matrix that holds all the indices of delta that belong to the same individual per row
-    arma::mat ind_mat = arma::linspace<arma::mat>(1, n, n);
-    ind_mat.reshape(p, n / p);
-    ind_mat = ind_mat.t();
-    arma::vec omega_single(n / p);
-    // Apply the (to the power of -kappa) group-wise L2 norm to obtain the penalty weights
-    for (unsigned int i = 0; i < n / p; i++)
+    const arma::uword n = static_cast<arma::uword>(N) * (N - 1) * p / 2;
+    const arma::uword n_pairs = n / p;
+    arma::vec omega(n);
+    for (arma::uword i = 0; i < n_pairs; ++i)
     {
-        arma::uvec ind = arma::conv_to<arma::uvec>::from(ind_mat.row(i)) - 1;
-        float norm_val = arma::norm(delta.elem(ind), "fro");
-        omega_single(i) = std::pow(norm_val, -kappa);
+        const arma::uword start = i * p;
+        // Float cast preserves the original code's precision behavior
+        float norm_val = arma::norm(delta.subvec(start, start + p - 1), "fro");
+        const double w = std::pow(norm_val, -kappa);
+        for (unsigned int j = 0; j < p; ++j)
+        {
+            omega(start + j) = w;
+        }
     }
-    // Expand the vector to make later computations easier
-    arma::vec omega = arma::vectorise(arma::repmat(omega_single, 1, p).t());
     return omega;
 }
 
 // Update the slope parameter vector
-arma::vec getBeta(arma::vec invXovY, arma::mat invXov, arma::sp_mat VarLambdat, double varrho, arma::vec v, arma::vec delta)
+arma::vec getBeta(const arma::vec &invXovY, const arma::mat &invXov, const arma::sp_mat &VarLambdat, const double &varrho, const arma::vec &v, const arma::vec &delta)
 {
     // See Mehrabani (2023, sec 5.1 step 2a/ 5.2 step 2a)
+    // Evaluate inside-out: sparse mat-vec then dense mat-vec is O(nnz + Np^2);
+    // materializing invXov*VarLambdat would be O(Np * n) per iter — slower
+    // for typical FUSE-TIME shapes where n = N(N-1)p/2 >> Np.
     arma::vec lagr_vev = VarLambdat * (delta - v / varrho);
     arma::vec beta = invXovY + invXov * lagr_vev;
     return beta;
@@ -307,15 +317,17 @@ arma::vec getDelta(const arma::vec &ada_weights, const arma::vec &beta, const ar
     ind_mat.reshape(p, n / p);
     ind_mat = ind_mat.t();
     arma::vec delta(n);
-    // Vector of complete fusion parameter differences
-    if (parallel)
+    // Vector of complete fusion parameter differences. Serial fallback when the
+    // iteration count is small enough that thread dispatch overhead dominates.
+    const unsigned int n_iter = n / p;
+    if (parallel && n_iter >= 50)
     {
         DeltaWorker deltaWorker(ind_mat, xi, ada_weights, delta, p);
-        parallelFor(0, n / p, deltaWorker);
+        parallelFor(0, n_iter, deltaWorker);
     }
     else
     {
-        for (unsigned int i = 0; i < n / p; i++)
+        for (unsigned int i = 0; i < n_iter; i++)
         {
             arma::uvec ind = arma::conv_to<arma::uvec>::from(ind_mat.row(i)) - 1;
             delta.subvec(i * p, (i + 1) * p - 1) = softThreshold(ind, xi, ada_weights);
@@ -413,34 +425,37 @@ arma::mat buildDiagX_block_dense(const arma::mat &X, const unsigned int &N, arma
 
 struct BetaWorker : public Worker
 {
-    const arma::uvec &groups;
     const std::vector<arma::mat> &XMat_vec;
     const std::vector<arma::vec> &y_vec;
+    const std::vector<std::vector<unsigned int>> &group_members;
+    const std::vector<arma::uword> &group_size;
+    const arma::uword X_ncols;
     const bool &robust;
     arma::mat &beta_mat;
     std::vector<arma::mat> &XMat_tilde_vec;
     std::vector<arma::mat> &XtX_tilde_vec;
 
-    BetaWorker(const arma::uvec &groups, const std::vector<arma::mat> &XMat_vec, const std::vector<arma::vec> &y_vec, const bool &robust, arma::mat &beta_mat, std::vector<arma::mat> &XMat_tilde_vec, std::vector<arma::mat> &XtX_tilde_vec)
-        : groups(groups), XMat_vec(XMat_vec), y_vec(y_vec), robust(robust), beta_mat(beta_mat), XMat_tilde_vec(XMat_tilde_vec), XtX_tilde_vec(XtX_tilde_vec) {}
+    BetaWorker(const std::vector<arma::mat> &XMat_vec, const std::vector<arma::vec> &y_vec, const std::vector<std::vector<unsigned int>> &group_members, const std::vector<arma::uword> &group_size, const arma::uword X_ncols, const bool &robust, arma::mat &beta_mat, std::vector<arma::mat> &XMat_tilde_vec, std::vector<arma::mat> &XtX_tilde_vec)
+        : XMat_vec(XMat_vec), y_vec(y_vec), group_members(group_members), group_size(group_size), X_ncols(X_ncols), robust(robust), beta_mat(beta_mat), XMat_tilde_vec(XMat_tilde_vec), XtX_tilde_vec(XtX_tilde_vec) {}
 
     void operator()(std::size_t begin, std::size_t end)
     {
         for (unsigned int i = begin; i < end; i++)
         {
-            arma::mat groupMatrix;
-            arma::vec group_y;
-            for (unsigned int j = 0; j < groups.n_elem; j++)
+            const std::vector<unsigned int> &members = group_members[i];
+            arma::mat groupMatrix(group_size[i], X_ncols);
+            arma::vec group_y(group_size[i]);
+            arma::uword row_start = 0;
+            for (unsigned int j : members)
             {
-                if (groups[j] == i + 1)
-                {
-                    groupMatrix = arma::join_cols(groupMatrix, XMat_vec[j]);
-                    group_y = arma::join_cols(group_y, y_vec[j]);
-                }
+                const arma::uword rs = XMat_vec[j].n_rows;
+                groupMatrix.rows(row_start, row_start + rs - 1) = XMat_vec[j];
+                group_y.subvec(row_start, row_start + rs - 1) = y_vec[j];
+                row_start += rs;
             }
-            XMat_tilde_vec[i] = groupMatrix;
             arma::mat Xt_tilde = groupMatrix.t();
             arma::mat XtX_tilde = Xt_tilde * groupMatrix;
+            XMat_tilde_vec[i] = groupMatrix;
             XtX_tilde_vec[i] = XtX_tilde;
             arma::vec Xty_tilde = Xt_tilde * group_y;
             arma::vec beta;
@@ -475,30 +490,42 @@ std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X,
     std::vector<arma::mat> XMat_tilde_vec(nGroups);
     std::vector<arma::mat> XtX_tilde_vec(nGroups);
     arma::mat beta_mat = arma::zeros<arma::mat>(N, X.n_cols);
-    if (parallel)
+    // Precompute, per group, the list of individual indices and the row total
+    std::vector<std::vector<unsigned int>> group_members(nGroups);
+    std::vector<arma::uword> group_size(nGroups, 0);
+    for (unsigned int j = 0; j < N; ++j)
     {
-        BetaWorker betaWorker(groups, XMat_vec, y_vec, robust, beta_mat, XMat_tilde_vec, XtX_tilde_vec);
+        unsigned int g = groups[j] - 1;
+        group_members[g].push_back(j);
+        group_size[g] += XMat_vec[j].n_rows;
+    }
+    const arma::uword X_ncols = X.n_cols;
+    if (parallel && nGroups >= 50)
+    {
+        BetaWorker betaWorker(XMat_vec, y_vec, group_members, group_size, X_ncols, robust, beta_mat, XMat_tilde_vec, XtX_tilde_vec);
         parallelFor(0, nGroups, betaWorker);
     }
     else
     {
         for (unsigned int i = 0; i < nGroups; i++)
         {
-            arma::mat groupMatrix, XtX_tilde, Xt_tilde;
-            arma::vec beta, group_y, Xty_tilde;
-            for (unsigned int j = 0; j < N; j++)
+            const std::vector<unsigned int> &members = group_members[i];
+            arma::mat groupMatrix(group_size[i], X_ncols);
+            arma::vec group_y(group_size[i]);
+            arma::uword row_start = 0;
+            for (unsigned int j : members)
             {
-                if (groups[j] == i + 1)
-                {
-                    groupMatrix = arma::join_cols(groupMatrix, XMat_vec[j]);
-                    group_y = arma::join_cols(group_y, y_vec[j]);
-                }
+                const arma::uword rs = XMat_vec[j].n_rows;
+                groupMatrix.rows(row_start, row_start + rs - 1) = XMat_vec[j];
+                group_y.subvec(row_start, row_start + rs - 1) = y_vec[j];
+                row_start += rs;
             }
+            arma::mat Xt_tilde = groupMatrix.t();
+            arma::mat XtX_tilde = Xt_tilde * groupMatrix;
             XMat_tilde_vec[i] = groupMatrix;
-            Xt_tilde = groupMatrix.t();
-            XtX_tilde = Xt_tilde * groupMatrix;
             XtX_tilde_vec[i] = XtX_tilde;
-            Xty_tilde = Xt_tilde * group_y;
+            arma::vec Xty_tilde = Xt_tilde * group_y;
+            arma::vec beta;
             if (robust)
             {
                 beta = ols_naive(XtX_tilde, Xty_tilde);
@@ -514,9 +541,6 @@ std::tuple<arma::sp_mat, arma::sp_mat, arma::vec> buildDiagX(const arma::mat &X,
     // Create the final block matrices
     arma::sp_mat X_tilde = buildBlockDiag(XMat_tilde_vec);
     arma::sp_mat XtX = buildBlockDiag(XtX_tilde_vec);
-    std::vector<arma::mat> X_tilde_vec(3);
-    X_tilde_vec[0] = X_tilde;
-    X_tilde_vec[1] = XtX;
     return std::make_tuple(X_tilde, XtX, arma::vectorise(beta_mat.t()));
 }
 
@@ -525,15 +549,18 @@ arma::sp_mat invertV(const arma::mat &V, const unsigned int &q)
 {
     unsigned int N = V.n_rows / q;
     std::vector<arma::mat> W_list(N);
-    arma::mat V_red;
-    // V is a block matrix of group-wise error var-cov matrices
+    arma::mat V_red, W_red;
+    // V is a block matrix of group-wise error var-cov matrices. Each block is
+    // a residual outer-product, typically rank-deficient — pinv is the safe
+    // fallback. Try Cholesky-based inversion first for well-conditioned cases.
     for (unsigned int i = 0; i < N; i++)
     {
-        // Pick and invert each submatrix individually
         V_red = V.submat(i * q, i * q, (i + 1) * q - 1, (i + 1) * q - 1);
-        W_list[i] = arma::pinv(V_red);
+        if (!arma::inv_sympd(W_red, V_red)) {
+            W_red = arma::pinv(V_red);
+        }
+        W_list[i] = W_red;
     }
-    // Put everything back together
     arma::sp_mat W = buildBlockDiag(W_list);
     return W;
 }
@@ -545,7 +572,7 @@ arma::sp_mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec 
     arma::mat Xt = X_block.t() * Z_block * Z_block.t();
     arma::mat XtX = Xt * X_block;
     arma::vec Xty = Xt * y;
-    arma::vec beta = arma::inv(XtX + .05 / sqrt(y.n_elem)) * Xty;
+    arma::vec beta = arma::solve(XtX + .05 / sqrt(y.n_elem), Xty);
     // Obtain the (group-wise) var-cov matrix of the residuals
     arma::vec u = y - X_block * beta;
     arma::mat V = Z_block.t() * u * u.t() * Z_block;
@@ -556,28 +583,31 @@ arma::sp_mat getW(const arma::mat &X_block, arma::mat &Z_block, const arma::vec 
 
 struct AlphaWorker : public Worker
 {
-    const arma::uvec &groups;
     const std::vector<arma::mat> &XMat_vec;
     const std::vector<arma::vec> &y_vec;
+    const std::vector<std::vector<unsigned int>> &group_members;
+    const std::vector<arma::uword> &group_size;
+    const arma::uword X_ncols;
     const bool &robust;
     arma::mat &alpha_mat;
 
-    AlphaWorker(const arma::uvec &groups, const std::vector<arma::mat> &XMat_vec, const std::vector<arma::vec> &y_vec, const bool &robust, arma::mat &alpha_mat)
-        : groups(groups), XMat_vec(XMat_vec), y_vec(y_vec), robust(robust), alpha_mat(alpha_mat) {}
+    AlphaWorker(const std::vector<arma::mat> &XMat_vec, const std::vector<arma::vec> &y_vec, const std::vector<std::vector<unsigned int>> &group_members, const std::vector<arma::uword> &group_size, const arma::uword X_ncols, const bool &robust, arma::mat &alpha_mat)
+        : XMat_vec(XMat_vec), y_vec(y_vec), group_members(group_members), group_size(group_size), X_ncols(X_ncols), robust(robust), alpha_mat(alpha_mat) {}
 
     void operator()(std::size_t begin, std::size_t end)
     {
         for (unsigned int k = begin; k < end; k++)
         {
-            arma::mat groupX;
-            arma::vec groupy;
-            for (unsigned int j = 0; j < groups.n_elem; j++)
+            const std::vector<unsigned int> &members = group_members[k];
+            arma::mat groupX(group_size[k], X_ncols);
+            arma::vec groupy(group_size[k]);
+            arma::uword row_start = 0;
+            for (unsigned int j : members)
             {
-                if (groups[j] == k + 1)
-                {
-                    groupX = arma::join_cols(groupX, XMat_vec[j]);
-                    groupy = arma::join_cols(groupy, y_vec[j]);
-                }
+                const arma::uword rs = XMat_vec[j].n_rows;
+                groupX.rows(row_start, row_start + rs - 1) = XMat_vec[j];
+                groupy.subvec(row_start, row_start + rs - 1) = y_vec[j];
+                row_start += rs;
             }
             arma::mat groupXt = groupX.t();
             arma::mat groupXtX = groupXt * groupX;
@@ -614,29 +644,40 @@ arma::mat getGroupwiseOLS(const arma::vec &y, const arma::mat &X, const unsigned
     // Impose a certain grouping
     unsigned int nGroups = arma::max(groups);
     arma::mat alpha_mat = arma::zeros<arma::mat>(nGroups, p);
-    if (parallel)
+    // Precompute, per group, the list of individual indices and the row total
+    std::vector<std::vector<unsigned int>> group_members(nGroups);
+    std::vector<arma::uword> group_size(nGroups, 0);
+    for (unsigned int j = 0; j < N; ++j)
     {
-        AlphaWorker alphaWorker(groups, XMat_vec, y_vec, robust, alpha_mat);
+        unsigned int g = groups[j] - 1;
+        group_members[g].push_back(j);
+        group_size[g] += XMat_vec[j].n_rows;
+    }
+    const arma::uword X_ncols = X.n_cols;
+    if (parallel && nGroups >= 50)
+    {
+        AlphaWorker alphaWorker(XMat_vec, y_vec, group_members, group_size, X_ncols, robust, alpha_mat);
         parallelFor(0, nGroups, alphaWorker);
     }
     else
     {
         for (unsigned int k = 0; k < nGroups; k++)
         {
-            arma::mat groupX, groupXt, groupXtX;
-            arma::vec groupy, alpha_group, groupXty;
-            // Obtain which individuals are part of group k
-            for (unsigned int j = 0; j < N; j++)
+            const std::vector<unsigned int> &members = group_members[k];
+            arma::mat groupX(group_size[k], X_ncols);
+            arma::vec groupy(group_size[k]);
+            arma::uword row_start = 0;
+            for (unsigned int j : members)
             {
-                if (groups[j] == k + 1)
-                {
-                    groupX = arma::join_cols(groupX, XMat_vec[j]);
-                    groupy = arma::join_cols(groupy, y_vec[j]);
-                }
+                const arma::uword rs = XMat_vec[j].n_rows;
+                groupX.rows(row_start, row_start + rs - 1) = XMat_vec[j];
+                groupy.subvec(row_start, row_start + rs - 1) = y_vec[j];
+                row_start += rs;
             }
-            groupXt = groupX.t();
-            groupXtX = groupXt * groupX;
-            groupXty = groupXt * groupy;
+            arma::mat groupXt = groupX.t();
+            arma::mat groupXtX = groupXt * groupX;
+            arma::vec groupXty = groupXt * groupy;
+            arma::vec alpha_group;
             if (robust)
             {
                 alpha_group = ols_naive(groupXtX, groupXty);
@@ -685,7 +726,7 @@ arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const s
         W = arma::eye<arma::mat>(groupZ.n_cols, groupZ.n_cols);
         groupXt = groupX.t() * groupZ * W * groupZ.t();
         // Compute the post-lasso estimates
-        alpha = arma::inv(groupXt * groupX + .05 / sqrt(y.n_elem)) * groupXt * y_tilde;
+        alpha = arma::solve(groupXt * groupX + .05 / sqrt(y.n_elem), groupXt * y_tilde);
         alpha_mat = arma::reshape(alpha, p, alpha.n_elem / p).t();
     }
     else
@@ -698,65 +739,91 @@ arma::mat getAlpha(const arma::mat &X, const arma::vec &y, arma::mat &Z, const s
 // Splits the observed time periods of a NT x p matrix in half per individual
 arma::mat splitMatInHalf(const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const unsigned int &half)
 {
-    arma::mat X_half;
-    arma::uvec ind_seq, ind_seq_half;
-    unsigned int half_ind, start, end;
+    // Two-pass: first collect all kept row indices, then extract once
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total_rows = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
-        half_ind = ind_seq.n_elem / 2;
-        start = (half == 1) ? 0 : half_ind;
-        end = start + half_ind - 1;
-        ind_seq_half = ind_seq.subvec(start, end);
-        X_half = arma::join_cols(X_half, X.rows(ind_seq_half));
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
+        unsigned int half_ind = ind_seq.n_elem / 2;
+        unsigned int start = (half == 1) ? 0 : half_ind;
+        unsigned int end = start + half_ind - 1;
+        idx_chunks[i] = ind_seq.subvec(start, end);
+        total_rows += idx_chunks[i].n_elem;
     }
-    return X_half;
+    arma::uvec idx(total_rows);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return X.rows(idx);
 }
 
 // Splits the observed time periods of a NT vector in half per individual
 arma::vec splitVecInHalf(const arma::vec &X, const unsigned int &N, arma::uvec &i_index, const unsigned int &half)
 {
-    arma::vec X_half;
-    arma::uvec ind_seq, ind_seq_half;
-    unsigned int start, end;
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
         unsigned int half_ind = ind_seq.n_elem / 2;
-        start = (half == 1) ? 0 : half_ind;
-        end = start + half_ind - 1;
-        ind_seq_half = ind_seq.subvec(start, end);
-        X_half = arma::join_cols(X_half, X.elem(ind_seq_half));
+        unsigned int start = (half == 1) ? 0 : half_ind;
+        unsigned int end = start + half_ind - 1;
+        idx_chunks[i] = ind_seq.subvec(start, end);
+        total += idx_chunks[i].n_elem;
     }
-    return X_half;
+    arma::uvec idx(total);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return X.elem(idx);
 }
 
 // Obtain the first half of the index vector per individual
 arma::uvec splitIndexInHalf(arma::uvec &i_index, const unsigned int &half)
 {
     arma::uvec unique_i = arma::unique(i_index);
-    arma::uvec i_index_half, ind_seq, half_ind_seq;
-    unsigned int start, end, half_ind;
+    std::vector<arma::uvec> idx_chunks(unique_i.n_elem);
+    arma::uword total = 0;
     for (unsigned int i = 0; i < unique_i.n_elem; i++)
     {
-        ind_seq = arma::find(i_index == unique_i[i]);
-        half_ind = ind_seq.n_elem / 2;
-        start = (half == 1) ? 0 : half_ind;
-        end = start + half_ind - 1;
-        half_ind_seq = ind_seq.subvec(start, end);
-        i_index_half = arma::join_cols(i_index_half, i_index.elem(half_ind_seq));
+        arma::uvec ind_seq = arma::find(i_index == unique_i[i]);
+        unsigned int half_ind = ind_seq.n_elem / 2;
+        unsigned int start = (half == 1) ? 0 : half_ind;
+        unsigned int end = start + half_ind - 1;
+        idx_chunks[i] = ind_seq.subvec(start, end);
+        total += idx_chunks[i].n_elem;
     }
-    return i_index_half;
+    arma::uvec idx(total);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < unique_i.n_elem; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return i_index.elem(idx);
 }
 
 // Drops either the first or the last observed time period of a NT x p matrix per individual
 arma::mat deleteObsMat(const arma::mat &X, const unsigned int &N, arma::uvec &i_index, const bool first)
 {
-    arma::mat x_red, X_red;
-    arma::uvec ind_seq;
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total_rows = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
         if (first)
         {
             ind_seq.shed_row(0);
@@ -765,17 +832,26 @@ arma::mat deleteObsMat(const arma::mat &X, const unsigned int &N, arma::uvec &i_
         {
             ind_seq.shed_row(ind_seq.n_elem - 1);
         }
-        x_red = X.rows(ind_seq);
-        X_red = arma::join_cols(X_red, x_red);
+        idx_chunks[i] = ind_seq;
+        total_rows += ind_seq.n_elem;
     }
-    return X_red;
+    arma::uvec idx(total_rows);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return X.rows(idx);
 }
 
 // Net out fixed effects
 std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &method, const unsigned int &N, arma::uvec &i_index)
 {
-    arma::mat (*netFEMat)(arma::mat, unsigned int, arma::uvec);
-    arma::vec (*netFEVec)(arma::vec, unsigned int, arma::uvec);
+    arma::mat (*netFEMat)(const arma::mat &, unsigned int, const arma::uvec &);
+    arma::vec (*netFEVec)(const arma::vec &, unsigned int, const arma::uvec &);
     if (method == "PLS")
     {
         netFEMat = &demeanIndMat;
@@ -799,57 +875,82 @@ std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &meth
 // Deletes one individual observation from the cross-sectional index vector in case the number of observations per individual is uneven
 arma::uvec getEvenT_index(arma::uvec &i_index, const unsigned int N)
 {
-    arma::uvec ind_seq, i_index_trunc;
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
         if (ind_seq.n_elem % 2 != 0)
         {
             ind_seq.shed_row(ind_seq.n_elem - 1);
-            i_index_trunc = arma::join_cols(i_index_trunc, i_index.elem(ind_seq));
         }
-        else
-        {
-            i_index_trunc = arma::join_cols(i_index_trunc, i_index.elem(ind_seq));
-        }
+        idx_chunks[i] = ind_seq;
+        total += ind_seq.n_elem;
     }
-    return i_index_trunc;
+    arma::uvec idx(total);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return i_index.elem(idx);
 }
 
 // Deletes one individual observation from the a vector in case the number of observations per individual is uneven
 arma::vec getEvenT_vec(const arma::vec &X, const unsigned int &N, arma::uvec i_index)
 {
-    arma::vec x_red, X_red;
-    arma::uvec ind_seq;
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
-        x_red = X.elem(ind_seq);
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
         if (ind_seq.n_elem % 2 != 0)
         {
-            x_red.shed_row(x_red.n_elem - 1);
+            ind_seq.shed_row(ind_seq.n_elem - 1);
         }
-        X_red = arma::join_cols(X_red, x_red);
+        idx_chunks[i] = ind_seq;
+        total += ind_seq.n_elem;
     }
-    return X_red;
+    arma::uvec idx(total);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return X.elem(idx);
 }
 
 // Deletes one individual observation from the a matrix in case the number of observations per individual is uneven
 arma::mat getEvenT_mat(const arma::mat &X, const unsigned int &N, arma::uvec i_index)
 {
-    arma::mat x_red, X_red;
-    arma::uvec ind_seq;
+    std::vector<arma::uvec> idx_chunks(N);
+    arma::uword total = 0;
     for (unsigned int i = 0; i < N; i++)
     {
-        ind_seq = arma::find(i_index == i + 1);
-        x_red = X.rows(ind_seq);
+        arma::uvec ind_seq = arma::find(i_index == i + 1);
         if (ind_seq.n_elem % 2 != 0)
         {
-            x_red.shed_row(x_red.n_rows - 1);
+            ind_seq.shed_row(ind_seq.n_elem - 1);
         }
-        X_red = arma::join_cols(X_red, x_red);
+        idx_chunks[i] = ind_seq;
+        total += ind_seq.n_elem;
     }
-    return X_red;
+    arma::uvec idx(total);
+    arma::uword pos = 0;
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        const arma::uword k = idx_chunks[i].n_elem;
+        if (k == 0) continue;
+        idx.subvec(pos, pos + k - 1) = idx_chunks[i];
+        pos += k;
+    }
+    return X.rows(idx);
 }
 
 // Compute the Split-panel Jackknife bias corrected estimates
@@ -940,10 +1041,14 @@ arma::uvec relabelGroups(const arma::uvec &groups)
     return groups_relabel;
 }
 
-// Assigns individuals to groups based on the estimated parameter differences
+// Assigns individuals to groups based on the estimated parameter differences.
+// Union-find over the N individuals: every pair (i,j) with ||delta_ij|| < tol
+// unions i with j. The legacy two-pass nested-merge scheme produced the same
+// partition; the canonical labels emerge from a left-to-right relabel that
+// assigns the next consecutive integer to each root's first occurrence —
+// identical to what relabelGroups did to the legacy output.
 arma::uvec getGroups(const arma::vec &beta, const arma::vec &y, const arma::mat &X, const arma::sp_mat &Lambda, const unsigned int &p, const unsigned int &N, const double &tol)
 {
-    // Assign the groups based on which estimates are equal enough
     unsigned int n = N * (N - 1) / 2;
     arma::mat delta = arma::reshape(Lambda * beta, p, n).t();
     arma::vec deltaNorm(n);
@@ -952,78 +1057,48 @@ arma::uvec getGroups(const arma::vec &beta, const arma::vec &y, const arma::mat 
         deltaNorm[i] = arma::norm(delta.row(i), "fro");
     }
     arma::uvec identicalUnits = arma::find(deltaNorm < tol);
-    arma::uvec groups(N);
-    // Construct a vector with all individuals per entry belonging to one group
-    arma::umat identicalUnits_mat(2, identicalUnits.n_elem, fill::zeros);
-    arma::uvec first_params;
-    if (identicalUnits.n_elem == 0)
-    {
-        groups = arma::linspace<arma::uvec>(1, N, N);
-    }
-    else
-    {
-        // Matrix with pairs of individuals that are part of the same group
-        for (unsigned int i = 0; i < identicalUnits.n_elem; i++)
-        {
-            identicalUnits_mat.col(i) = getGroupPairs(identicalUnits[i] + 1, N);
+
+    // DSU (union-find) with path compression + union by rank
+    std::vector<unsigned int> parent(N), rnk(N, 0);
+    for (unsigned int i = 0; i < N; ++i) parent[i] = i;
+    auto find_root = [&](unsigned int x) -> unsigned int {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];
+            x = parent[x];
         }
-        first_params = unique(identicalUnits_mat.row(0).t());
+        return x;
+    };
+    auto union_sets = [&](unsigned int a, unsigned int b) {
+        a = find_root(a);
+        b = find_root(b);
+        if (a == b) return;
+        if (rnk[a] < rnk[b]) std::swap(a, b);
+        parent[b] = a;
+        if (rnk[a] == rnk[b]) rnk[a]++;
+    };
+
+    // Union each pair flagged as identical
+    for (unsigned int k = 0; k < identicalUnits.n_elem; ++k) {
+        arma::uvec pr = getGroupPairs(identicalUnits[k] + 1, N);
+        union_sets(pr[0] - 1, pr[1] - 1); // getGroupPairs returns 1-indexed
     }
-    std::vector<arma::uvec> groupList(first_params.n_elem);
-    // Collapse into a single vector of group memberships
-    for (unsigned int i = 0; i < first_params.n_elem; i++)
-    {
-        arma::uvec second_params_indices = arma::find(identicalUnits_mat.row(0) == first_params[i]);
-        arma::uvec second_params(second_params_indices.n_elem);
-        for (unsigned int i = 0; i < second_params_indices.n_elem; ++i)
-        {
-            second_params[i] = identicalUnits_mat(1, second_params_indices[i]);
-        }
-        arma::uvec group = arma::join_cols(arma::uvec({first_params[i]}), second_params);
-        groupList[i] = group;
-    }
-    // Force transitivity among the groups by pooling groups with at least one shared individual
-    unsigned int groupListSize = groupList.size();
-    if (groupListSize > 1)
-    {
-        for (unsigned int i = 0; i < groupListSize; i++)
-        {
-            for (unsigned int j = fmin(i + 1, groupListSize); j < groupListSize; j++)
-            {
-                arma::uvec intersect = arma::intersect(groupList[i], groupList[j]);
-                if (intersect.n_elem > 0)
-                {
-                    groupList[i] = arma::unique(arma::join_cols(groupList[i], groupList[j]));
-                    groupList[j] = arma::uvec();
-                }
-            }
+
+    // Assign consecutive labels in order of first occurrence per individual.
+    // This reproduces relabelGroups' canonical labeling.
+    arma::uvec groups_hat(N);
+    std::map<unsigned int, unsigned int> root_to_label;
+    unsigned int next_label = 1;
+    for (unsigned int i = 0; i < N; ++i) {
+        unsigned int r = find_root(i);
+        auto it = root_to_label.find(r);
+        if (it == root_to_label.end()) {
+            root_to_label[r] = next_label;
+            groups_hat[i] = next_label;
+            ++next_label;
+        } else {
+            groups_hat[i] = it->second;
         }
     }
-    // Remove empty groups
-    groupList.erase(std::remove_if(groupList.begin(), groupList.end(), [](const arma::uvec &v)
-                                   { return v.is_empty(); }),
-                    groupList.end());
-    // Compute a vector of group adherences
-    arma::uvec groups_hat_raw(N, arma::fill::zeros);
-    for (unsigned int i = 0; i < groupList.size(); ++i)
-    {
-        for (unsigned int j = 0; j < groupList[i].n_elem; ++j)
-        {
-            groups_hat_raw[groupList[i][j] - 1] = i + 1;
-        }
-    }
-    // Total number of groups
-    int K_hat = arma::max(groups_hat_raw);
-    // Assign single individuals to their own group
-    for (unsigned int i = 0; i < N; i++)
-    {
-        if (groups_hat_raw[i] == 0)
-        {
-            groups_hat_raw[i] = ++K_hat;
-        }
-    }
-    // Relabel the groups to be consecutive
-    arma::uvec groups_hat = relabelGroups(groups_hat_raw);
     return groups_hat;
 }
 
@@ -1305,7 +1380,7 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
         Xt = X_block.t() * Z_block * W * Z_block.t();
         XtX = arma::mat(Xt * X_block + .05 / sqrt(y_tilde.n_elem));
         Xty = Xt * y_tilde;
-        beta = arma::inv(XtX) * Xty;
+        beta = arma::solve(XtX, Xty);
     }
     else
     {
@@ -1316,9 +1391,16 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
         beta = std::get<2>(X_block_vec);
         Xty = X_block.t() * y_tilde;
     }
-    // Pre-invert the predictor var-cov matrix
+    // Pre-invert the predictor var-cov matrix. XtXLambda = X'X + varrho*L'L is
+    // symmetric PD: X'X is PSD, varrho*L'L is PSD with kernel = (1_N ⊗ e_r) on
+    // which X'X acts as sum_i X_i'X_i, PD whenever the design has full column
+    // rank — the standard regression condition. Use Cholesky-based inversion;
+    // fall back to general inv if it fails (rank-deficient design).
     arma::mat XtXLambda = arma::mat(XtX + VarLambdat * Lambda);
-    arma::mat invXcov = arma::inv(XtXLambda);
+    arma::mat invXcov;
+    if (!arma::inv_sympd(invXcov, XtXLambda)) {
+        invXcov = arma::inv(XtXLambda);
+    }
     arma::vec invXcovY = invXcov * Xty;
 
     //------------------------------//
@@ -1371,6 +1453,7 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
     bool convergence_ind;
     unsigned int progress_increment, convergence_perc_out, convergence_perc;
     RcppThread::ProgressBar progress_bar(10000, 1);
+    bool progress_init = false;
     double resid0 = NA_REAL;
     double best_resid = std::numeric_limits<double>::infinity();
     double log_resid0 = 0.0, log_tol = 0.0;
@@ -1411,12 +1494,6 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
         if (verbose)
         {
           // --- Log-scale progress (roughly linear for exponential convergence) ---
-          static bool   progress_init = false;
-          static double resid0        = 0.0;
-          static double best_resid    = std::numeric_limits<double>::infinity();
-          static double log_resid0    = 0.0;
-          static double log_tol       = 0.0;
-
           if (!progress_init)
           {
             resid0     = std::max(resid_norm, tol_convergence * 10.0); // ensure > tol
@@ -1545,7 +1622,12 @@ Rcpp::List fuse_time_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, con
     arma::sp_mat ZtZ = std::get<1>(Z_block_vec);
     arma::vec pi = std::get<2>(Z_block_vec);
     arma::mat Zty = Z_block.t() * y_tilde;
-    // Pre-invert the predictor var-cov matrix
+    // Pre-invert the predictor var-cov matrix. pinv is intentional here:
+    // Z = kron(X, B) introduces near-collinearity from the B-spline basis,
+    // and on unbalanced panels some Z_i'Z_i blocks are rank-deficient. pinv
+    // regularizes via SVD truncation of small singular values; inv_sympd
+    // does not, and tests on unbalanced/const_coef fixtures fail because
+    // huge condition number breaks ADMM convergence.
     arma::mat ZtZLambda = arma::mat(ZtZ + VarLambdat * Lambda);
     arma::mat invZcov = arma::pinv(ZtZLambda);
     arma::vec invZcovY = invZcov * Zty;

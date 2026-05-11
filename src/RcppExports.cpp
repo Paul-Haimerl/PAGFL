@@ -27,14 +27,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // demeanIndVec
-arma::vec demeanIndVec(arma::vec x, unsigned int N, arma::uvec i_index);
+arma::vec demeanIndVec(const arma::vec& x, unsigned int N, const arma::uvec& i_index);
 RcppExport SEXP _PAGFL_demeanIndVec(SEXP xSEXP, SEXP NSEXP, SEXP i_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type i_index(i_indexSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type i_index(i_indexSEXP);
     rcpp_result_gen = Rcpp::wrap(demeanIndVec(x, N, i_index));
     return rcpp_result_gen;
 END_RCPP
