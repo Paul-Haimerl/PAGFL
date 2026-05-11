@@ -129,6 +129,7 @@ arma::mat demeanIndMat(arma::mat x, unsigned int N, arma::uvec i_index)
     arma::uvec ind_seq;
     arma::mat x_red;
     arma::rowvec means;
+
     for (unsigned int i = 0; i < N; i++)
     {
         ind_seq = arma::find(i_index == i + 1);
@@ -194,27 +195,41 @@ arma::vec fdIndVec(arma::vec x, unsigned int N, arma::uvec i_index)
 // Obtain the penalty matrix
 arma::sp_mat buildLambda(const unsigned int &p, const unsigned int &N)
 {
-    std::vector<arma::mat> D_vec;
-    // Create a complete fusion penalty matrix D
-    for (unsigned int x = 0; x < (N - 1); x++)
+    // Lambda = kron(D, I_p), where D is the N(N-1)/2 x N complete pairwise
+    // differencing matrix. Each row of D has exactly two non-zeros (+1 at i,
+    // -1 at j for i<j); kron with I_p replicates that pattern along the
+    // diagonal of each p x p block. Build directly in sparse COO form to
+    // avoid the dense intermediate, which blows up memory for large N.
+    const arma::uword n_pairs = static_cast<arma::uword>(N) * (N - 1) / 2;
+    const arma::uword n_rows  = n_pairs * p;
+    const arma::uword n_cols  = static_cast<arma::uword>(N) * p;
+    const arma::uword n_nz    = 2 * n_pairs * p;
+
+    arma::umat locations(2, n_nz);
+    arma::vec  values(n_nz);
+
+    arma::uword k = 0; // pair index, mirrors the row block of D
+    arma::uword e = 0; // running non-zero index
+    for (unsigned int i = 0; i < N - 1; ++i)
     {
-        arma::mat temp = arma::zeros<arma::mat>(N - 1 - x, x);
-        arma::vec ones = arma::ones<arma::vec>(N - 1 - x);
-        arma::mat diag = -arma::eye<arma::mat>(N - 1 - x, N - 1 - x);
-        temp = arma::join_horiz(temp, ones);
-        temp = arma::join_horiz(temp, diag);
-        D_vec.push_back(temp);
+        for (unsigned int j = i + 1; j < N; ++j)
+        {
+            for (unsigned int r = 0; r < p; ++r)
+            {
+                locations(0, e) = k * p + r;
+                locations(1, e) = i * p + r;
+                values(e)       = 1.0;
+                ++e;
+                locations(0, e) = k * p + r;
+                locations(1, e) = j * p + r;
+                values(e)       = -1.0;
+                ++e;
+            }
+            ++k;
+        }
     }
-    // Initialize D with the first matrix in D_vec
-    arma::mat D = D_vec[0];
-    // Join the rest of the matrices in D_vec vertically
-    for (unsigned int i = 1; i < D_vec.size(); i++)
-    {
-        D = arma::join_vert(D, D_vec[i]);
-    }
-    // Create a complete group penalty matrix Lambda
-    arma::sp_mat Lambda = sp_mat(arma::kron(D, arma::eye<arma::mat>(p, p)));
-    return Lambda;
+
+    return arma::sp_mat(locations, values, n_rows, n_cols, true, true);
 }
 
 // Obtain adaptive penalty weights
@@ -773,6 +788,7 @@ std::vector<arma::mat> netFE(arma::vec &y, arma::mat &X, const std::string &meth
     }
 
     arma::mat y_tilde = netFEVec(y, N, i_index);
+
     arma::mat X_tilde = netFEMat(X, N, i_index);
     std::vector<arma::mat> data(2);
     data[0] = y_tilde;
@@ -1355,6 +1371,9 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
     bool convergence_ind;
     unsigned int progress_increment, convergence_perc_out, convergence_perc;
     RcppThread::ProgressBar progress_bar(10000, 1);
+    double resid0 = NA_REAL;
+    double best_resid = std::numeric_limits<double>::infinity();
+    double log_resid0 = 0.0, log_tol = 0.0;
 
     //------------------------------//
     // Run the algorithm            //
@@ -1373,21 +1392,69 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
         // Check for convergence (step 2d)
         resid_norm = arma::norm(resid, "fro");
         convergence_perc = tol_convergence / resid_norm;
+
+        // if (verbose)
+        // {
+        //   convergence_perc_out = std::floor(convergence_perc * 10000);
+        //   convergence_perc_out = (convergence_perc_out > 10000) ? 10000 : convergence_perc_out;
+        //
+        //   if (convergence_perc_out > convergence_perc_out_old)
+        //   {
+        //     progress_increment = convergence_perc_out - convergence_perc_out_old;
+        //     for (unsigned int a = 0; a < progress_increment; a++)
+        //     {
+        //       progress_bar++;
+        //     }
+        //   }
+        //   convergence_perc_out_old = convergence_perc_out;
+        // }
         if (verbose)
         {
-          convergence_perc_out = std::floor(convergence_perc * 10000);
+          // --- Log-scale progress (roughly linear for exponential convergence) ---
+          static bool   progress_init = false;
+          static double resid0        = 0.0;
+          static double best_resid    = std::numeric_limits<double>::infinity();
+          static double log_resid0    = 0.0;
+          static double log_tol       = 0.0;
+
+          if (!progress_init)
+          {
+            resid0     = std::max(resid_norm, tol_convergence * 10.0); // ensure > tol
+            best_resid = resid_norm;
+            log_resid0 = std::log(resid0);
+            log_tol    = std::log(tol_convergence);
+            progress_init = true;
+          }
+
+          // Monotone progress even if resid_norm wiggles
+          best_resid = std::min(best_resid, resid_norm);
+
+          // Avoid log(0)
+          const double r_safe = std::max(best_resid, tol_convergence * 1e-12);
+
+          double prog = (log_resid0 - std::log(r_safe)) / (log_resid0 - log_tol);
+          prog = std::min(1.0, std::max(0.0, prog));
+
+          // Blend with iteration progress to ensure steady motion
+          const double prog_iter = static_cast<double>(i + 1) / static_cast<double>(max_iter);
+          prog = std::max(prog, prog_iter);
+
+          convergence_perc_out = static_cast<unsigned int>(std::floor(prog * 10000.0));
           convergence_perc_out = (convergence_perc_out > 10000) ? 10000 : convergence_perc_out;
 
           if (convergence_perc_out > convergence_perc_out_old)
           {
             progress_increment = convergence_perc_out - convergence_perc_out_old;
+
             for (unsigned int a = 0; a < progress_increment; a++)
             {
               progress_bar++;
             }
           }
+
           convergence_perc_out_old = convergence_perc_out;
         }
+
         iter++;
         convergence_ind = resid_norm < tol_convergence;
         if (convergence_ind) break;
@@ -1500,6 +1567,7 @@ Rcpp::List fuse_time_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, con
 
     Rcpp::List estimOutput, IC_list, output;
     Rcpp::List lambdalist(lambda_vec.n_elem);
+
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
       if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";

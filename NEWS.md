@@ -1,3 +1,8 @@
+# PAGFL 1.1.5 (development version)
+
+* Bugfix in backend sparse matrix handling
+
+
 # PAGFL 1.1.4 (stable version)
 
 * Added references to new arXiv submission 
