@@ -1,12 +1,15 @@
 # PAGFL 1.1.5 (development version)
 
+* Multi-core lambda-grid search: when `parallel = TRUE` and `lambda` contains more than two values, `pagfl()` and `fuse_time()` now dispatch the search over the penalty grid in parallel.
+* Bugfix such that the *ADMM* dual variable `v` is now reset between successive lambda values inside the routine. Numerical results from `pagfl()` and `fuse_time()` may therefore differ marginally from previous versions when `lambda` is supplied as a grid.
+* Added `RhpcBLASctl` to Imports to avoid nested parallel oversubscription.
 * Bugfix in backend sparse matrix handling
 * Speed optimizations
-
+* Fixed docu typos
 
 # PAGFL 1.1.4 (stable version)
 
-* Added references to new arXiv submission 
+* Added references to new arXiv submission
 * Renamed `tv_pagfl` to `fuse_time`
 * Updated documentation
 * Slight cosmetic changes to figures
@@ -34,7 +37,7 @@
 * Changed x-axis label in the plot produced by calling `summary()` of a `tvpagfl` object
 * Bugfix in the plot produced by calling `fitted()` and passing a character time-index variable
 * Added the current algorithm iteration and tuning parameter as a progress counter to the console for `pagfl` and `tv_pagfl` if option `verbose` is selected
-* Changed the IC selecting the best fitting tuning parameter for the `tv_pagfl` and `grouped_tv_plm` procedures to include the logarithmic mean squared error as the fitness term
+* Changed the IC selecting the best-fitting tuning parameter for the `tv_pagfl` and `grouped_tv_plm` procedures to include the logarithmic mean squared error as the fitness term
 
 # PAGFL 1.1.1
 
@@ -52,7 +55,7 @@
 * Change of the user interface to formula objects
 * Implementation of unit testing
 * Renamed functions to be consistently snake case
-* Support for unordered and/ or unbalanced panel data sets via `index`
+* Support for unordered and/or unbalanced panel data sets via `index`
 * Possibility to estimate a mix of time-constant and time-varying coefficients in the same panel data model (`const_coef`)
 * Added row and column names to the estimation output
 * Maximum within-group heterogeneity `group_tol` set to a machine inaccuracy value

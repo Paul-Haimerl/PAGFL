@@ -35,7 +35,7 @@ The `PAGFL` package makes these powerful procedures easy to use.
 
 ## Installation
 
-Always stay up-to-date with the development version (1.1.4) of `PAGFL`
+Always stay up-to-date with the development version (1.2.0) of `PAGFL`
 from [GitHub](https://github.com/):
 
 ``` r
@@ -64,18 +64,18 @@ $$y_{it} = \beta_i^{0 \prime} x_{it} + \gamma_i + u_{it}, \quad i = 1, \dots, N,
 
 where $y_{it}$ is a scalar dependent variable, $x_{it}$ a $p \times 1$
 vector of explanatory variables, and $\gamma_i$ reflects an individual
-fixed effect. The $p$-dimensional vector slope coefficients $\beta_i^0$
-follows the (latent) group structure
+fixed effect. The $p$-dimensional vector of slope coefficients
+$\beta_i^0$ follows the (latent) group structure
 
 $$\beta_{i} = \sum_{k = 1}^K \alpha_k 1 \{i \in G_k \},$$
 
 with $\cup_{k = 1}^K G_k = \{1, \dots, N \}$, and
-$G_k \cap G_j = \emptyset$ as well as $\| \alpha_k \neq \alpha_j \|$ for
-any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
+$G_k \cap G_j = \emptyset$ as well as $\| \alpha_k - \alpha_j \| \neq 0$
+for any $k \neq j$, $k,j = 1, \dots, K$ (see Mehrabani
 [2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 2).
 
-`sim_DGP()` also nests, among other, all DGPs employed in the simulation
-study of Mehrabani
+`sim_DGP()` also nests, among others, all DGPs employed in the
+simulation study of Mehrabani
 ([2023](https://doi.org/10.1016/j.jeconom.2022.12.002), sec. 6).
 
 ## Applying PAGFL
@@ -133,8 +133,8 @@ summary(estim)
 6.  `args`: A list of additional arguments.
 7.  `IC`: A `list` containing (i) the value of the IC, (ii) the employed
     tuning parameter $\lambda$, and (iii) the mean squared error.
-8.  `convergence`: A `list` containing (i) a logical variable if
-    convergence was achieved and (ii) the number of executed *ADMM*
+8.  `convergence`: A `list` containing (i) a logical variable indicating
+    if convergence was achieved and (ii) the number of executed *ADMM*
     algorithm iterations.
 9.  `call`: The function call.
 
@@ -155,7 +155,7 @@ trace out the correct model. To specify a suitable grid, create a
 logarithmic sequence ranging from a penalty parameter that induces
 complete slope heterogeneity to complete slope homogeneity (i.e.,
 $\widehat{K} = 1$). The resulting $\lambda$ grid vector can be passed in
-place of any specific value, and a BIC IC selects the best-fitting
+place of any specific value, and a BIC-type IC selects the best-fitting
 parameter.
 
 Furthermore, it is also possible to supply a `data.frame` with named
@@ -322,9 +322,9 @@ summary(tv_estim)
     variables as well as individual and time indices (if provided).
 2.  `coefficients`: A list holding (i) a
     $T \times p^{(1)} \times \hat{K}$ array of the post-Lasso
-    group-specific functional coefficients and (ii) a $K \times p^{(2)}$
-    matrix of time-constant parameter estimates (when running a mixed
-    time-varying panel data model).
+    group-specific functional coefficients and (ii) a
+    $\hat{K} \times p^{(2)}$ matrix of time-constant parameter estimates
+    (when running a mixed time-varying panel data model).
 3.  `groups`: A `list` containing (i) the total number of groups
     $\hat{K}$ and (ii) a vector of estimated group memberships
     $(\hat{g}_1, \dots, \hat{g}_N)$, where $\hat{g}_i = k$ if $i$ is
@@ -334,24 +334,25 @@ summary(tv_estim)
 6.  `args`: A list of additional arguments.
 7.  `IC`: A `list` containing (i) the value of the IC, (ii) the employed
     tuning parameter $\lambda$, and (iii) the mean squared error.
-8.  `convergence`: A `list` containing (i) a logical variable if
-    convergence was achieved and (ii) the number of executed *ADMM*
+8.  `convergence`: A `list` containing (i) a logical variable indicating
+    if convergence was achieved and (ii) the number of executed *ADMM*
     algorithm iterations.
 9.  `call`: The function call.
 
 > [!TIP] 
-> Again, `fusetime` objects support generic `summary()`,  `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
+> Again, `fusetime` objects support generic `summary()`, `fitted()`, `resid()`, `df.residual`, `formula`, and `coef()` functions.
 
 In empirical settings, unbalanced panel datasets are common;
 nevertheless, time-varying coefficient functions remain identifiable
 (see Haimerl et al. [2025](https://doi.org/10.48550/arXiv.2503.23165),
 Appendix D). The spline functions simply interpolate missing time
-periods and the group structure compensates for missings in any
-individual cross-sectional unit. However, when using unbalanced datasets
-it is required to provide explicit indicator variables that declare the
-cross-sectional individual and time period each observation belongs to.
+periods and the group structure compensates for missing observations in
+any individual cross-sectional unit. However, when using unbalanced
+datasets, it is required to provide explicit indicator variables that
+declare the cross-sectional individual and time period each observation
+belongs to.
 
-Lets delete 30% of observations, add indicator variables, and run
+Let’s delete 30% of observations, add indicator variables, and run
 `fuse_time()` again.
 
 ``` r
@@ -435,22 +436,7 @@ summary(estim_oracle)
 ```
 
 Besides not estimating the group structure, `grouped_plm()`
-(`grouped_tv_plm()`) behave identically to `pagfl()` (`fuse_time()`)
-
-## Future Outlook
-
-The package is still under active development. Future versions are
-planned to include
-
-- Global coefficients
-- Un-penalized individual coefficients
-- Inference methods
-
-You are not a R-user? Worry not - An equivalent Python library is in the
-works.
-
-Feel free to [reach out](mailto:paul.haimerl@econ.au.dk) if you have any
-suggestions or questions.
+(`grouped_tv_plm()`) behaves identically to `pagfl()` (`fuse_time()`).
 
 ## References
 

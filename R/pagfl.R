@@ -7,7 +7,7 @@
 #' @param data a \code{data.frame} or \code{matrix} holding a panel data set. If no \code{index} variables are provided, the panel must be balanced and ordered in the long format \eqn{\bold{Y}=(Y_1^\prime, \dots, Y_N^\prime)^\prime}, \eqn{Y_i = (Y_{i1}, \dots, Y_{iT})^\prime} with \eqn{Y_{it} = (y_{it}, \bold{x}_{it}^\prime)^\prime}. Conversely, if \code{data} is not ordered or not balanced, \code{data} must include two index variables that declare the cross-sectional unit \eqn{i} and the time period \eqn{t} of each observation.
 #' @param index a character vector holding two strings. The first string denotes the name of the index variable identifying the cross-sectional unit \eqn{i} and the second string represents the name of the variable declaring the time period \eqn{t}. The data is automatically sorted according to the variables in \code{index}, which may produce errors when the time index is a character variable. In case of a balanced panel data set that is ordered in the long format, \code{index} can be left empty if the number of time periods \code{n_periods} is supplied.
 #' @param n_periods the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{NULL}.
-#' @param lambda the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting \eqn{\lambda} value.
+#' @param lambda the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best-fitting \eqn{\lambda} value.
 #' @param method the estimation method. Options are
 #' \describe{
 #' \item{\code{"PLS"}}{for using the penalized least squares (\emph{PLS}) algorithm. We recommend \emph{PLS} in case of (weakly) exogenous regressors (Mehrabani, 2023, sec. 2.2).}
@@ -16,14 +16,14 @@
 #' @param Z a \eqn{NT \times q} \code{matrix} or \code{data.frame} of exogenous instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(z_1^\prime, \dots, z_N^\prime)^\prime}, \eqn{z_i = (z_{i1}, \dots, z_{iT})^\prime} and \eqn{z_{it}} is a \eqn{q \times 1} vector. \code{Z} is only required when \code{method = "PGMM"} is selected. When using \code{"PLS"}, the argument can be left empty or it is disregarded. Default is \code{NULL}.
 #' @param min_group_frac the minimum group cardinality as a fraction of the total number of individuals \eqn{N}. In case a group falls short of this threshold, each of its members is allocated to one of the remaining groups according to the \emph{MSE}. Default is 0.05.
 #' @param bias_correc logical. If \code{TRUE}, a Split-panel Jackknife bias correction following Dhaene and Jochmans (2015) is applied to the slope parameters. We recommend using the correction when working with dynamic panels. Default is \code{FALSE}.
-#' @param kappa the a non-negative weight used to obtain the adaptive penalty weights. Default is 2.
+#' @param kappa a non-negative weight used to obtain the adaptive penalty weights. Default is 2.
 #' @param max_iter the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is \eqn{1*10^4}.
 #' @param tol_convergence the tolerance limit for the stopping criterion of the iterative \emph{ADMM} estimation algorithm. Default is \eqn{1*10^{-8}}.
 #' @param tol_group the tolerance limit for within-group differences. Two individuals \eqn{i}, \eqn{j} are assigned to the same group if the Frobenius norm of their coefficient vector difference is below this threshold. Default is \eqn{1*10^{-3}}.
 #' @param rho the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Mehrabani (2023, sec. 6) is used. We recommend the default.
-#' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1}) is used.
+#' @param varrho the non-negative Lagrangian \emph{ADMM} penalty parameter. For \emph{PLS}, the \eqn{\varrho} value is trivial. However, for \emph{PGMM}, small values lead to slow convergence. If left unspecified, the default heuristic \eqn{\varrho = \max(\frac{\sqrt{5NTp}}{\log(NTp)}-7, 1)} is used.
 #' @param verbose logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.
-#' @param parallel logical. If \code{TRUE}, certain operations are parallelized across multiple cores. Default is \code{TRUE}.
+#' @param parallel logical. If \code{TRUE}, computation is parallelized across multiple cores. When \code{lambda} is a grid with more than two values, the search over \eqn{\lambda} is dispatched in parallel, with each penalty fit independently from a cold start; otherwise certain inner per-iteration operations of the \emph{ADMM} algorithm are parallelized via \emph{OpenMP}. Results are numerically identical to the sequential path. Default is \code{TRUE}.
 #' @param ... ellipsis
 #'
 #' @details
@@ -32,7 +32,7 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of weakly exogenous explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 #' The coefficient vector \eqn{\bold{\beta}_i^0} follows the latent group pattern
 #' \deqn{\bold{\beta}_i^0 = \sum_{k = 1}^K \bold{\alpha}_k^0 \bold{1} \{i \in G_k^0 \},}
-#' with \eqn{\cup_{k = 1}^K G_k^0 = \{1, \dots, N\}}, \eqn{G_k^0 \cap G_j^0 = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}.
+#' with \eqn{\cup_{k = 1}^K G_k^0 = \{1, \dots, N\}}, \eqn{G_k^0 \cap G_j^0 = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j}, \eqn{k,j = 1, \dots, K}.
 #'
 #' The \emph{PLS} method jointly estimates the latent group structure and group-specific coefficients by minimizing the criterion
 #' \deqn{Q_{NT} (\bold{\beta}, \lambda) = \frac{1}{T} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \bold{\beta}^\prime_i \tilde{\bold{x}}_{it})^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j=i}^N \dot{\omega}_{ij} \| \bold{\beta}_i - \bold{\beta}_j \|}
@@ -47,12 +47,12 @@
 #' \deqn{
 #' \quad + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j=i+1}^N \ddot{\omega}_{ij} \| \bold{\beta}_i - \bold{\beta}_j \|.
 #' }
-#' \eqn{\ddot{\omega}_{ij}} are obtained by an initial \emph{GMM} estimation. \eqn{\Delta} gives the first differences operator \eqn{\Delta y_{it} = y_{it} - y_{i t-1}}. \eqn{\bold{W}_i} represents a data-driven \eqn{q \times q} weight matrix. I refer to Mehrabani (2023, eq. 2.10) for more details.
+#' \eqn{\ddot{\omega}_{ij}} are obtained by an initial \emph{GMM} estimation. \eqn{\Delta} gives the first differences operator \eqn{\Delta y_{it} = y_{it} - y_{i t-1}}. \eqn{\bold{W}_i} represents a data-driven \eqn{q \times q} weight matrix. We refer to Mehrabani (2023, eq. 2.10) for more details.
 #' Again, the criterion function is minimized using an efficient \emph{ADMM} algorithm (Mehrabani, 2023, sec. 5.2).
 #'
 #' Two individuals are assigned to the same group if \eqn{\| \hat{\bold{\beta}}_i - \hat{\bold{\beta}}_j \| \leq \epsilon_{\text{tol}}} (and hence \eqn{\hat{\bold{\alpha}}_k = \hat{\bold{\beta}}_i = \hat{\bold{\beta}}_j} for some \eqn{k = 1, \dots, \hat{K}}), where \eqn{\epsilon_{\text{tol}}} is determined by \code{tol_group}. Subsequently, the estimated number of groups \eqn{\hat{K}} and group structure follows by examining the number of distinct elements in \eqn{\hat{\bold{\beta}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates using group-wise least squares or \emph{GMM} (see \code{\link{grouped_plm}}).
 #'
-#' We recommend identifying a suitable \eqn{\lambda} parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then selects the best fitting \eqn{\lambda} value.
+#' We recommend identifying a suitable \eqn{\lambda} parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then selects the best-fitting \eqn{\lambda} value.
 #'
 #' @examples
 #' # Simulate a panel with a group structure
@@ -66,7 +66,7 @@
 #' estim <- pagfl(y ~ ., data = df, n_periods = 80, lambda = 0.5, method = "PLS")
 #' summary(estim)
 #'
-#' # Lets pass a panel data set with explicit cross-sectional and time indicators
+#' # Let's pass a panel data set with explicit cross-sectional and time indicators
 #' i_index <- rep(1:20, each = 80)
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
@@ -183,6 +183,19 @@ pagfl <- function(formula, data, index = NULL, n_periods = NULL, lambda, method 
   #------------------------------#
   #### Iterate over lambda    ####
   #------------------------------#
+
+  # Outer parallelism (parallelFor over the lambda grid) is engaged inside
+  # the C++ routine when parallel=TRUE and length(lambda) > 2. To avoid
+  # K_lambda x B_BLAS thread oversubscription on OpenBLAS/MKL builds,
+  # pin BLAS threads to 1 for the duration of the call. No-op on reference
+  # BLAS (the Windows default).
+  if (isTRUE(parallel) && length(lambda) > 2) {
+    old_blas <- tryCatch(RhpcBLASctl::blas_get_num_procs(), error = function(e) NA_integer_)
+    if (!is.na(old_blas) && old_blas > 1L) {
+      RhpcBLASctl::blas_set_num_threads(1L)
+      on.exit(RhpcBLASctl::blas_set_num_threads(old_blas), add = TRUE)
+    }
+  }
 
   # Run the algorithm
   lambdaList <- pagfl_routine(

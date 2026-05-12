@@ -9,7 +9,7 @@ prelim_checks <- function(formula, data, Z = NULL, index = NULL, n_periods = NUL
     if (any(index %in% all.vars(formula[[2]]))) stop("Index variables are used as the dependent variable\n")
     if (any(index %in% all.vars(formula[[3]]))) stop("Index variables are used as the explanatory variables\n")
   } else {
-    if (any(is.na(data))) stop(paste(deparse(substitute(data)), "contains missing values. In order to work with unbalanced panel data sets, supply cross-sectional and temporal indix variables"), "\n")
+    if (any(is.na(data))) stop(paste(deparse(substitute(data)), "contains missing values. In order to work with unbalanced panel data sets, supply cross-sectional and temporal index variables"), "\n")
   }
   if (!(all.vars(formula[[2]]) %in% colnames(data))) stop(paste(all.vars(formula[[2]]), "not present in", deparse(substitute(data))), "\n")
   if (all.vars(formula[[2]]) %in% all.vars(formula[[3]])) stop("The dependent variable is also passed as a regressor\n")
@@ -37,7 +37,7 @@ checksStat <- function(X, method, Z, p, verbose) {
   if (any(sd_vec == 0)) stop("There must not be an intercept or any time-invariant explanatory variables\n")
   if (method == "PGMM") {
     if (ncol(Z) < p) stop(paste("Provide at least p =", p, "exogenous instruments `Z`"), "\n")
-    if (nrow(Z) != nrow(X)) stop("The number of time periods of the instrument matrix `Z` does do not match the remaining data\n")
+    if (nrow(Z) != nrow(X)) stop("The number of time periods of the instrument matrix `Z` does not match the remaining data\n")
   }
 }
 
@@ -71,7 +71,7 @@ simChecks <- function(dyn, N, n_groups, group_proportions, error_spec = "iid", a
       if (!is.matrix(scales) | all(dim(scales) != c(p, n_groups))) stop("`scales` must be a matrix with p rows and one column per group\n")
     }
     if (!is.null(polynomial_coef)) {
-      if (!is.array(polynomial_coef) | any(dim(polynomial_coef) != c(p, d, n_groups))) stop("`polynomial_coef` must be an array with p rows, d columns ane one plane per group\n")
+      if (!is.array(polynomial_coef) | any(dim(polynomial_coef) != c(p, d, n_groups))) stop("`polynomial_coef` must be an array with p rows, d columns and one plane per group\n")
     }
     if (p < 2 & intercept & dynamic) warning("`p = 1` but both an intercept and a dynamic AR coefficient are specified\n")
   }

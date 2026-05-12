@@ -1,6 +1,6 @@
 Package: PAGFL
 Title: Joint Estimation of Latent Groups and Group-Specific Coefficients in (Time-Varying) Panel Data Models
-Version: 1.1.5
+Version: 1.2.0
 Authors@R: c(
     person("Paul", "Haimerl", email = "paul.haimerl@econ.au.dk", role = c("aut","cre"), comment = c(ORCID = "0000-0003-3198-8317")),
     person("Stephan", "Smeekes", email = "s.smeekes@maastrichtuniversity.nl", role = "ctb", comment = c(ORCID = "0000-0002-0157-639X")),
@@ -21,11 +21,12 @@ LinkingTo:
     RcppArmadillo,
     RcppParallel,
     RcppThread
-Imports: 
-    Rcpp, 
+Imports:
+    Rcpp,
     lifecycle,
     ggplot2,
-    RcppParallel
+    RcppParallel,
+    RhpcBLASctl
 BugReports: https://github.com/Paul-Haimerl/PAGFL/issues
 URL: https://github.com/Paul-Haimerl/PAGFL
 Suggests: 

@@ -4,3 +4,5 @@
 .Ruserdata
 .positai
 .claude
+tests/manual/baseline_*.rds
+tests/testthat/Rplots.pdf
