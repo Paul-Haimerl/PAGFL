@@ -11,6 +11,23 @@ using namespace RcppParallel;
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::depends(RcppThread)]]
 
+// POD result containers used to escape the R API from inside parallel regions.
+// All fields are pure C++ (arma uses standard new/malloc, not the R allocator),
+// so these structs are safe to construct and copy on worker threads.
+struct AlgoResult {
+    arma::mat alpha_hat;
+    unsigned int K_hat;
+    arma::uvec groups_hat; // stored as column vec; transpose at R-translation
+    unsigned int iter;
+    bool convergence_ind;
+};
+struct ICResult {
+    double IC;
+    arma::vec fitted;
+    arma::vec resid;
+    double msr;
+};
+
 arma::vec bspline_basis(arma::vec &x, const arma::vec &knot_vec, const unsigned int &d, const unsigned int &indx)
 {
     arma::vec B_i;
@@ -1169,7 +1186,7 @@ arma::uvec mergeTrivialGroups(arma::uvec &groups_hat, const arma::vec &y, const 
 }
 
 // PAGFL routine
-Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
+AlgoResult pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat &X_tilde, arma::vec &invXcovY, arma::mat &invXcov, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const std::string &method, arma::mat &Z, arma::mat &Z_tilde, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, arma::uvec i_index, const arma::uvec &t_index, const unsigned int &N, const unsigned int &n, const unsigned int &p, const unsigned int &q, unsigned int &n_periods, const bool &bias_correc, const double &lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1187,13 +1204,17 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     }
     arma::vec ada_weights = omega * lambda_star / varrho;
     arma::vec delta = delta_ini;
+    v_old.zeros();
     unsigned int iter = 0;
     unsigned int convergence_perc_out_old = 0;
     arma::vec resid, v_new, beta;
     double resid_norm;
     bool convergence_ind;
     unsigned int progress_increment, convergence_perc_out, convergence_perc;
-    RcppThread::ProgressBar progress_bar(10000, 1);
+    std::unique_ptr<RcppThread::ProgressBar> progress_bar;
+    if (verbose) {
+        progress_bar.reset(new RcppThread::ProgressBar(10000, 1));
+    }
 
     //------------------------------//
     // Run the algorithm            //
@@ -1222,7 +1243,7 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
             progress_increment = convergence_perc_out - convergence_perc_out_old;
             for (unsigned int a = 0; a < progress_increment; a++)
             {
-              progress_bar++;
+              (*progress_bar)++;
             }
           }
           convergence_perc_out_old = convergence_perc_out;
@@ -1278,17 +1299,17 @@ Rcpp::List pagfl_algo(arma::vec &y, arma::vec &y_tilde, arma::mat &X, arma::mat 
     // Output                       //
     //------------------------------//
 
-    Rcpp::List output = Rcpp::List::create(
-        Rcpp::Named("alpha_hat") = alpha_mat,
-        Rcpp::Named("K_hat") = K_hat,
-        Rcpp::Named("groups_hat") = groups_hat.t(),
-        Rcpp::Named("iter") = iter,
-        Rcpp::Named("convergence") = convergence_ind);
+    AlgoResult output;
+    output.alpha_hat = alpha_mat;
+    output.K_hat = K_hat;
+    output.groups_hat = groups_hat;
+    output.iter = iter;
+    output.convergence_ind = convergence_ind;
     return output;
 }
 
 // Compute the BIC IC
-Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uvec &groups, arma::vec &y_tilde, arma::mat &X_tilde, const double &rho, const unsigned int &N, arma::uvec &i_index, const bool &fit_log)
+ICResult IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uvec &groups, arma::vec &y_tilde, arma::mat &X_tilde, const double &rho, const unsigned int &N, arma::uvec &i_index, const bool &fit_log)
 {
     // Compute the penalty term
     int p = alpha_hat.n_cols;
@@ -1329,13 +1350,83 @@ Rcpp::List IC(const unsigned int &K, const arma::mat &alpha_hat, const arma::uve
         IC = msr + penalty;
     }
 
-    Rcpp::List output = Rcpp::List::create(
-        Rcpp::Named("IC") = IC,
-        Rcpp::Named("fitted") = fit,
-        Rcpp::Named("resid") = resid,
-        Rcpp::Named("msr") = msr);
+    ICResult output;
+    output.IC = IC;
+    output.fitted = fit;
+    output.resid = resid;
+    output.msr = msr;
     return output;
 }
+
+// Worker that solves one PAGFL lambda per task. Shared inputs are
+// captured by reference (read-only after routine setup); v_old and the
+// i_index copy are constructed per task. Calls pagfl_algo with
+// parallel=false and verbose=false to keep the body R-API-clean and
+// to avoid nested RcppParallel dispatch.
+struct PagflLambdaWorker : public RcppParallel::Worker
+{
+    arma::vec &y; arma::vec &y_tilde;
+    arma::mat &X; arma::mat &X_tilde;
+    arma::vec &invXcovY; arma::mat &invXcov;
+    const arma::sp_mat &VarLambdat; const arma::sp_mat &Lambda;
+    const std::string &method;
+    arma::mat &Z; arma::mat &Z_tilde;
+    const arma::vec &delta_init; const arma::vec &omega;
+    const arma::uvec &i_index_in; const arma::uvec &t_index;
+    const unsigned int N, n, p, q;
+    unsigned int n_periods_in;          // copied per task; pagfl_algo takes by &
+    const bool bias_correc;
+    const arma::vec &lambda_vec;
+    const double min_group_frac;
+    const unsigned int max_iter;
+    const double tol_convergence, tol_group, varrho, rho;
+    std::vector<AlgoResult> &algo_results;
+    std::vector<ICResult>   &ic_results;
+
+    PagflLambdaWorker(arma::vec &y_, arma::vec &y_tilde_, arma::mat &X_, arma::mat &X_tilde_,
+                      arma::vec &invXcovY_, arma::mat &invXcov_,
+                      const arma::sp_mat &VarLambdat_, const arma::sp_mat &Lambda_,
+                      const std::string &method_, arma::mat &Z_, arma::mat &Z_tilde_,
+                      const arma::vec &delta_init_, const arma::vec &omega_,
+                      const arma::uvec &i_index_, const arma::uvec &t_index_,
+                      unsigned int N_, unsigned int n_, unsigned int p_, unsigned int q_,
+                      unsigned int n_periods_, bool bias_correc_,
+                      const arma::vec &lambda_vec_, double min_group_frac_,
+                      unsigned int max_iter_, double tol_convergence_, double tol_group_,
+                      double varrho_, double rho_,
+                      std::vector<AlgoResult> &algo_results_,
+                      std::vector<ICResult> &ic_results_)
+        : y(y_), y_tilde(y_tilde_), X(X_), X_tilde(X_tilde_),
+          invXcovY(invXcovY_), invXcov(invXcov_),
+          VarLambdat(VarLambdat_), Lambda(Lambda_),
+          method(method_), Z(Z_), Z_tilde(Z_tilde_),
+          delta_init(delta_init_), omega(omega_),
+          i_index_in(i_index_), t_index(t_index_),
+          N(N_), n(n_), p(p_), q(q_), n_periods_in(n_periods_),
+          bias_correc(bias_correc_), lambda_vec(lambda_vec_),
+          min_group_frac(min_group_frac_), max_iter(max_iter_),
+          tol_convergence(tol_convergence_), tol_group(tol_group_),
+          varrho(varrho_), rho(rho_),
+          algo_results(algo_results_), ic_results(ic_results_) {}
+
+    void operator()(std::size_t begin, std::size_t end)
+    {
+        for (std::size_t l = begin; l < end; l++) {
+            arma::vec v_old_local(n, arma::fill::zeros);
+            arma::uvec i_index_local = i_index_in;
+            unsigned int n_periods_local = n_periods_in;
+            algo_results[l] = pagfl_algo(
+                y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda,
+                method, Z, Z_tilde, delta_init, omega, v_old_local,
+                i_index_local, t_index, N, n, p, q, n_periods_local, bias_correc,
+                lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group,
+                varrho, /*parallel=*/false, /*verbose=*/false);
+            ic_results[l] = IC(
+                algo_results[l].K_hat, algo_results[l].alpha_hat, algo_results[l].groups_hat,
+                y_tilde, X_tilde, rho, N, i_index_local, /*fit_log=*/false);
+        }
+    }
+};
 
 // Combine the PAGFL algo and the IC
 // [[Rcpp::export]]
@@ -1418,25 +1509,66 @@ Rcpp::List pagfl_routine(arma::vec &y, arma::mat &X, const std::string &method, 
     // Run the algorithm            //
     //------------------------------//
 
-    Rcpp::List estimOutput, IC_list, output;
+    std::vector<AlgoResult> algo_results(lambda_vec.n_elem);
+    std::vector<ICResult>   ic_results(lambda_vec.n_elem);
+    const bool outer_par = parallel && lambda_vec.n_elem > 2;
+    if (outer_par)
+    {
+        // Outer parallelism: dispatch one task per lambda. Inner parallelism
+        // (getDelta, getAlpha, buildDiagX) is disabled inside the worker to
+        // avoid nested RcppParallel dispatch contention.
+        PagflLambdaWorker worker(
+            y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda,
+            method, Z, Z_tilde, delta, omega, i_index, t_index,
+            N, n, p, q, n_periods, bias_correc,
+            lambda_vec, min_group_frac, max_iter, tol_convergence, tol_group,
+            varrho, rho, algo_results, ic_results);
+        RcppParallel::parallelFor(0, lambda_vec.n_elem, worker);
+        if (verbose) {
+            for (unsigned int l = 0; l < lambda_vec.n_elem; l++) {
+                Rcout << "Lambda " << l + 1 << "/" << lambda_vec.n_elem
+                      << ": lambda=" << lambda_vec[l]
+                      << " K_hat=" << algo_results[l].K_hat
+                      << " IC=" << ic_results[l].IC
+                      << " converged=" << algo_results[l].convergence_ind << "\n";
+            }
+        }
+    }
+    else
+    {
+        for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
+        {
+          if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
+            // Estimate
+            algo_results[l] = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
+            // Compute the Information criterion
+            ic_results[l] = IC(algo_results[l].K_hat, algo_results[l].alpha_hat, algo_results[l].groups_hat, y_tilde, X_tilde, rho, N, i_index, FALSE);
+        }
+    }
+    // Translate POD results to R objects (serial, R-API-safe)
     Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
-      if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
-        // Estimate
-        estimOutput = pagfl_algo(y, y_tilde, X, X_tilde, invXcovY, invXcov, VarLambdat, Lambda, method, Z, Z_tilde, delta, omega, v_old, i_index, t_index, N, n, p, q, n_periods, bias_correc, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
-        // Compute the Information criterion
-        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, X_tilde, rho, N, i_index, FALSE);
-        output = Rcpp::List::create(
+        Rcpp::List estimOutput = Rcpp::List::create(
+            Rcpp::Named("alpha_hat") = algo_results[l].alpha_hat,
+            Rcpp::Named("K_hat") = algo_results[l].K_hat,
+            Rcpp::Named("groups_hat") = algo_results[l].groups_hat.t(),
+            Rcpp::Named("iter") = algo_results[l].iter,
+            Rcpp::Named("convergence") = algo_results[l].convergence_ind);
+        Rcpp::List IC_list = Rcpp::List::create(
+            Rcpp::Named("IC") = ic_results[l].IC,
+            Rcpp::Named("fitted") = ic_results[l].fitted,
+            Rcpp::Named("resid") = ic_results[l].resid,
+            Rcpp::Named("msr") = ic_results[l].msr);
+        lambdalist[l] = Rcpp::List::create(
             Rcpp::Named("estimOutput") = estimOutput,
             Rcpp::Named("IC") = IC_list);
-        lambdalist[l] = output;
     }
     return lambdalist;
 }
 
 // FUSE-TIME routine
-Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
+AlgoResult fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &invZcovY, arma::mat &invZcov, const arma::vec &delta_ini, const arma::vec &omega, arma::vec &v_old, const arma::sp_mat &VarLambdat, const arma::sp_mat &Lambda, const arma::mat &B, const unsigned int d, arma::uvec &i_index, unsigned int n_periods, const unsigned int N, const unsigned int n, const unsigned int p_star, const double lambda, const double &min_group_frac, const unsigned int &max_iter, const double &tol_convergence, const double &tol_group, const double &varrho, const bool &parallel, const bool &verbose)
 {
 
     //------------------------------//
@@ -1444,6 +1576,7 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
     //------------------------------//
 
     arma::vec delta = delta_ini;
+    v_old.zeros();
     float lambda_star = n_periods * lambda / (2 * N);
     arma::vec ada_weights = omega * lambda_star / varrho;
     unsigned int iter = 0;
@@ -1452,7 +1585,10 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
     double resid_norm;
     bool convergence_ind;
     unsigned int progress_increment, convergence_perc_out, convergence_perc;
-    RcppThread::ProgressBar progress_bar(10000, 1);
+    std::unique_ptr<RcppThread::ProgressBar> progress_bar;
+    if (verbose) {
+        progress_bar.reset(new RcppThread::ProgressBar(10000, 1));
+    }
     bool progress_init = false;
     double resid0 = NA_REAL;
     double best_resid = std::numeric_limits<double>::infinity();
@@ -1525,7 +1661,7 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
 
             for (unsigned int a = 0; a < progress_increment; a++)
             {
-              progress_bar++;
+              (*progress_bar)++;
             }
           }
 
@@ -1568,14 +1704,76 @@ Rcpp::List fuse_time_algo(arma::vec &y_tilde, arma::mat &Z_tilde, arma::vec &inv
     // Output                       //
     //------------------------------//
 
-    Rcpp::List output = Rcpp::List::create(
-        Rcpp::Named("alpha_hat") = xi_mat_vec,
-        Rcpp::Named("K_hat") = K_hat,
-        Rcpp::Named("groups_hat") = groups_hat.t(),
-        Rcpp::Named("iter") = iter,
-        Rcpp::Named("convergence") = convergence_ind);
+    AlgoResult output;
+    output.alpha_hat = xi_mat_vec;
+    output.K_hat = K_hat;
+    output.groups_hat = groups_hat;
+    output.iter = iter;
+    output.convergence_ind = convergence_ind;
     return output;
 }
+
+// Worker that solves one FUSE-TIME lambda per task. See PagflLambdaWorker
+// for rationale.
+struct FuseTimeLambdaWorker : public RcppParallel::Worker
+{
+    arma::vec &y_tilde; arma::mat &Z_tilde;
+    arma::vec &invZcovY; arma::mat &invZcov;
+    const arma::vec &delta_init; const arma::vec &omega;
+    const arma::sp_mat &VarLambdat; const arma::sp_mat &Lambda;
+    const arma::mat &B;
+    const unsigned int d;
+    const arma::uvec &i_index_in;
+    const unsigned int n_periods;
+    const unsigned int N, n, p_star;
+    const arma::vec &lambda_vec;
+    const double min_group_frac;
+    const unsigned int max_iter;
+    const double tol_convergence, tol_group, varrho, rho;
+    std::vector<AlgoResult> &algo_results;
+    std::vector<ICResult>   &ic_results;
+
+    FuseTimeLambdaWorker(arma::vec &y_tilde_, arma::mat &Z_tilde_,
+                         arma::vec &invZcovY_, arma::mat &invZcov_,
+                         const arma::vec &delta_init_, const arma::vec &omega_,
+                         const arma::sp_mat &VarLambdat_, const arma::sp_mat &Lambda_,
+                         const arma::mat &B_, unsigned int d_,
+                         const arma::uvec &i_index_, unsigned int n_periods_,
+                         unsigned int N_, unsigned int n_, unsigned int p_star_,
+                         const arma::vec &lambda_vec_, double min_group_frac_,
+                         unsigned int max_iter_, double tol_convergence_, double tol_group_,
+                         double varrho_, double rho_,
+                         std::vector<AlgoResult> &algo_results_,
+                         std::vector<ICResult> &ic_results_)
+        : y_tilde(y_tilde_), Z_tilde(Z_tilde_),
+          invZcovY(invZcovY_), invZcov(invZcov_),
+          delta_init(delta_init_), omega(omega_),
+          VarLambdat(VarLambdat_), Lambda(Lambda_),
+          B(B_), d(d_),
+          i_index_in(i_index_), n_periods(n_periods_),
+          N(N_), n(n_), p_star(p_star_),
+          lambda_vec(lambda_vec_), min_group_frac(min_group_frac_),
+          max_iter(max_iter_),
+          tol_convergence(tol_convergence_), tol_group(tol_group_),
+          varrho(varrho_), rho(rho_),
+          algo_results(algo_results_), ic_results(ic_results_) {}
+
+    void operator()(std::size_t begin, std::size_t end)
+    {
+        for (std::size_t l = begin; l < end; l++) {
+            arma::vec v_old_local(n, arma::fill::zeros);
+            arma::uvec i_index_local = i_index_in;
+            algo_results[l] = fuse_time_algo(
+                y_tilde, Z_tilde, invZcovY, invZcov, delta_init, omega, v_old_local,
+                VarLambdat, Lambda, B, d, i_index_local, n_periods, N, n, p_star,
+                lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group,
+                varrho, /*parallel=*/false, /*verbose=*/false);
+            ic_results[l] = IC(
+                algo_results[l].K_hat, algo_results[l].alpha_hat, algo_results[l].groups_hat,
+                y_tilde, Z_tilde, rho, N, i_index_local, /*fit_log=*/true);
+        }
+    }
+};
 
 // Combine the FUSE-TIME algo and the IC
 // [[Rcpp::export]]
@@ -1647,20 +1845,57 @@ Rcpp::List fuse_time_routine(arma::vec &y, arma::mat &X, arma::mat &X_const, con
     // Run the algorithm            //
     //------------------------------//
 
-    Rcpp::List estimOutput, IC_list, output;
-    Rcpp::List lambdalist(lambda_vec.n_elem);
+    std::vector<AlgoResult> algo_results(lambda_vec.n_elem);
+    std::vector<ICResult>   ic_results(lambda_vec.n_elem);
 
+    const bool outer_par = parallel && lambda_vec.n_elem > 2;
+    if (outer_par)
+    {
+        FuseTimeLambdaWorker worker(
+            y_tilde, Z_tilde, invZcovY, invZcov, delta, omega,
+            VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star,
+            lambda_vec, min_group_frac, max_iter, tol_convergence, tol_group,
+            varrho, rho, algo_results, ic_results);
+        RcppParallel::parallelFor(0, lambda_vec.n_elem, worker);
+        if (verbose) {
+            for (unsigned int l = 0; l < lambda_vec.n_elem; l++) {
+                Rcout << "Lambda " << l + 1 << "/" << lambda_vec.n_elem
+                      << ": lambda=" << lambda_vec[l]
+                      << " K_hat=" << algo_results[l].K_hat
+                      << " IC=" << ic_results[l].IC
+                      << " converged=" << algo_results[l].convergence_ind << "\n";
+            }
+        }
+    }
+    else
+    {
+        for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
+        {
+          if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
+            // Estimate
+            algo_results[l] = fuse_time_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
+            // Compute the Information Criterion
+            ic_results[l] = IC(algo_results[l].K_hat, algo_results[l].alpha_hat, algo_results[l].groups_hat, y_tilde, Z_tilde, rho, N, i_index, TRUE);
+        }
+    }
+    // Translate POD results to R objects (serial, R-API-safe)
+    Rcpp::List lambdalist(lambda_vec.n_elem);
     for (unsigned int l = 0; l < lambda_vec.n_elem; l++)
     {
-      if (verbose) Rcout << "Lambda: " << lambda_vec[l] << " (" << l + 1 << "/" << lambda_vec.n_elem << ")" << "\n";
-        // Estimate
-        estimOutput = fuse_time_algo(y_tilde, Z_tilde, invZcovY, invZcov, delta, omega, v_old, VarLambdat, Lambda, B, d, i_index, n_periods, N, n, p_star, lambda_vec[l], min_group_frac, max_iter, tol_convergence, tol_group, varrho, parallel, verbose);
-        // Compute the Information Criterion
-        IC_list = IC(Rcpp::as<unsigned int>(estimOutput["K_hat"]), Rcpp::as<arma::mat>(estimOutput["alpha_hat"]), Rcpp::as<arma::uvec>(estimOutput["groups_hat"]), y_tilde, Z_tilde, rho, N, i_index, TRUE);
-        output = Rcpp::List::create(
+        Rcpp::List estimOutput = Rcpp::List::create(
+            Rcpp::Named("alpha_hat") = algo_results[l].alpha_hat,
+            Rcpp::Named("K_hat") = algo_results[l].K_hat,
+            Rcpp::Named("groups_hat") = algo_results[l].groups_hat.t(),
+            Rcpp::Named("iter") = algo_results[l].iter,
+            Rcpp::Named("convergence") = algo_results[l].convergence_ind);
+        Rcpp::List IC_list = Rcpp::List::create(
+            Rcpp::Named("IC") = ic_results[l].IC,
+            Rcpp::Named("fitted") = ic_results[l].fitted,
+            Rcpp::Named("resid") = ic_results[l].resid,
+            Rcpp::Named("msr") = ic_results[l].msr);
+        lambdalist[l] = Rcpp::List::create(
             Rcpp::Named("estimOutput") = estimOutput,
             Rcpp::Named("IC") = IC_list);
-        lambdalist[l] = output;
     }
     return lambdalist;
 }
@@ -1805,7 +2040,12 @@ Rcpp::List tv_pagfl_oracle_routine(arma::vec &y, arma::mat &X, arma::mat &X_cons
     // Compute the IC               //
     //------------------------------//
 
-    Rcpp::List IC_list = IC(n_groups, xi_mat_vec, groups, y_tilde, Z_tilde, rho, N, i_index, TRUE);
+    ICResult ic_res = IC(n_groups, xi_mat_vec, groups, y_tilde, Z_tilde, rho, N, i_index, TRUE);
+    Rcpp::List IC_list = Rcpp::List::create(
+        Rcpp::Named("IC") = ic_res.IC,
+        Rcpp::Named("fitted") = ic_res.fitted,
+        Rcpp::Named("resid") = ic_res.resid,
+        Rcpp::Named("msr") = ic_res.msr);
 
     //------------------------------//
     // Output                       //
@@ -1865,7 +2105,12 @@ Rcpp::List pagfl_oracle_routine(arma::vec &y, arma::mat &X, const arma::uvec &gr
     // Compute the IC               //
     //------------------------------//
 
-    Rcpp::List IC_list = IC(n_groups, alpha_mat, groups, y_tilde, X_tilde, rho, N, i_index, FALSE);
+    ICResult ic_res = IC(n_groups, alpha_mat, groups, y_tilde, X_tilde, rho, N, i_index, FALSE);
+    Rcpp::List IC_list = Rcpp::List::create(
+        Rcpp::Named("IC") = ic_res.IC,
+        Rcpp::Named("fitted") = ic_res.fitted,
+        Rcpp::Named("resid") = ic_res.resid,
+        Rcpp::Named("msr") = ic_res.msr);
 
     //------------------------------//
     // Output                       //

@@ -6,7 +6,7 @@
 #' @param n_periods the number of simulated time periods \eqn{T}. Default is 40.
 #' @param p the number of explanatory variables. Default is 2.
 #' @param n_groups the number of groups \eqn{K}. Default is 3.
-#' @param group_proportions a numeric vector of length \code{n_groups} indicating size of each group as a fraction of \eqn{N}. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
+#' @param group_proportions a numeric vector of length \code{n_groups} indicating the size of each group as a fraction of \eqn{N}. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
 #' @param error_spec options include
 #' \describe{
 #' \item{\code{"iid"}}{for \eqn{iid} errors.}
@@ -14,9 +14,9 @@
 #' \item{\code{"GARCH"}}{for a \eqn{GARCH(1,1)} error process with a 0.05 constant, a 0.05 ARCH and a 0.9 GARCH coefficient.}
 #' }
 #' Default is \code{"iid"}.
-#' @param dynamic Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as an explanatory variable (see sec. Details for more information on the \eqn{AR} coefficient). Default is \code{FALSE}.
+#' @param dynamic logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as an explanatory variable (see sec. Details for more information on the \eqn{AR} coefficient). Default is \code{FALSE}.
 #' @param dyn_panel `r lifecycle::badge("deprecated")` deprecated and replaced by \code{dynamic}.
-#' @param q the number of exogenous instruments when a panel with endogenous regressors is to be simulated. If panel data set with exogenous regressors is supposed to be generated, pass \code{NULL}. Default is \code{NULL}.
+#' @param q the number of exogenous instruments when a panel with endogenous regressors is to be simulated. If a panel data set with exogenous regressors is to be generated, pass \code{NULL}. Default is \code{NULL}.
 #' @param alpha_0 a \eqn{K \times p} matrix of group-specific coefficients. If \code{dynamic = TRUE}, the first column represents the stationary \eqn{AR} coefficient. If \code{NULL}, the coefficients are drawn randomly (see sec. Details). Default is \code{NULL}.
 #'
 #' @details
@@ -35,12 +35,12 @@
 #'
 #' If a dynamic panel is specified (\code{dynamic = TRUE}), the \eqn{AR} coefficients \eqn{\beta^{\text{AR}}_i} are drawn from a uniform distribution with support \eqn{(-1, 1)} and \eqn{x_{it,j} = e_{it,j}}.
 #' Moreover, the individual fixed effects enter the dependent variable via \eqn{(1 - \beta^{\text{AR}}_i) \gamma_i} to account for the autoregressive dependency.
-#' We refer to Mehrabani (2023, sec 6) for details.
+#' We refer to Mehrabani (2023, sec. 6) for details.
 #'
 #' When specifying an endogenous panel (set \code{q} to \eqn{q \geq p}), the \eqn{e_{it,j}} correlate with the cross-sectional innovations \eqn{u_{it}} by a magnitude of 0.5 to produce endogenous regressors (\eqn{\text{E}(u | \bold{X} ) \neq 0}). However, the endogenous regressors can be accounted for by exploiting the \eqn{q} instruments in \eqn{\bold{Z}}, for which \eqn{\text{E}(u| \bold{Z}) = 0} holds.
 #' The instruments and the first stage coefficients are generated in the same fashion as \eqn{\bold{X}} and \eqn{\bold{\alpha}} when \code{q = NULL}.
 #'
-#' The function nests, among other, the DGPs employed in the simulation study of Mehrabani (2023, sec. 6).
+#' The function nests, among others, the DGPs employed in the simulation study of Mehrabani (2023, sec. 6).
 #'
 #' @examples
 #' # Simulate DGP 1 from Mehrabani (2023, sec. 6)
@@ -60,7 +60,7 @@
 #' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=( \bold{y}_1, \dots, \bold{y}_N)^\prime}, \eqn{\bold{y}_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(\bold{X}_1^\prime, \dots, \bold{X}_N^\prime)^\prime}, \eqn{\bold{X}_i = (\bold{x}_{i1}, \dots, \bold{x}_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{\bold{x}_{it}}.}
-#' \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments , where \eqn{q \geq p}, \eqn{\bold{Z}=(\bold{Z}_1^\prime, \dots, \bold{Z}_N^\prime)^\prime}, \eqn{\bold{Z}_i = (\bold{z}_{i1}, \dots, \bold{z}_{iT})^\prime} and \eqn{\bold{z}_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
+#' \item{\code{Z}}{a \eqn{NT \times q} matrix of instruments, where \eqn{q \geq p}, \eqn{\bold{Z}=(\bold{Z}_1^\prime, \dots, \bold{Z}_N^\prime)^\prime}, \eqn{\bold{Z}_i = (\bold{z}_{i1}, \dots, \bold{z}_{iT})^\prime} and \eqn{\bold{z}_{it}} is a \eqn{q \times 1} vector. In case a panel with exogenous regressors is generated (\code{q = NULL}), \eqn{\bold{Z}} equals \code{NULL}.}
 #' \item{\code{data}}{a \eqn{NT \times (p + 1)} data.frame of the outcome and \eqn{p} explanatory variables.}
 #' @export
 sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportions = NULL, error_spec = "iid", dynamic = FALSE, dyn_panel = lifecycle::deprecated(), q = NULL, alpha_0 = NULL) {
@@ -128,7 +128,7 @@ sim_DGP <- function(N = 50, n_periods = 40, p = 2, n_groups = 3, group_proportio
   u <- stats::rnorm(N * n_periods)
   # Draw the FE
   gamma <- rep(stats::rnorm(N), each = n_periods)
-  # In case of a endogenous panel, correlate the errors with the regressor
+  # In case of an endogenous panel, correlate the errors with the regressor
   if (!is.null(q)) {
     corr_mat <- diag(p + 1)
     corr_mat[1, ][corr_mat[1, ] == 0] <- .5
@@ -189,7 +189,7 @@ simGARCH <- function(errorList) {
 
 simAR <- function(errorList) {
   errorARList <- lapply(errorList, function(x) {
-    # Create an AR(1) process with with coefficients as in Mehrabani (2023, sec. 6)
+    # Create an AR(1) process with coefficients as in Mehrabani (2023, sec. 6)
     stats::filter(c(0, x), filter = .5, method = "recursive")[-1]
   })
   u <- c(t(do.call(rbind, errorARList)))

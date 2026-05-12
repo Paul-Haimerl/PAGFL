@@ -4,21 +4,21 @@
 #'
 #' @param N the number of cross-sectional units. Default is 50.
 #' @param n_periods the number of simulated time periods \eqn{T}. Default is 40.
-#' @param intercept logical. If \code{TRUE}, a time-varying intercept is generated.
-#' @param p the number of simulated explanatory variables
+#' @param intercept logical. If \code{TRUE}, a time-varying intercept is generated. Default is \code{TRUE}.
+#' @param p the number of simulated explanatory variables. Default is 1.
 #' @param n_groups the number of groups \eqn{K}. Default is 3.
-#' @param d the polynomial degree used to construct the time-varying coefficients.
-#' @param group_proportions a numeric vector of length \code{n_groups} indicating size of each group as a fraction of \eqn{N}. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
+#' @param d the polynomial degree used to construct the time-varying coefficients. Default is 3.
+#' @param group_proportions a numeric vector of length \code{n_groups} indicating the size of each group as a fraction of \eqn{N}. If \code{NULL}, all groups are of size \eqn{N / K}. Default is \code{NULL}.
 #' @param error_spec options include
 #' \describe{
 #' \item{\code{"iid"}}{for \eqn{iid} errors.}
 #' \item{\code{"AR"}}{for an \eqn{AR(1)} error process with an autoregressive coefficient of 0.5.}
 #' }
 #' Default is \code{"iid"}.
-#' @param dynamic Logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as a regressor. Default is \code{FALSE}.
+#' @param dynamic logical. If \code{TRUE}, the panel includes one stationary autoregressive lag of \eqn{y_{it}} as a regressor. Default is \code{FALSE}.
 #' @param locations a \eqn{p \times K} matrix of location parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
-#' @param scales a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
-#' @param polynomial_coef a \eqn{p \times d \times K} array of coefficients for the polynomials used to construct the time-varying coefficients. If left empty, the location parameters are drawn randomly. Default is \code{NULL}.
+#' @param scales a \eqn{p \times K} matrix of scale parameters of a logistic distribution function used to construct the time-varying coefficients. If left empty, the scale parameters are drawn randomly. Default is \code{NULL}.
+#' @param polynomial_coef a \eqn{p \times d \times K} array of coefficients for the polynomials used to construct the time-varying coefficients. If left empty, the polynomial coefficients are drawn randomly. Default is \code{NULL}.
 #' @param sd_error standard deviation of the cross-sectional errors. Default is 1.
 #'
 #' @details
@@ -27,13 +27,13 @@
 #' where \eqn{\gamma_i} is an individual fixed effect and \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables.
 #' The \eqn{p \times 1} coefficient vector \eqn{\bold{\beta}_i (t/T)} follows the group pattern
 #' \deqn{\bold{\beta}_i \left( \frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}} and \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}} and \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j}, \eqn{k,j = 1, \dots, K}. The total number of groups \eqn{K} is determined by \code{n_groups}.
 #'
 #' The predictors are simulated as:
 #' \deqn{x_{it,j} = 0.2 \gamma_i + e_{it,j}, \quad \gamma_i,e_{it,j} \sim i.i.d. N(0, 1), \quad j = \{1, \dots, p\},}
 #' where \eqn{e_{it,j}} denotes a series of innovations. \eqn{\gamma_i} and \eqn{e_i} are independent of each other.
 #'
-#' The errors \eqn{u_{it}} feature a \eqn{iid} standard normal distribution.
+#' The errors \eqn{u_{it}} feature an \eqn{iid} standard normal distribution.
 #'
 #' In case \code{locations = NULL}, the location parameters are drawn from \eqn{\sim Unif[0.3, 0.9]}.
 #' In case \code{scales = NULL}, the scale parameters are drawn from \eqn{\sim Unif[0.01, 0.09]}.
@@ -50,8 +50,8 @@
 #' @author Paul Haimerl
 #'
 #' @return A list holding
-#' \item{\code{alpha}}{a \eqn{T \times p \times K} array of group-specific time-varying parameters}
-#' \item{\code{beta}}{a \eqn{T \times p \times N} array of individual time-varying parameters}
+#' \item{\code{alpha}}{a \eqn{T \times p \times K} array of group-specific time-varying parameters.}
+#' \item{\code{beta}}{a \eqn{T \times p \times N} array of individual time-varying parameters.}
 #' \item{\code{groups}}{a vector indicating the group memberships \eqn{(g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i \in} group \eqn{k}.}
 #' \item{\code{y}}{a \eqn{NT \times 1} vector of the dependent variable, with \eqn{\bold{y}=( \bold{y}_1, \dots, \bold{y}_N)^\prime}, \eqn{\bold{y}_i = (y_{i1}, \dots, y_{iT})^\prime} and the scalar \eqn{y_{it}}.}
 #' \item{\code{X}}{a \eqn{NT \times p} matrix of explanatory variables, with \eqn{\bold{X}=(\bold{X}_1^\prime, \dots, \bold{X}_N^\prime)^\prime}, \eqn{\bold{X}_i = (\bold{x}_{i1}, \dots, \bold{x}_{iT})^\prime} and the \eqn{p \times 1} vector \eqn{\bold{x}_{it}}.}
@@ -170,25 +170,6 @@ sim_tv_DGP <- function(N = 50, n_periods = 40, intercept = TRUE, p = 1, n_groups
   return(list(alpha = alpha_array, beta = beta_array, groups = groups, y = y, X = X, data = data))
 }
 
-# Logarithmic CDF as a time trend
-trend_fctn <- function(coef_mat, n_periods) {
-  trends <- apply(coef_mat, 1, function(coefs, n_periods) {
-    1 / (1 + exp(-(((1:n_periods) / n_periods) - coefs[1]) / coefs[2]))
-  }, n_periods = n_periods)
-  return(trends)
-}
-
-# Polynomial coefficient functions
-poly_fctn <- function(coef_mat, n_periods) {
-  if (!is.matrix(coef_mat)) coef_mat <- t(coef_mat)
-  d <- ncol(coef_mat)
-  beta_mat <- apply(coef_mat, 1, function(coefs, n_periods, d) {
-    beta <- rowSums(sapply(1:d, function(x, coefs, n_periods) {
-      coefs[x] * ((1:n_periods) / n_periods)^x
-    }, coefs, n_periods))
-  }, n_periods = n_periods, d = d)
-  return(beta_mat)
-}
 
 # Logarithmic CDF as a time trend
 trend_fctn <- function(coef_mat, n_periods) {

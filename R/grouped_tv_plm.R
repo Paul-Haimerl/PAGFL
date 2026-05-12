@@ -22,10 +22,10 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} is a zero mean error.
 #' The \eqn{p}-dimensional coefficient vector \eqn{\bold{\beta}_{i}^0 (t/T)} contains smooth functions of time and follows the observed group pattern
 #' \deqn{\bold{\beta}_i^0 \left(\frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k^0 \left( \frac{t}{T} \right) \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} for any \eqn{k \neq j}, \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
 #'
 #' The time-varying coefficient functions in \eqn{\bold{\alpha}_k (t/T)} and, in turn, \eqn{\bold{\beta}_i (t/T)} are estimated as polynomial B-splines. To this end, let \eqn{\bold{b}(v)} denote a \eqn{M + d +1} vector of polynomial basis functions with the polynomial degree \eqn{d} and \eqn{M} interior knots.
-#' \eqn{\bold{\alpha}_k^0 (t/T)} is approximated by forming linear combinations of the basis functions \eqn{\bold{\alpha}_k^0 (t/T) \approx \bold{\Xi}_k^{0 \prime} \bold{b} (t/T)}, where \eqn{\bold{\Xi}_i^{0}} is a group-specific \eqn{(M + d + 1) \times p} matrix of spline control points.
+#' \eqn{\bold{\alpha}_k^0 (t/T)} is approximated by forming linear combinations of the basis functions \eqn{\bold{\alpha}_k^0 (t/T) \approx \bold{\Xi}_k^{0 \prime} \bold{b} (t/T)}, where \eqn{\bold{\Xi}_k^{0}} is a group-specific \eqn{(M + d + 1) \times p} matrix of spline control points.
 #'
 #' To estimate \eqn{\bold{\Xi}_k^{0}}, we project the explanatory variables onto the spline basis system, resulting in the \eqn{(M + d + 1)p \times 1} regressor vector \eqn{\bold{z}_{it} = \bold{x}_{it} \otimes \bold{b}(v)}. Subsequently, the DGP can be reformulated as
 #' \deqn{y_{it} = \gamma_i^0 + \bold{\pi}_{i}^{0 \prime} \bold{z}_{it} + u_{it},}
@@ -33,7 +33,7 @@
 #' \deqn{\hat{\xi}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{z}}_{it} \tilde{\bold{z}}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{z}}_{it} \tilde{y}_{it},}
 #' with \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum_{t = 1}^T a_{it}}, \eqn{a = \{y, \bold{z}\}} to concentrate out the fixed effect \eqn{\gamma_i^0} (within-transformation). Lastly, \eqn{\hat{\bold{\alpha}}_k (t/T) = \hat{\bold{\Xi}}_k^{\prime} \bold{b} (t/T)}. We refer to Haimerl et al. (2025, sec. 2) for more details.
 #'
-#' In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and end-points of the interval on which the group-specific time-varying coefficients are defined.
+#' In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and endpoints of the interval on which the group-specific time-varying coefficients are defined.
 #'
 #' @examples
 #' # Simulate a time-varying panel with a trend and a group pattern
@@ -53,7 +53,7 @@
 #'
 #' @return An object of class \code{tv_gplm} holding
 #' \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
-#' \item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying and \eqn{p^{(2)}} the number of time constant coefficients. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times K} array of the group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant estimates.}
+#' \item{\code{coefficients}}{Let \eqn{p^{(1)}} denote the number of time-varying and \eqn{p^{(2)}} the number of time-constant coefficients. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times K} array of the group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant estimates.}
 #' \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{K} and (ii) a vector of group memberships \eqn{G = (g_1, \dots, g_N)}, where \eqn{g_i = k} if \eqn{i} is part of group \eqn{k},}
 #' \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 #' \item{\code{fitted}}{a vector of fitted values of the demeaned model,}

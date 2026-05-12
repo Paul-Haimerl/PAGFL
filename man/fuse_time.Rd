@@ -77,7 +77,7 @@ tv_pagfl(
 
 \item{n_periods}{the number of observed time periods \eqn{T}. If an \code{index} character vector is passed, this argument can be left empty. Default is \code{NULL}.}
 
-\item{lambda}{the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best fitting \eqn{\lambda} value.}
+\item{lambda}{the tuning parameter determining the strength of the penalty term. Either a single \eqn{\lambda} or a vector of candidate values can be passed. If a vector is supplied, a BIC-type IC automatically selects the best-fitting \eqn{\lambda} value.}
 
 \item{d}{the polynomial degree of the B-splines. Default is 3.}
 
@@ -87,7 +87,7 @@ tv_pagfl(
 
 \item{const_coef}{a character vector containing the variable names of explanatory variables that enter with time-constant coefficients.}
 
-\item{kappa}{the a non-negative weight used to obtain the adaptive penalty weights. Default is 2.}
+\item{kappa}{a non-negative weight used to obtain the adaptive penalty weights. Default is 2.}
 
 \item{max_iter}{the maximum number of iterations for the \emph{ADMM} estimation algorithm. Default is \eqn{5*10^4}.}
 
@@ -97,11 +97,11 @@ tv_pagfl(
 
 \item{rho}{the tuning parameter balancing the fitness and penalty terms in the IC that determines the penalty parameter \eqn{\lambda}. If left unspecified, the heuristic \eqn{\rho = 0.07 \frac{\log(NT)}{\sqrt{NT}}} of Haimerl et al. (2025) is used. We recommend the default.}
 
-\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation \emph{PSE}, the \eqn{\varrho} value is not very influential. We recommend the default 1.}
+\item{varrho}{the non-negative Lagrangian \emph{ADMM} penalty parameter. For the employed penalized sieve estimation (\emph{PSE}), the \eqn{\varrho} value is not very influential. We recommend the default 1.}
 
 \item{verbose}{logical. If \code{TRUE}, helpful warning messages are shown. Default is \code{TRUE}.}
 
-\item{parallel}{logical. If \code{TRUE}, certain operations are parallelized across multiple cores. Default is \code{TRUE}.}
+\item{parallel}{logical. If \code{TRUE}, computation is parallelized across multiple cores. When \code{lambda} is a grid with more than two values, the search over \eqn{\lambda} is dispatched in parallel, with each penalty fit independently from a cold start; otherwise certain inner per-iteration operations of the \emph{ADMM} algorithm are parallelized via \emph{OpenMP}. Results are numerically identical to the sequential path. Note that the outer-parallel path allocates a per-worker copy of the projected regressor cross-product matrix; for large \eqn{N} and many interior knots \eqn{M} this can require substantial memory and an informative warning is emitted when the conservative estimate exceeds 4 GB. Default is \code{TRUE}.}
 
 \item{...}{ellipsis}
 
@@ -112,13 +112,13 @@ tv_pagfl(
 \value{
 An object of class \code{fusetime} holding
 \item{\code{model}}{a \code{data.frame} containing the dependent and explanatory variables as well as cross-sectional and time indices,}
-\item{\code{coefficients}}{let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time constant parameters. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{K \times p^{(2)}} matrix of time-constant post-Lasso estimates.}
+\item{\code{coefficients}}{Let \eqn{p^{(1)}} denote the number of time-varying coefficients and \eqn{p^{(2)}} the number of time-constant parameters. A \code{list} holding (i) a \eqn{T \times p^{(1)} \times \hat{K}} array of the post-Lasso group-specific functional coefficients and (ii) a \eqn{\hat{K} \times p^{(2)}} matrix of time-constant post-Lasso estimates.}
 \item{\code{groups}}{a \code{list} containing (i) the total number of groups \eqn{\hat{K}} and (ii) a vector of estimated group memberships \eqn{(\hat{g}_1, \dots, \hat{g}_N)}, where \eqn{\hat{g}_i = k} if \eqn{i} is assigned to group \eqn{k},}
 \item{\code{residuals}}{a vector of residuals of the demeaned model,}
 \item{\code{fitted}}{a vector of fitted values of the demeaned model,}
 \item{\code{args}}{a \code{list} of additional arguments,}
 \item{\code{IC}}{a \code{list} containing (i) the value of the IC, (ii) the employed tuning parameter \eqn{\lambda}, and (iii) the \emph{MSE},}
-\item{\code{convergence}}{a \code{list} containing (i) a logical variable if convergence was achieved and (ii) the number of executed \emph{ADMM} algorithm iterations,}
+\item{\code{convergence}}{a \code{list} containing (i) a logical variable indicating if convergence was achieved and (ii) the number of executed \emph{ADMM} algorithm iterations,}
 \item{\code{call}}{the function call.}
 
 An object of class \code{fusetime} has \code{print}, \code{summary}, \code{fitted}, \code{residuals}, \code{formula}, \code{df.residual}, and \code{coef} S3 methods.
@@ -133,7 +133,7 @@ Consider the grouped time-varying panel data model subject to a latent group str
 where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of explanatory variables, and \eqn{\epsilon_{it}} denotes a zero mean error.
 The \eqn{p}-dimensional coefficient vector \eqn{\bold{\beta}_{i}^0 (t/T)} contains smooth functions of time and follows the latent group pattern
 \deqn{\bold{\beta}_i^0 \left(\frac{t}{T} \right) = \sum_{k = 1}^K \bold{\alpha}_k^0 \left( \frac{t}{T} \right) \bold{1} \{i \in G_k^0 \},}
-with \eqn{\cup_{k = 1}^K G_k^0 = \{1, \dots, N\}}, \eqn{G_k^0 \cap G_j^0 = \emptyset} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}.
+with \eqn{\cup_{k = 1}^K G_k^0 = \{1, \dots, N\}}, \eqn{G_k^0 \cap G_j^0 = \emptyset} for any \eqn{k \neq j}, \eqn{k,j = 1, \dots, K}.
 
 The time-varying coefficient functions are estimated as polynomial B-splines. To this end, let \eqn{\bold{b}(v)} denote a \eqn{M + d +1} vector of polynomial basis functions with the polynomial degree \eqn{d} and \eqn{M} interior knots.
 Then, \eqn{\bold{\beta}_i^0 (t/T)} is approximated by forming linear combinations of these basis functions \eqn{\bold{\beta}_i^0 (t/T) \approx \bold{\Pi}_i^{0 \prime} \bold{b} (t/T)}, where \eqn{\bold{\Pi}_i^{0}} is a \eqn{(M + d + 1) \times p} matrix of spline control points.
@@ -145,15 +145,15 @@ where \eqn{\bold{\pi}_i^0 = \text{vec}(\bold{\Pi}_i^0)}, and \eqn{u_{it} = \epsi
 Following Haimerl et al. (2025, sec. 2), \emph{FUSE-TIME} jointly estimates the functional coefficients and the group structure by minimizing the criterion
 \deqn{F_{NT} (\bold{\pi}, \lambda) = \frac{1}{NT} \sum^N_{i=1} \sum^{T}_{t=1}(\tilde{y}_{it} - \bold{\pi}_{i}^\prime \tilde{\bold{z}}_{it})^2 + \frac{\lambda}{N} \sum_{i = 1}^{N - 1} \sum_{j = i+1}^N \dot{\omega}_{ij} \| \bold{\pi}_i - \bold{\pi}_j \|_2}
 with respect to \eqn{\bold{\pi} = (\bold{\pi}_i^\prime, \dots, \bold{\pi}_N^\prime)^\prime}. \eqn{\tilde{a}_{it} = a_{it} - T^{-1} \sum^{T}_{t=1} a_{it}}, \eqn{a = \{y, \bold{z}\}} to concentrate out the individual fixed effects \eqn{\gamma_i^0} (within-transformation). \eqn{\lambda} is the penalty tuning parameter and \eqn{\dot{w}_{ij}} denotes adaptive penalty weights which are obtained by a preliminary non-penalized estimation.
-The criterion function is minimized via an iterative alternating direction method of multipliers (\emph{ADMM}) algorithm (Haimerl et al. 2053, Appendix C).
+The criterion function is minimized via an iterative alternating direction method of multipliers (\emph{ADMM}) algorithm (Haimerl et al. 2025, Appendix C).
 
 Two individuals are assigned to the same group if \eqn{\| \hat{\bold{\pi}}_i - \hat{\bold{\pi}}_j \|_2 \leq \epsilon_{\text{tol}}} (and hence \eqn{\hat{\bold{\xi}}_k = \hat{\bold{\pi}}_i = \hat{\bold{\pi}}_j} for some \eqn{k = 1, \dots, \hat{K}}), where \eqn{\epsilon_{\text{tol}}} is determined by \code{tol_group}. The time-varying coefficients are then retrieved by taking \eqn{\hat{\bold{\beta}}_i (t/T) = \hat{\bold{\Pi}}_i^\prime \bold{b}(t/T)}, where \eqn{\hat{\bold{\pi}}_i = \text{vec}(\hat{\bold{\Pi}}_i)} (analogously \eqn{\hat{\bold{\alpha}}_k (t/T) = \hat{\bold{\Xi}}_k^\prime \bold{b}(t/T)}, using \eqn{\hat{\bold{\xi}}_k = \text{vec}(\hat{\bold{\Xi}}_k)}).
 
 Subsequently, the estimated number of groups \eqn{\hat{K}} and group structure follow by examining the number of distinct elements in \eqn{\hat{\bold{\pi}}}. Given an estimated group structure, it is straightforward to obtain post-Lasso estimates \eqn{\hat{\bold{\alpha}}^p_k (t/T) = \hat{\bold{\Xi}}^{p \prime}_k \bold{b}(t/T)} for each \eqn{k = 1, \dots, \hat{K} } using group-wise least squares (see \code{\link{grouped_tv_plm}}).
 
-We recommend choosing a \eqn{\lambda} tuning parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then automatically selects the best fitting \eqn{\lambda} value.
+We recommend choosing a \eqn{\lambda} tuning parameter by passing a logarithmically spaced grid of candidate values with a lower limit close to 0 and an upper limit that leads to a fully homogeneous panel. A BIC-type information criterion then automatically selects the best-fitting \eqn{\lambda} value.
 
-In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and end-points of the interval on which the group-specific time-varying coefficients are defined.
+In case of an unbalanced panel data set, the earliest and latest available observations per group define the start and endpoints of the interval on which the group-specific time-varying coefficients are defined.
 
 We refer to Haimerl et al. (2025) for more details.
 }

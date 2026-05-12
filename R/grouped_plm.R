@@ -26,7 +26,7 @@
 #' where \eqn{y_{it}} is the scalar dependent variable, \eqn{\gamma_i^0} is an individual fixed effect, \eqn{\bold{x}_{it}} is a \eqn{p \times 1} vector of (weakly) exogenous explanatory variables, and \eqn{\epsilon_{it}} denotes a zero mean error.
 #' The coefficient vector \eqn{\bold{\beta}_i^0} follows the observed group pattern
 #' \deqn{\bold{\beta}_i^0 = \sum_{k = 1}^K \bold{\alpha}_k^0 \bold{1} \{i \in G_k \},}
-#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j},  \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
+#' with \eqn{\cup_{k = 1}^K G_k = \{1, \dots, N\}}, \eqn{G_k \cap G_j = \emptyset} and \eqn{\| \bold{\alpha}_k^0 - \bold{\alpha}_j^0 \| \neq 0} for any \eqn{k \neq j}, \eqn{k,j = 1, \dots, K}. The group structure \eqn{G_1, \dots, G_K} is determined by the argument \code{groups}.
 #'
 #' Using \emph{PLS}, the group-specific coefficients of group \eqn{k, \, k = 1, \dots, K}, are obtained by \emph{OLS}
 #' \deqn{\hat{\bold{\alpha}}_k = \left( \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{x}}_{it} \tilde{\bold{x}}_{it}^\prime \right)^{-1} \sum_{i \in G_k} \sum_{t = 1}^T \tilde{\bold{x}}_{it} \tilde{y}_{it},}
@@ -54,7 +54,7 @@
 #' estim <- grouped_plm(y ~ ., data = df, groups = groups, n_periods = 80, method = "PLS")
 #' summary(estim)
 #'
-#' # Lets pass a panel data set with explicit cross-sectional and time indicators
+#' # Let's pass a panel data set with explicit cross-sectional and time indicators
 #' i_index <- rep(1:20, each = 80)
 #' t_index <- rep(1:80, 20)
 #' df <- data.frame(y = c(y), X, i_index = i_index, t_index = t_index)
